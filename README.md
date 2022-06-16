@@ -1,2 +1,3 @@
 # WoWPlugins
-为了艾泽拉斯，也是拼了！
+Plugins: Stand-alone plugin in WoW.
+WeakAuras_Scripts: Scripts used in WeakAuras plugin in WoW.
