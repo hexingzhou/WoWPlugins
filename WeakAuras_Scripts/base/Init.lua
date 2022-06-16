@@ -1,10 +1,10 @@
 local SLChecker = {}
-local function SLChecker:run(config, check)
+function SLChecker:run(config, check)
     if not config or not config.name then
         return false
     end
-    SLChecker[config.name] = SLChecker[config.name] or {}
-    local env = SLChecker[config.name]
+    self[config.name] = self[config.name] or {}
+    local env = self[config.name]
     if config.enable then
         local count = config.count or 10
         env.count = env.count or 0
