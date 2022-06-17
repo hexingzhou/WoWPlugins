@@ -45,7 +45,7 @@ SL.config = {
     },
     keydown = {
         name = "KeyDownCheck",
-        count = 20,
+        count = 0,
         event = "SL_KEYDOWN",
         enable = false
     }
