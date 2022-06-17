@@ -28,6 +28,13 @@ Config of all features:
 - keydown: Check key down from keyboard.
            Use events SL_KEYDOWN_REGISTER and SL_KEYDOWN_UNREGISTER to set keys for check.
            Use event SL_KEYDOWN to send feedback.
+
+Config info:
+- name: Identity of the config.
+- count: To control the frequency of check jobs.
+         The number is bigger, less times of check job will be, and cost less resources of system.
+- event: The event used to send feedback. See function SL.config:feedback.
+- enable: Whether or not to enable check job.
 ]]--
 SL.config = {
     walking = {
