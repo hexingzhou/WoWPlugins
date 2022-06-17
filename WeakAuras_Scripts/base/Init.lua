@@ -69,6 +69,9 @@ end
 
 -- Feature keydown.
 function SL.config.keydown:register(id, keys)
+    if not id or not keys then
+        return
+    end
     self.keys = self.keys or {}
     self.ids = self.ids or {}
 
@@ -87,6 +90,9 @@ function SL.config.keydown:register(id, keys)
 end
 
 function SL.config.keydown:unregister(id)
+    if not id then
+        return
+    end
     self.keys = self.keys or {}
     self.ids = self.ids or {}
 
