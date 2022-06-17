@@ -9,82 +9,72 @@
     }
 }
 ]]--
-function(allstates, event, ...)
-    if event == "SL_KEYDOWN" then
-        local id, keyDown = ...
-        if aura_env.id == id then
-            allstates["KEY_BINDING"] = {
-                show = true,
-                changed = true,
-                name = aura_env.key,
-                keyDown = keyDown
-            }
-            aura_env.keyDown = keyDown
-            return true
-        end
-        
-    else
-        local spellID = 0 -- TODO: Set spellID
-        local key = nil
-        local hasBinding = false
-        local keys = {}
-        
-        local slots = C_ActionBar.FindSpellActionButtons(spellID)
-        for i = 1, #slots do
-            local slot = slots[i]
-            local key1, key2
-            if slot < 13 then
-                key1, key2 = GetBindingKey("ACTIONBUTTON"..slot)
-            elseif slot < 25 then
-                key1, key2 = GetBindingKey("ELVUIBAR2BUTTON"..(slot - 12))
-            elseif slot < 37 then
-                key1, key2 = GetBindingKey("MULTIACTIONBAR3BUTTON"..(slot - 24))
-            elseif slot < 49 then
-                key1, key2 = GetBindingKey("MULTIACTIONBAR4BUTTON"..(slot - 36))
-            end
-            
-            if key1 then
-                if hasBinding then
-                    key = key.."/"..key1
-                else
-                    key = key1
-                    hasBinding = true
-                end
-                table.insert(keys, key1)
-            elseif key2 then
-                if hasBinding then
-                    key = key.."/"..key2
-                else
-                    key = key2
-                    hasBinding = true
-                end
-                table.insert(keys, key2)
-            end
-        end
-        
-        aura_env.keys = keys
-        
-        if key then
-            key = string.gsub(string.gsub(string.gsub(key, "SHIFT%-", "S"), "ALT%-", "A"), "CTRL%-", "C")
-            allstates["KEY_BINDING"] = {
-                show = true,
-                changed = true,
-                name = key,
-                keyDown = aura_env.keyDown
-            }
-            WeakAuras.ScanEvents("SL_KEYDOWN_REGISTER", aura_env.id, aura_env.keys)
-        else
-            allstates["KEY_BINDING"] = {
-                show = true,
-                changed = true,
-                name = nil,
-                keyDown = aura_env.keyDown
-            }
-            WeakAuras.ScanEvents("SL_KEYDOWN_UNREGISTER", aura_env.id)
-        end
-        aura_env.key = key
-        
-        return true
+function()
+    local checker = aura_env.checker
+    local config = aura_env.config
+    if checker == nil or config == nil then
+        return false
     end
     
+    local result = false
+    
+    -- Check walking.
+    result = checker:run(config.walking, function()
+            config:feedback(config.walking)
+            return true
+    end) or result
+    
+    -- Check keydown.
+    result = checker:run(config.keydown, function()
+            config.keydown.changes = config.keydown.changes or {}
+            local tids = {}
+            local fids = {}
+            for key, ids in pairs(config.keydown.ids) do
+                local keydown = true
+                if string.find(key, "SHIFT%-") then
+                    keydown = keydown and IsShiftKeyDown()
+                end
+                if string.find(key, "ALT%-") then
+                    keydown = keydown and IsAltKeyDown()
+                end
+                if string.find(key, "CTRL%-") then
+                    keydown = keydown and IsControlKeyDown()
+                end
+                local sub = string.gsub(string.gsub(string.gsub(key, "SHIFT%-", ""), "ALT%-", ""), "CTRL%-", "")
+                keydown = keydown and IsKeyDown(sub)
+                if keydown then
+                    for i = 1, #ids do
+                        table.insert(tids, ids[i])
+                    end
+                else
+                    for i = 1, #ids do
+                        table.insert(fids, ids[i])
+                    end
+                end
+            end
+            for t = 1, #tids do
+                for f = #fids, 1, -1 do
+                    if tids[t] == fids[f] then
+                        table.remove(fids, f)
+                    end
+                end
+            end
+            for i = 1, #tids do
+                local id = tids[i]
+                if not config.keydown.changes[id] then
+                    config.keydown.changes[id] = true
+                    config:feedback(config.keydown, id, true)
+                end
+            end
+            for i = 1, #fids do
+                local id = fids[i]
+                if config.keydown.changes[id] == true then
+                    config.keydown.changes[id] = false
+                    config:feedback(config.keydown, id, false)
+                end
+            end
+            return true
+    end) or result
+    
+    return result
 end
