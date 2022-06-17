@@ -33,12 +33,18 @@ function()
                 local keydown = true
                 if string.find(key, "SHIFT%-") then
                     keydown = keydown and IsShiftKeyDown()
+                else
+                    keydown = keydown and not IsShiftKeyDown()
                 end
                 if string.find(key, "ALT%-") then
                     keydown = keydown and IsAltKeyDown()
+                else
+                    keydown = keydown and not IsAltKeyDown()
                 end
                 if string.find(key, "CTRL%-") then
                     keydown = keydown and IsControlKeyDown()
+                else
+                    keydown = keydown and not IsControlKeyDown()
                 end
                 local sub = string.gsub(string.gsub(string.gsub(key, "SHIFT%-", ""), "ALT%-", ""), "CTRL%-", "")
                 keydown = keydown and IsKeyDown(sub)
