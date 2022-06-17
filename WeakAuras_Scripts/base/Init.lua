@@ -82,7 +82,13 @@ function SL.config.keydown:register(id, keys)
     for i = 1, #keys do
         local key = keys[i]
         local ids = self.ids[key] or {}
-        if isInArray(ids, id) == false then
+        local exist = false
+        for index, value in ipairs(tab) do
+            if value == val then
+                exist = true
+            end
+        end
+        if not exist then
             table.insert(ids, id)
         end
         self.ids[key] = ids
@@ -108,15 +114,4 @@ function SL.config.keydown:unregister(id)
         self.ids[key] = ids
     end
     self.keys[id] = nil
-end
-
-
--- Local functions.
-local function isInArray(tab, val)
-    for index, value in ipairs(tab) do
-        if value == val then
-            return true
-        end
-    end
-    return false
 end
