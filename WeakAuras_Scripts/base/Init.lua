@@ -83,8 +83,8 @@ function SL.config.keydown:register(id, keys)
         local key = keys[i]
         local ids = self.ids[key] or {}
         local exist = false
-        for index, value in ipairs(tab) do
-            if value == val then
+        for index, value in ipairs(ids) do
+            if value == id then
                 exist = true
             end
         end
