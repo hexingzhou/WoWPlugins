@@ -25,40 +25,42 @@ function(allstates, event, ...)
         
     else
         local spellID = 0 -- TODO: Set spellID
-        local key = nil
+        local key = ""
         local hasBinding = false
         local keys = {}
         
         local slots = C_ActionBar.FindSpellActionButtons(spellID)
-        for i = 1, #slots do
-            local slot = slots[i]
-            local key1, key2
-            if slot < 13 then
-                key1, key2 = GetBindingKey("ACTIONBUTTON"..slot)
-            elseif slot < 25 then
-                key1, key2 = GetBindingKey("ELVUIBAR2BUTTON"..(slot - 12))
-            elseif slot < 37 then
-                key1, key2 = GetBindingKey("MULTIACTIONBAR3BUTTON"..(slot - 24))
-            elseif slot < 49 then
-                key1, key2 = GetBindingKey("MULTIACTIONBAR4BUTTON"..(slot - 36))
-            end
-            
-            if key1 then
-                if hasBinding then
-                    key = key.."/"..key1
-                else
-                    key = key1
-                    hasBinding = true
+        if slots then
+            for i = 1, #slots do
+                local slot = slots[i]
+                local key1, key2
+                if slot < 13 then
+                    key1, key2 = GetBindingKey("ACTIONBUTTON"..slot)
+                elseif slot < 25 then
+                    key1, key2 = GetBindingKey("ELVUIBAR2BUTTON"..(slot - 12))
+                elseif slot < 37 then
+                    key1, key2 = GetBindingKey("MULTIACTIONBAR3BUTTON"..(slot - 24))
+                elseif slot < 49 then
+                    key1, key2 = GetBindingKey("MULTIACTIONBAR4BUTTON"..(slot - 36))
                 end
-                table.insert(keys, key1)
-            elseif key2 then
-                if hasBinding then
-                    key = key.."/"..key2
-                else
-                    key = key2
-                    hasBinding = true
+                
+                if key1 then
+                    if hasBinding then
+                        key = key.."/"..key1
+                    else
+                        key = key1
+                        hasBinding = true
+                    end
+                    table.insert(keys, key1)
+                elseif key2 then
+                    if hasBinding then
+                        key = key.."/"..key2
+                    else
+                        key = key2
+                        hasBinding = true
+                    end
+                    table.insert(keys, key2)
                 end
-                table.insert(keys, key2)
             end
         end
         
