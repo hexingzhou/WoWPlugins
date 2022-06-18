@@ -165,6 +165,7 @@ function SL.config.keybinding:check(id, type)
     if not id or not type then
         return
     end
+    local config = SL.config
     local key = ""
     local hasBinding = false
     local keys = {}
@@ -207,5 +208,5 @@ function SL.config.keybinding:check(id, type)
     if key then
         key = string.gsub(string.gsub(string.gsub(key, "SHIFT%-", "S"), "ALT%-", "A"), "CTRL%-", "C")
     end
-    SL.config:feedback(config.keybinding, id, key, keys)
+    config:feedback(config.keybinding, id, key, keys)
 end
