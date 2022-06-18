@@ -139,16 +139,16 @@ end
 
 
 -- Feature keybinding.
-function SL.config.keybinding:init()
-    -- body...
-end
 function SL.config.keybinding:register(id, type)
     if not id or not type then
         return false
     end
     self.ids = self.ids or {}
-    self.ids[id] = type
-    return true
+    if not self.ids[id] then
+        self.ids[id] = type
+        return true
+    end
+    return false
 end
 
 function SL.config.keybinding:unregister(id)
@@ -156,8 +156,11 @@ function SL.config.keybinding:unregister(id)
         return false
     end
     self.ids = self.ids or {}
-    self.ids[id] = nil
-    return true
+    if self.ids[id] then
+        self.ids[id] = nil
+        return true
+    end
+    return false
 end
 
 function SL.config.keybinding:check(id, type)
