@@ -27,7 +27,16 @@ Config of all features:
            Use event SL_WALKING to send feedback.
 - keydown: Check key down from keyboard.
            Use events SL_KEYDOWN_REGISTER and SL_KEYDOWN_UNREGISTER to set keys for check.
+           - SL_KEYDOWN_REGISTER, id, keys
+           - SL_KEYDOWN_UNREGISTER, id
            Use event SL_KEYDOWN to send feedback.
+           - SL_KEYDOWN, id
+- keybinding: Check binding key from spellID.
+              Use events SL_KEYBINDING_REGISTER and SL_KEYBINDING_UNREGISTER to set spellIDs for check.
+              - SL_KEYBINDING_REGISTER, id, type
+              - SL_KEYDOWN_UNREGISTER, id
+              Use event SL_KEYBINDING to send feedback.
+              - SL_KEYBINDING, id, key, keys
 
 Config info:
 - name: Identity of the config.
@@ -48,6 +57,12 @@ SL.config = {
         count = 0,
         event = "SL_KEYDOWN",
         enable = false
+    },
+    keybinding = {
+        name = "KeyBindingCheck",
+        count = 0,
+        event = "SL_KEYBINDING",
+        enable = true
     }
 }
 
@@ -114,4 +129,71 @@ function SL.config.keydown:unregister(id)
         self.ids[key] = ids
     end
     self.keys[id] = nil
+end
+
+
+-- Feature keybinding.
+function SL.config.keybinding:register(id, type)
+    if not id then
+        return false
+    end
+    self.ids = self.ids or {}
+    self.ids[id] = type
+    return true
+end
+
+function SL.config.keybinding:unregister(id)
+    if not id then
+        return false
+    end
+    self.ids = self.ids or {}
+    self.ids[id] = nil
+    return true
+end
+
+function SL.config.keybinding:check(id, type)
+    -- TODO: Only check spellID. Support item...
+    local key = ""
+    local hasBinding = false
+    local keys = {}
+
+    local slots = C_ActionBar.FindSpellActionButtons(id)
+    if slots then
+        for i = 1, #slots do
+            local slot = slots[i]
+            local key1, key2
+            if slot < 13 then
+                key1, key2 = GetBindingKey("ACTIONBUTTON"..slot)
+            elseif slot < 25 then
+                key1, key2 = GetBindingKey("ELVUIBAR2BUTTON"..(slot - 12))
+            elseif slot < 37 then
+                key1, key2 = GetBindingKey("MULTIACTIONBAR3BUTTON"..(slot - 24))
+            elseif slot < 49 then
+                key1, key2 = GetBindingKey("MULTIACTIONBAR4BUTTON"..(slot - 36))
+            end
+
+            if key1 then
+                if hasBinding then
+                    key = key.."/"..key1
+                else
+                    key = key1
+                    hasBinding = true
+                end
+                table.insert(keys, key1)
+            elseif key2 then
+                if hasBinding then
+                    key = key.."/"..key2
+                else
+                    key = key2
+                    hasBinding = true
+                end
+                table.insert(keys, key2)
+            end
+        end
+    end
+
+    if key then
+        key = string.gsub(string.gsub(string.gsub(key, "SHIFT%-", "S"), "ALT%-", "A"), "CTRL%-", "C")
+    end
+    config:feedback(config.keybinding, id, key, keys)
 end
