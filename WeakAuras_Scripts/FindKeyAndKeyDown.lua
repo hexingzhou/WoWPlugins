@@ -24,20 +24,20 @@ function(allstates, event, ...)
         end
 
     elseif event == "SL_KEYBINDING" then
-        local spellIDs = {} -- TODO: Set spellIDs
-        local type = 1 -- For spell, type = 1
+        local ids = {} -- TODO: Set spell or item id
+        local type = 1 -- For spell, type = 1. For item, type = 2
 
         local id, key, keys = ...
 
         -- This WA has not loaded.
         if not id then
-            for i = 1, #spellIDs do
-                WeakAuras.ScanEvents("SL_KEYBINDING_REGISTER", spellIDs[i], type)
+            for i = 1, #ids do
+                WeakAuras.ScanEvents("SL_KEYBINDING_REGISTER", ids[i], type)
             end
         end
 
-        for i = 1, #spellIDs do
-            if id == spellIDs[i] then
+        for i = 1, #ids do
+            if id == ids[i] then
                 allstates["KEY_BINDING"] = {
                     show = true,
                     changed = true,
