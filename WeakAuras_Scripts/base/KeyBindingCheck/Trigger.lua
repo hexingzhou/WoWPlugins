@@ -1,7 +1,11 @@
 -- Events: SL_KEYBINDING_REGISTER, SL_KEYBINDING_UNREGISTER, ACTIONBAR_SLOT_CHANGED, UPDATE_BINDINGS
 function(allstates, event, id, type)
-    local checker = aura_env.checker
     local config = aura_env.config
+    if not config.keybinding.enable then
+        config:init(config.keybinding)
+        config.keybinding.enable = true
+    end
+
     if event == "SL_KEYBINDING_REGISTER" then
         if config.keybinding:register(id, type) then
             config.keybinding:check(id, type)

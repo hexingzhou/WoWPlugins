@@ -49,19 +49,20 @@ SL.config = {
     walking = {
         name = "WalkingCheck",
         count = 20,
-        event = "SL_WALKING",
+        feedback_event = "SL_WALKING",
         enable = false
     },
     keydown = {
         name = "KeyDownCheck",
         count = 0,
-        event = "SL_KEYDOWN",
+        feedback_event = "SL_KEYDOWN",
         enable = false
     },
     keybinding = {
         name = "KeyBindingCheck",
         count = 0,
-        event = "SL_KEYBINDING",
+        init_event = "SL_KEYBINDING_INIT",
+        feedback_event = "SL_KEYBINDING",
         enable = false
     }
 }
@@ -76,9 +77,14 @@ function SL.config:stop(config)
     config.enable = false
 end
 
+-- Send init for feature.
+function SL.config:init(config, ...)
+    WeakAuras.ScanEvents(config.init_event, ...)
+end
+
 -- Send feedback for feature.
 function SL.config:feedback(config, ...)
-    WeakAuras.ScanEvents(config.event, ...)
+    WeakAuras.ScanEvents(config.feedback_event, ...)
 end
 
 
@@ -133,6 +139,9 @@ end
 
 
 -- Feature keybinding.
+function SL.config.keybinding:init()
+    -- body...
+end
 function SL.config.keybinding:register(id, type)
     if not id or not type then
         return false

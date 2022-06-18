@@ -1,4 +1,4 @@
--- Events: SL_KEYDOWN, SL_KEYBINDING
+-- Events: SL_KEYDOWN, SL_KEYBINDING_INIT, SL_KEYBINDING
 
 --[[
 - Conditions:
@@ -11,14 +11,17 @@
 ]]--
 function(allstates, event, ...)
     local spellID = 0 -- TODO: Set spellID
+    local type = 1 -- For spell, type = 1
 
     -- This WA has not loaded.
-    if not aura_env.hasBinding then
-        WeakAuras.ScanEvents("SL_KEYBINDING_REGISTER", spellID, 1)
-        aura_env.hasBinding = true
+    if not aura_env.init then
+        WeakAuras.ScanEvents("SL_KEYBINDING_REGISTER", spellID, type)
+        aura_env.init = true
     end
 
-    if event == "SL_KEYDOWN" then
+    if event == "SL_KEYBINDING_INIT" then
+        WeakAuras.ScanEvents("SL_KEYBINDING_REGISTER", spellID, type)
+    elseif event == "SL_KEYDOWN" then
         local id, keyDown = ...
         if aura_env.id == id then
             allstates["KEY_BINDING"] = {
