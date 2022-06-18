@@ -11,8 +11,11 @@
 ]]--
 function(allstates, event, ...)
     local spellID = 0 -- TODO: Set spellID
-    if aura_env.hasBinding then
-        WeakAuras.ScanEvents("SL_KEYBINDING_REGISTER", spellID)
+
+    -- This WA has not loaded.
+    if not aura_env.hasBinding then
+        WeakAuras.ScanEvents("SL_KEYBINDING_REGISTER", spellID, 1)
+        aura_env.hasBinding = true
     end
 
     if event == "SL_KEYDOWN" then

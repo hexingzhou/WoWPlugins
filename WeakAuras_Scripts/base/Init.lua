@@ -134,7 +134,7 @@ end
 
 -- Feature keybinding.
 function SL.config.keybinding:register(id, type)
-    if not id then
+    if not id or not type then
         return false
     end
     self.ids = self.ids or {}
@@ -153,6 +153,9 @@ end
 
 function SL.config.keybinding:check(id, type)
     -- TODO: Only check spellID. Support item...
+    if not id or not type then
+        return
+    end
     local key = ""
     local hasBinding = false
     local keys = {}
