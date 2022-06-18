@@ -1,4 +1,12 @@
 -- Events: PLAYER_TOTEM_UPDATE
+
+--[[
+- Conditions:
+{
+    expirationTime = true,
+    duration = true
+}
+]]--
 function(allstates, event, totemSlot)
     if not totemSlot then
         return false
