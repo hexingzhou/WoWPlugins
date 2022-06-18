@@ -62,7 +62,7 @@ SL.config = {
         name = "KeyBindingCheck",
         count = 0,
         event = "SL_KEYBINDING",
-        enable = true
+        enable = false
     }
 }
 
