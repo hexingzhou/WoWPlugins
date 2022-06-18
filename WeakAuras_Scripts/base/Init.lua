@@ -61,9 +61,8 @@ SL.config = {
     keybinding = {
         name = "KeyBindingCheck",
         count = 0,
-        init_event = "SL_KEYBINDING_INIT",
         feedback_event = "SL_KEYBINDING",
-        enable = false
+        enable = true
     }
 }
 
@@ -75,11 +74,6 @@ end
 -- Stop check for feature. Use feature config as the parameter.
 function SL.config:stop(config)
     config.enable = false
-end
-
--- Send init for feature.
-function SL.config:init(config, ...)
-    WeakAuras.ScanEvents(config.init_event, ...)
 end
 
 -- Send feedback for feature.
