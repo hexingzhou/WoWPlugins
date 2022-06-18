@@ -49,7 +49,7 @@ function(allstates, event, totemSlot)
             changed = true,
             autoHide = true,
             progressType = "timed",
-            duration = totmes[chooseIndex].duration,
+            duration = totems[chooseIndex].duration,
             expirationTime = totems[chooseIndex].expirationTime
         }
     else
