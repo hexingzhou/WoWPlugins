@@ -21,14 +21,14 @@ function(allstates, event, totemSlot)
                 inCache = true
                 break
             end
-            if not inCache then
-                local totem = {}
-                totem.totemSlot = totemSlot
-                totem.duration = duration
-                totem.expirationTime = startTime + duration
+        end
+        if not inCache then
+            local totem = {}
+            totem.totemSlot = totemSlot
+            totem.duration = duration
+            totem.expirationTime = startTime + duration
 
-                table.insert(totems, totem)
-            end
+            table.insert(totems, totem)
         end
     else
         for i = #totems, 1, -1 do
