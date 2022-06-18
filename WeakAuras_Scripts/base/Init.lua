@@ -207,5 +207,5 @@ function SL.config.keybinding:check(id, type)
     if key then
         key = string.gsub(string.gsub(string.gsub(key, "SHIFT%-", "S"), "ALT%-", "A"), "CTRL%-", "C")
     end
-    config:feedback(config.keybinding, id, key, keys)
+    SL.config:feedback(config.keybinding, id, key, keys)
 end
