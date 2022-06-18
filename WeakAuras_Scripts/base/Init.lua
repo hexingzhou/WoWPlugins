@@ -167,7 +167,7 @@ function SL.config.keybinding:check(id, type)
     local hasBinding = false
     local keys = {}
 
-    local slots = C_ActionBar.FindSpellActionButtons(id)
+    local slots = self:findActionButtons(id, type)
     if slots then
         for i = 1, #slots do
             local slot = slots[i]
@@ -206,4 +206,23 @@ function SL.config.keybinding:check(id, type)
         key = string.gsub(string.gsub(string.gsub(key, "SHIFT%-", "S"), "ALT%-", "A"), "CTRL%-", "C")
     end
     config:feedback(config.keybinding, id, key, keys)
+end
+
+function SL.config.keybinding:findActionButtons(id, type)
+    if not id or not type then
+        return {}
+    end
+    if type == 1 then
+        return C_ActionBar.FindSpellActionButtons(id)
+    elseif type == 2 then
+        local slots = {}
+        for i = 1, 120 do
+            local actionType, actionId, actionSubType = GetActionInfo(i)
+            if actionType == "item" and id == actionId then
+                table.insert(slots, i)
+            end
+        end
+        return slots
+    end
+    return {}
 end
