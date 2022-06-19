@@ -158,7 +158,6 @@ function SL.config.keybinding:unregister(id)
 end
 
 function SL.config.keybinding:check(id, type)
-    -- TODO: Only check spellID. Support item...
     if not id or not type then
         return
     end
