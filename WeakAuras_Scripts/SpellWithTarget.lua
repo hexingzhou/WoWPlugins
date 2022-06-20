@@ -27,23 +27,26 @@
     isUsable = {
         display = "可用",
         type = "bool"
-    }    
+    }
 }
 ]]--
+
+-- Function checks the spell states with a few targets.
+-- It should work with spell using micros.
 function(allstates, event)
-    local spellName = ""
+    local spellName = "" -- TODO: Set the name of spell for check.
     local unitTargets = {
         "target",
         "targettarget",
         "targettargettarget",
         "targettargettargettarget"
-    }
-    
+    } -- Target will be checked under the order of the value in this table.
+
     if aura_env.spellName ~= spellName then
         aura_env.spellName = spellName
         aura_env.icon = select(3, GetSpellInfo(spellName))
     end
-    
+
     local icon = aura_env.icon
     local duration = 0
     local expirationTime = 0
@@ -52,7 +55,7 @@ function(allstates, event)
     local hasTarget = false
     local isUsable, noResource = IsUsableSpell(spellName)
     local healthPercent = 0
-    
+
     local currentCharges, maxCharges, cooldownStart, cooldownDuration, chargeModRate = GetSpellCharges(spellName)
     if currentCharges < maxCharges then
         duration = cooldownDuration
@@ -61,7 +64,7 @@ function(allstates, event)
     if maxCharges > 1 then
         stacks = currentCharges
     end
-    
+
     for i = 1, #unitTargets do
         local inRange = IsSpellInRange(spellName, unitTargets[i])
         if inRange ~= nil then
@@ -71,7 +74,7 @@ function(allstates, event)
             break
         end
     end
-    
+
     allstates["SPELL"] = {
         show = true,
         changed = true,

@@ -31,9 +31,10 @@ Config of all features:
            - SL_KEYDOWN_UNREGISTER, id
            Use event SL_KEYDOWN to send feedback.
            - SL_KEYDOWN, id
-- keybinding: Check binding key from spellID.
-              Use events SL_KEYBINDING_REGISTER and SL_KEYBINDING_UNREGISTER to set spellIDs for check.
-              - SL_KEYBINDING_REGISTER, id, type
+- keybinding: Check binding key from spellID or itemID.
+              Use events SL_KEYBINDING_REGISTER and SL_KEYBINDING_UNREGISTER to set spellID or itemID for check.
+              - SL_KEYBINDING_REGISTER, id, type:
+                  - type: 1 for spell, 2 for item.
               - SL_KEYDOWN_UNREGISTER, id
               Use event SL_KEYBINDING to send feedback.
               - SL_KEYBINDING, id, key, keys
