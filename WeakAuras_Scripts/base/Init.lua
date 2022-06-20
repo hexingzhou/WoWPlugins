@@ -25,6 +25,7 @@ end
 Config of all features:
 - walking: Check walking state of the character.
            Use event SL_WALKING to send feedback.
+           - SL_WALKING
 - keydown: Check key down from keyboard.
            Use events SL_KEYDOWN_REGISTER and SL_KEYDOWN_UNREGISTER to set keys for check.
            - SL_KEYDOWN_REGISTER, id, keys
@@ -33,17 +34,21 @@ Config of all features:
            - SL_KEYDOWN, id
 - keybinding: Check binding key from spellID or itemID.
               Use events SL_KEYBINDING_REGISTER and SL_KEYBINDING_UNREGISTER to set spellID or itemID for check.
-              - SL_KEYBINDING_REGISTER, id, type:
+              - SL_KEYBINDING_REGISTER, id, type
+                  - id:
                   - type: 1 for spell, 2 for item.
               - SL_KEYDOWN_UNREGISTER, id
               Use event SL_KEYBINDING to send feedback.
               - SL_KEYBINDING, id, key, keys
+                  - id:
+                  - key: String of keys for display.
+                  - keys: Binding keys.
 
 Config info:
 - name: Identity of the config.
 - count: To control the frequency of check jobs.
          The number is bigger, less times of check job will be, and cost less resources of system.
-- event: The event used to send feedback. See function SL.config:feedback.
+- feedback_event: The event used to send feedback. See function SL.config:feedback.
 - enable: Whether or not to enable check job.
 ]]--
 SL.config = {
@@ -175,6 +180,7 @@ function SL.config.keybinding:check(id, type)
             if slot < 13 then
                 key1, key2 = GetBindingKey("ACTIONBUTTON"..slot)
             elseif slot < 25 then
+                -- TODO: Use magic string to GetBindingKey. It can work while using ElvUI.
                 key1, key2 = GetBindingKey("ELVUIBAR2BUTTON"..(slot - 12))
             elseif slot < 37 then
                 key1, key2 = GetBindingKey("MULTIACTIONBAR3BUTTON"..(slot - 24))
