@@ -361,6 +361,7 @@ function H.coreGrow(newPositions, activeRegions)
             if remainCount < maxLine then
                 minLine = remainCount
                 remainCount = remainCount - minLine
+                lineCount = lineCount + 1
             elseif remainCount < maxLine * 2 then
                 if remainCount - maxCount < minCount then
                     midLine = remainCount - minCount
@@ -369,16 +370,17 @@ function H.coreGrow(newPositions, activeRegions)
                 end
                 minLine = remainCount - midLine
                 remainCount = remainCount - midLine - minLine
+                lineCount = lineCount + 2
             else
-                lineCount = lineCount + 1
                 remainCount = remainCount - maxLine
+                lineCount = lineCount + 1
             end
         end
 
         local currentLine = 0
-        if lineCount > 0 then
+        if lineCount > 2 then
             currentLine = maxLine
-        elseif midLine > 0 then
+        elseif lineCount > 1 then
             currentLine = midLine
         else
             currentLine = minLine
@@ -393,15 +395,15 @@ function H.coreGrow(newPositions, activeRegions)
                 newPositions[i] = { (i - currentMin - currentMid) * (subWidth + subHSpacing) + xOffset, y }
                 if i == currentMax then
                     lineCount = lineCount - 1
-                    if lineCount > 0 then
+                    if lineCount > 2 then
                         currentLine = maxLine
-                    elseif midLine > 0 then
+                    elseif lineCount > 1 then
                         currentLine = midLine
                     else
                         currentLine = minLine
                     end
                     currentMid = (currentLine + 1) / 2
-                    currentMin = currentMax + 1
+                    currentMin = currentMax
                     currentMax = currentMin + currentLine
                     y = y + (subVSpacing + subHeight) * direction
                 end
