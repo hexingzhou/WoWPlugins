@@ -412,30 +412,9 @@ function H.coreGrow(newPositions, activeRegions)
 end
 
 
-local function getPriority(c)
-    if not c then return 0 end
-
-    local specID = 0
-    local spec = GetSpecialization()
-    if spec then
-        specID = GetSpecializationInfo(spec) or 0
-    end
-    local formID = GetShapeshiftFormID() or 0
-
-    local p = c.value or 0
-    p = min(c.form and c.form[formID] or 0, p)
-
-    local cs = c.spec and c.spec[specID] or {}
-    p = min(cs.value or 0, p)
-    p = min(cs.form and c.form[formID] or 0, p)
-
-    return p
-end
-
-
-function H.coreSort(envs, a, b)
-    local priorityA = getPriority(envs[a.dataIndex] and envs[a.dataIndex].priority or {})
-    local priorityB = getPriority(envs[b.dataIndex] and envs[b.dataIndex].priority or {})
+function H.coreSort(a, b)
+    local priorityA = a.region and a.region.state and a.region.state.priority or 0
+    local priorityB = b.region and b.region.state and b.region.state.priority or 0
     if priorityA == priorityB then
         return a.dataIndex <= b.dataIndex
     end

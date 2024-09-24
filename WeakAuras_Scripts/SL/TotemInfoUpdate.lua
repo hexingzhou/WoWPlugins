@@ -7,19 +7,20 @@
     duration = true
 }
 ]]--
-function(allstates, event, totemSlot)
+function(states, event, totemSlot)
     if not totemSlot then
         return false
     end
 
-    local totemName = "" -- TODO: Set the totem name. There may be more than one totem exist at the same time.
-    local chooseIndex = 1 -- Control the index of totems which will be choozen. Sorted by the expirationTime of totem.
+    local key = "TOTEM"
+
+    local name = aura_env.totem and aura_env.totem.name or "" -- There may be more than one totem exist at the same time.
 
     local totems = aura_env.totems or {}
 
-    local exist, name, startTime, duration, icon = GetTotemInfo(totemSlot)
+    local haveTotem, totemName, startTime, duration, icon = GetTotemInfo(totemSlot)
 
-    if exist and name == totemName then
+    if haveTotem and name == totemName then
         local inCache = false
         for i = 1, #totems do
             local totem = totems[i]
@@ -47,21 +48,22 @@ function(allstates, event, totemSlot)
         end
     end
 
+    -- Sorted by the expirationTime of totem. The first totem will be choozen.
     table.sort(totems, function(a, b)
         return a.expirationTime > b.expirationTime
     end)
 
-    if totems[chooseIndex] then
-        allstates["TOTEM"] = {
+    if totems[1] then
+        allstates[key] = {
             show = true,
             changed = true,
             autoHide = true,
             progressType = "timed",
-            duration = totems[chooseIndex].duration,
-            expirationTime = totems[chooseIndex].expirationTime
+            duration = totems[1].duration,
+            expirationTime = totems[1].expirationTime
         }
     else
-        allstates["TOTEM"] = {
+        allstates[key] = {
             show = false,
             changed = true
         }

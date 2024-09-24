@@ -1,4 +1,4 @@
--- STATUS
+-- Events: STATUS
 
 function(event)
     if "STATUS" == event then

@@ -1,3 +1,5 @@
+-- For use: replace CLASS to the right one.
+
 function(newPositions, activeRegions)
     local HWA = HWA and HWA["CLASS"] or {}
    

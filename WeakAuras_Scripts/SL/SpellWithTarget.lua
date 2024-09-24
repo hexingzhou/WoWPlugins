@@ -1,4 +1,4 @@
--- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_UPDATE_CHARGES, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_USABLE, SL_WALKING
+-- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_UPDATE_CHARGES, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_USABLE, HWA_INIT, SL_WALKING
 
 --[[
 - Conditions:
@@ -25,48 +25,53 @@
         type = "bool"
     },
     isUsable = {
-        display = "可用",
+        display = "法术可用",
         type = "bool"
     }
 }
 ]]--
 
 -- Function checks the spell states with a few targets.
--- It should work with spell using micros.
-function(allstates, event)
-    local spellName = "" -- TODO: Set the name of spell for check.
-    local unitTargets = {
-        "target",
-        "targettarget",
-        "targettargettarget",
-        "targettargettargettarget"
-    } -- Target will be checked under the order of the value in this table.
-
-    if aura_env.spellName ~= spellName then
-        aura_env.spellName = spellName
-        aura_env.icon = select(3, GetSpellInfo(spellName))
+-- It can work with spell using micros.
+function(states, event)
+    local key = "SPELL"
+    local spellID = aura_env.spell and aura_env.spell.id or 0
+    local spellName = aura_env.spell and aura_env.spell.name or ""
+    if spellID == 0 and spellName == "" then
+        states[key] = {
+            show = false,
+            changed = true
+        }
+        return true
     end
+    local unitTargets = aura_env.unit_targets or { "target" }
 
-    local icon = aura_env.icon
+    local spell = spellID or spellName
+
+    local spellInfo = C_Spell.GetSpellInfo(spell)
+
+    local icon = spellInfo and spellInfo.iconID
     local duration = 0
     local expirationTime = 0
     local stacks = 0
     local isSpellInRange = false
     local hasTarget = false
-    local isUsable, noResource = IsUsableSpell(spellName)
+    local isUsable, noResource = C_Spell.IsSpellUsable(spell)
     local healthPercent = 0
 
-    local currentCharges, maxCharges, cooldownStart, cooldownDuration, chargeModRate = GetSpellCharges(spellName)
-    if currentCharges < maxCharges then
-        duration = cooldownDuration
-        expirationTime = cooldownStart + cooldownDuration
-    end
-    if maxCharges > 1 then
-        stacks = currentCharges
+    local chargeInfo = C_Spell.GetSpellCharges(spell)
+    if chargeInfo then
+        if chargeInfo.currentCharges < chargeInfo.maxCharges then
+            duration = chargeInfo.cooldownDuration
+            expirationTime = chargeInfo.cooldownStartTime + chargeInfo.cooldownDuration
+        end
+        if chargeInfo.maxCharges > 1 then
+            stacks = chargeInfo.currentCharges
+        end
     end
 
     for i = 1, #unitTargets do
-        local inRange = IsSpellInRange(spellName, unitTargets[i])
+        local inRange = C_Spell.IsSpellInRange(spell, unitTargets[i])
         if inRange ~= nil then
             isSpellInRange = inRange == 1
             hasTarget = true
@@ -75,7 +80,7 @@ function(allstates, event)
         end
     end
 
-    allstates["SPELL"] = {
+    states[key] = {
         show = true,
         changed = true,
         progressType = "timed",
@@ -87,7 +92,8 @@ function(allstates, event)
         noResource = noResource,
         isSpellInRange = isSpellInRange,
         hasTarget = hasTarget,
-        healthPercent = healthPercent
+        healthPercent = healthPercent,
+        priority = HWA and HWA.getPriority and HWA.getPriority(aura_env.priority or {}) or 0
     }
     return true
 end
