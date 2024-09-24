@@ -40,7 +40,7 @@ function(states, event)
         local sID, count = aura_env.id:gsub(".+ %- ", "")
         spellID = tonumber(sID) or 0
     end
-    local spellName = aura_env.spell and aura_env.spell.name or aura_env.id:gsub(" %- %d+", "")
+    local spellName = aura_env.spell and aura_env.spell.name or ""
     if spellName == "" then
         spellName = aura_env.id:gsub(" %- %d+", "")
     end
