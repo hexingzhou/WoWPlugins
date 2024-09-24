@@ -37,7 +37,8 @@ function(states, event)
     local key = "SPELL"
     local spellID = aura_env.spell and aura_env.spell.id or 0
     if spellID == 0 then
-        spellID = tonumber(aura_env.id:gsub(".+ %- ", "")) or 0
+        local sID, count = aura_env.id:gsub(".+ %- ", "")
+        spellID = tonumber(sID) or 0
     end
     local spellName = aura_env.spell and aura_env.spell.name or aura_env.id:gsub(" %- %d+", "")
     if spellName == "" then
