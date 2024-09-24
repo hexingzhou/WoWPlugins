@@ -35,8 +35,8 @@
 -- It can work with spell using micros.
 function(states, event)
     local key = "SPELL"
-    local spellID = aura_env.spell and aura_env.spell.id or 0
-    local spellName = aura_env.spell and aura_env.spell.name or ""
+    local spellID = aura_env.spell and aura_env.spell.id or aura_env.id:gsub(".+ %- ", "")
+    local spellName = aura_env.spell and aura_env.spell.name or aura_env.id:gsub(" %- %d+", "")
     if spellID == 0 and spellName == "" then
         states[key] = {
             show = false,
@@ -49,6 +49,13 @@ function(states, event)
     local spell = spellID or spellName
 
     local spellInfo = C_Spell.GetSpellInfo(spell)
+    if not spellInfo then
+        states[key] = {
+            show = false,
+            changed = true
+        }
+        return true
+    end
 
     local icon = spellInfo and spellInfo.iconID
     local duration = 0
