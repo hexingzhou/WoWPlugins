@@ -14,7 +14,11 @@ function(states, event, totemSlot)
 
     local key = "TOTEM"
 
-    local name = aura_env.totem and aura_env.totem.name or aura_env.id:gsub(" %- %d+", "") -- There may be more than one totem exist at the same time.
+    -- There may be more than one totem exist at the same time.
+    local name = aura_env.totem and aura_env.totem.name or ""
+    if name == "" then
+        name = aura_env.id:gsub(" %- %d+", "")
+    end
 
     local totems = aura_env.totems or {}
 
