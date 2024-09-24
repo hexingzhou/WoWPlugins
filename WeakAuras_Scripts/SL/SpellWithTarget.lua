@@ -8,6 +8,10 @@
     value = true,
     total = true,
     stacks = true,
+    charges = {
+        display = "充能",
+        type = "number"
+    },
     healthPercent = {
         display = "生命百分比",
         type = "number"
@@ -74,6 +78,7 @@ function(states, event)
     local duration = 0
     local expirationTime = 0
     local stacks = 0
+    local charges = 1
     local isSpellInRange = false
     local hasTarget = false
     local isUsable, noResource = C_Spell.IsSpellUsable(spell)
@@ -87,6 +92,20 @@ function(states, event)
         end
         if chargeInfo.maxCharges > 1 then
             stacks = chargeInfo.currentCharges
+            charges = chargeInfo.currentCharges
+        end
+    else
+        local globalCooldownInfo = C_Spell.GetSpellCooldown(61304)
+        if globalCooldownInfo and globalCooldownInfo.isEnabled and globalCooldownInfo.duration > 0 then
+            aura_env.gcd = globalCooldownInfo.duration
+        end
+        local spellCooldownInfo = C_Spell.GetSpellCooldown(spell)
+        if spellCooldownInfo and spellCooldownInfo.isEnabled and spellCooldownInfo.duration > 0 then
+            if aura_env.gcd and spellCooldownInfo.duration ~= aura_env.gcd then
+                duration = spellCooldownInfo.duration
+                expirationTime = spellCooldownInfo.startTime + spellCooldownInfo.duration
+                charges = 0
+            end
         end
     end
 
@@ -108,6 +127,7 @@ function(states, event)
         expirationTime = expirationTime,
         icon = icon,
         stacks = stacks,
+        charges = charges,
         isUsable = isUsable,
         noResource = noResource,
         isSpellInRange = isSpellInRange,
