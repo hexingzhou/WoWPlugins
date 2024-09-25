@@ -1,10 +1,16 @@
 aura_env.aura = {
-    [0] = { -- Key for auraInstanceID
-        unit_targets = {
+    info = {
+        {
+            aura = 0, -- Key for auraInstanceID
+            unit_targets = {
 
-        },
-        source_units = {
+            },
+            source_units = {
 
+            }
         }
+    },
+    strategy = {
+
     }
 }

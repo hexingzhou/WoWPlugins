@@ -64,7 +64,8 @@ function(states, event, totemSlot)
             autoHide = true,
             progressType = "timed",
             duration = totems[1].duration,
-            expirationTime = totems[1].expirationTime
+            expirationTime = totems[1].expirationTime,
+            stacks = #totems
         }
     else
         allstates[key] = {
