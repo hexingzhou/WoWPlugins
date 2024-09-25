@@ -3,10 +3,8 @@
 --[[
 - Conditions:
 {
-    expirationTime = true,
     duration = true,
-    value = true,
-    total = true,
+    expirationTime = true,
     stacks = true,
     charges = {
         display = "充能",

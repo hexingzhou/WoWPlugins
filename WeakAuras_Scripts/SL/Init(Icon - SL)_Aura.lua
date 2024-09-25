@@ -1,7 +1,7 @@
 aura_env.aura = {
-    info = {
+    configs = {
         {
-            aura = 0, -- Key for auraInstanceID
+            id = 0, -- Key for auraInstanceID
             unit_targets = {
 
             },
@@ -10,7 +10,7 @@ aura_env.aura = {
             }
         }
     },
-    strategy = {
+    strategies = {
 
     }
 }

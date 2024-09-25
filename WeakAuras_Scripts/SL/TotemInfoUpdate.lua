@@ -1,18 +1,29 @@
--- Events: PLAYER_TOTEM_UPDATE
+-- Events: PLAYER_TOTEM_UPDATE, STATUS
 
 --[[
 - Conditions:
 {
+    duration = true,
     expirationTime = true,
-    duration = true
+    stacks = true
 }
 ]]--
-function(states, event, totemSlot)
+function(states, event, ...)
+    local key = "TOTEM"
+
+    if "STATUS" == event then
+        aura_env.totems = {}
+        states[key] = {
+            show = false,
+            changed = true
+        }
+        return true
+    end
+
+    local totemSlot = ...
     if not totemSlot then
         return false
     end
-
-    local key = "TOTEM"
 
     -- There may be more than one totem exist at the same time.
     local name = aura_env.totem and aura_env.totem.name or ""
@@ -58,7 +69,7 @@ function(states, event, totemSlot)
     end)
 
     if totems[1] then
-        allstates[key] = {
+        states[key] = {
             show = true,
             changed = true,
             autoHide = true,
@@ -68,7 +79,7 @@ function(states, event, totemSlot)
             stacks = #totems
         }
     else
-        allstates[key] = {
+        states[key] = {
             show = false,
             changed = true
         }
