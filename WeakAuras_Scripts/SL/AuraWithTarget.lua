@@ -30,6 +30,7 @@ function(states, event, ...)
 
     local auras = aura_env.auras[unitTarget] or {}
     local configs = aura_env.configs or {}
+    local strategies = aura_env.strategies or {}
 
     local tcontains = function(t, v)
         if not t then
@@ -53,10 +54,11 @@ function(states, event, ...)
         local unitTargets = config.unit_targets
         local sourceUnits = config.source_units
         if tcontains(unitTargets, unitTarget) then
-            local info = C_UnitAuras.GetAuraDataByAuraInstanceID(unitTarget, config.id)
+            local info = C_UnitAuras.GetAuraDataByAuraInstanceID(unitTarget, config.id or 0)
             if info and tcontains(sourceUnits, info.sourceUnit) then
                 table.insert(currentAuras, {
-                    configIndex = i,
+                    index = i,
+                    strategy = strategies[config.group or 0] or {},
                     unitTarget = unitTarget,
                     auraInstanceID = auraData.auraInstanceID,
                     charges = auraData.charges,
@@ -96,22 +98,49 @@ function(states, event, ...)
         end
     end
 
+    if not next(auras) then
+        states[key] = {
+            show = false,
+            changed = true
+        }
+        return true
+    end
+
+    -- Use strategies to sort auras.
+    table.sort(auras, function(a, b)
+        local priorityA = a.strategy.priority or 0
+        local priorityB = b.strategy.priority or 0
+        if priorityA == priorityB then
+            return a.index <= b.index
+        end
+        return priorityA < priorityB
+    end)
+
     -- Use auras cache to update states.
-    -- Ignore strategies. Use the first one in cache.
-    local aura = auras[1]
-    if aura then
+    local result = aura[1].strategy.result or function(auras)
+        local aura = auras[1]
         local stacks = 0
         if aura.charges > 1 then
             states = aura.charges
         end
-        states[key] = {
-            show = true,
-            changed = true,
+        return {
             autoHide = true,
             progressType = "timed",
             duration = aura.duration,
             expirationTime = aura.expirationTime,
             stacks = stacks
+        }
+    end
+    local state = result(auras)
+    if state then
+        states[key] = {
+            show = true,
+            changed = true,
+            autoHide = state.autoHide,
+            progressType = state.progressType,
+            duration = state.duration,
+            expirationTime = state.expirationTime,
+            stacks = state.stacks
         }
     else
         states[key] = {
