@@ -37,10 +37,10 @@
 -- It can work with spell using micros.
 function(states, event)
     local key = "SPELL"
-    local getSpell = HWA and HWA.getSpell
     local result, state = false, {}
-    
-    result, state = HWA.getSpell(aura_env)
+    if HWA and HWA.getSpell then
+        result, state = HWA.getSpell(aura_env)
+    end
     if result and state then
         if not state.show then
             states[key] = {
