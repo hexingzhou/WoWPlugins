@@ -329,6 +329,7 @@ function HWA.getAura(env, init, unitTarget)
             progressType = state.progressType,
             duration = state.duration,
             expirationTime = state.expirationTime,
+            name = state.name,
             stacks = state.stacks
         }
     else
