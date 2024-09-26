@@ -7,7 +7,10 @@ function(event, ...)
     if "PLAYER_TOTEM_UPDATE" == event then
         totemSlot = ...
     end
-    local result, state = HWA and HWA.getAura and HWA.getAura(aura_env, "STATUS" == event, totemSlot)
+    local result, state = false, {}
+    if HWA and HWA.getAura then
+        result, state = HWA.getAura(aura_env, "STATUS" == event, totemSlot)
+    end
     if result and state then
         aura_env.result = aura_env.result or {}
         aura_env.result[key] = state
