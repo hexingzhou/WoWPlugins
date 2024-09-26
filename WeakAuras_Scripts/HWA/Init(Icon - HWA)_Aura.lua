@@ -15,7 +15,7 @@ aura_env.aura = {
         -- Use groupID as key.
         [0] = {
             priority = 0,
-            result = nil --[[ function(auras)
+            get_state = nil --[[ function(auras)
                 local aura = auras[1]
                 local stacks = 0
                 if aura.charges > 1 then
