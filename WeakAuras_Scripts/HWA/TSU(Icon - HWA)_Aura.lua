@@ -18,7 +18,10 @@ function(states, event, ...)
             return false
         end
     end
-    local result, state = HWA and HWA.getAura and HWA.getAura(aura_env, "STATUS" == event, unitTarget)
+    local result, state = false, {}
+    if HWA and HWA.getAura then
+        result, state = HWA.getAura(aura_env, "STATUS" == event, unitTarget)
+    end
     if result and state then
         if not state.show then
             states[key] = {
