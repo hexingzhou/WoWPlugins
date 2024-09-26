@@ -14,7 +14,10 @@ function(states, event, ...)
     if "PLAYER_TOTEM_UPDATE" == event then
         totemSlot = ...
     end
-    local result, state = HWA and HWA.getTotem and HWA.getTotem(aura_env, "STATUS" == event, totemSlot)
+    local result, state = false, {}
+    if HWA and HWA.getTotem then
+        result, state = HWA.getTotem(aura_env, "STATUS" == event, totemSlot)
+    end
     if result and state then
         if not state.show then
             states[key] = {
