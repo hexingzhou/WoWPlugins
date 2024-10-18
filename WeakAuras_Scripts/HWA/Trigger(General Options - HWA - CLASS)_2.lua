@@ -30,7 +30,7 @@ function(event, ...)
                 if UnitExists("target") then
                     local isEnemy = UnitCanAttack("player", "target") or UnitIsEnemy("player", "target")
                     if (not isEnemy and config.ignore_friendly) or (isEnemy and config.ignore_enemy) then
-                        alpha = config.global
+                        alpha = config.global or 100
                     end
                 end
             end
