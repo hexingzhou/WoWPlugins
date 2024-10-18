@@ -1,4 +1,4 @@
--- CLASS identifier follows https://wowpedia.fandom.com/wiki/API_UnitClass.
+-- CLASS identifier follows https://warcraft.wiki.gg/wiki/API_UnitClass.
 -- Include:
 -- 1. WARRIOR
 -- 2. PALADIN
@@ -13,6 +13,112 @@
 -- 11. DRUID
 -- 12. DEMONHUNTER
 -- 13. EVOKER
+
+--[[
+-- FORM follows https://warcraft.wiki.gg/wiki/API_GetShapeshiftFormID.
+
+ALL
+- nil = humanoid form
+
+DRUID
+- Aquatic Form - 4
+- Bear Form - 5 (BEAR_FORM constant)
+- Cat Form - 1 (CAT_FORM constant)
+- Flight Form - 29
+- Moonkin Form - 31 - 35 (MOONKIN_FORM constant) (different races seem to have different numbers)
+- Swift Flight Form - 27
+- Travel Form - 3
+- Tree of Life - 2
+- Treant Form - 36
+
+MONK
+- Stance of the Fierce Tiger - 24
+- Stance of the Sturdy Ox - 23
+- Stance of the Wise Serpent - 20
+
+ROGUE
+- Stealth - 30
+
+SHAMAN
+- Ghost Wolf - 16
+
+WARLOCK
+- Metamorphosis - 22
+
+WARRIOR
+- Battle Stance - 17
+- Berserker Stance - 19
+- Defensive Stance - 18
+--]]
+
+--[[
+-- SPEC follows https://warcraft.wiki.gg/wiki/API_GetSpecializationInfo.
+
+DEATHKNIGHT
+- 250 Blood
+- 251 Frost
+- 252 Unholy
+
+DEMONHUNTER
+- 577 Havoc
+- 581 Vengeance
+
+DRUID
+- 102 Balance
+- 103 Feral
+- 104 Guardian
+- 105 Restoration
+
+EVOKER
+- 1467 Devastation
+- 1468 Preservation
+- 1473 Augmentation
+
+HUNTER
+- 253 Beast Mastery
+- 254 Marksmanship
+- 255 Survival
+
+MAGE
+- 62  Arcane
+- 63  Fire
+- 64  Frost
+
+MONK
+- 268 Brewmaster
+- 270 Mistweaver
+- 269 Windwalker
+
+PALADIN
+- 65  Holy
+- 66  Protection
+- 70  Retribution
+
+PRIEST
+- 256 Discipline
+- 257 Holy
+- 258 Shadow
+
+ROGUE
+- 259 Assassination
+- 260 Outlaw
+- 261 Subtlety
+
+SHAMAN
+- 262 Elemental
+- 263 Enhancement
+- 264 Restoration
+
+WARLOCK
+- 265 Affliction
+- 266 Demonology
+- 267 Destruction
+
+WARRIOR
+- 71  Arms
+- 72  Fury
+- 73  Protection
+--]]
 
 local env = aura_env
 local class = env.id:gsub("General Options %- HWA %- ", "")

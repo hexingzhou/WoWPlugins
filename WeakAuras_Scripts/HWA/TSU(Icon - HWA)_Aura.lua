@@ -7,7 +7,7 @@
     expirationTime = true,
     stacks = true
 }
-]]--
+--]]
 function(states, event, ...)
     local key = "AURA"
     local unitTarget = nil

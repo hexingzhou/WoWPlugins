@@ -16,10 +16,25 @@ function(event, ...)
         elseif "BARBER_SHOP_OPEN" == event then
             frame:SetAlpha(0)
         elseif "HWA_ALPHA" == event then
+            local class = UnitClassBase("player")
+            local isMounted = IsMounted() or ("DRUID" == class and tContains({3, 4, 27, 29}, GetShapeshiftFormID()))
+            local isSkyriding = WeakAuras.IsRetail() and isMounted and select(2, C_PlayerInfo.GetGlidingInfo())
+
             if not UnitAffectingCombat("player") then
-                alpha = min(alpha, config.out_of_combat or 100)
+                alpha = min(alpha, config.out_of_combat or 35)
             end
-            -- TODO
+
+            if (isSkyriding or (isMounted and (not config.skyriding_only or (HasBonusActionBar() and (11 == GetBonusBarIndex() or ("EVOKER" == class and 7 == GetBonusBarIndex())))))) then
+                alpha = min(alpha, config.mounted or 0)
+            else
+                if UnitExists("target") then
+                    local isEnemy = UnitCanAttack("player", "target") or UnitIsEnemy("player", "target")
+                    if (not isEnemy and config.ignore_friendly) or (isEnemy and config.ignore_enemy) then
+                        alpha = config.global
+                    end
+                end
+            end
+
             frame:SetAlpha(alpha / 100)
         else
             C_Timer.After(0.05, function()

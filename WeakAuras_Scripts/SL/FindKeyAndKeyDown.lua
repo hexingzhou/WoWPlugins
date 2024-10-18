@@ -8,7 +8,7 @@
         type = "bool"
     }
 }
-]]--
+--]]
 function(allstates, event, ...)
     if event == "SL_KEYDOWN" then
         local id, keyDown = ...

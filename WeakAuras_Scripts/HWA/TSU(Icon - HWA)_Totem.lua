@@ -7,7 +7,7 @@
     expirationTime = true,
     stacks = true
 }
-]]--
+--]]
 function(states, event, ...)
     local key = "TOTEM"
     local totemSlot = nil
