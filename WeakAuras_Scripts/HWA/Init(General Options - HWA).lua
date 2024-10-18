@@ -17,6 +17,50 @@ local function tcontains(t, v)
 end
 
 
+function HWA.getShow(config)
+    if not config then
+        return true
+    end
+    local show = config.show or 0
+    local formID = nil
+    if config.form then
+        formID = GetShapeshiftFormID() or 0
+        local s = config.form[formID] and config.form[formID].show or 0
+        if s ~= 0 then
+            show = s
+        end
+    end
+    if config.spec then
+        local specID = 0
+        local spec = GetSpecialization()
+        if spec then
+            specID = GetSpecializationInfo(spec) or 0
+        end
+        local sConfig = config.spec[specID]
+        if sConfig then
+            local s = sConfig.show or 0
+            if s ~= 0 then
+                show = s
+            end
+            if sConfig.form then
+                if not formID then
+                    formID = GetShapeshiftFormID() or 0
+                end
+                s = sConfig.form[formID] and sConfig.form[formID].show or 0
+                if s ~= 0 then
+                    show = s
+                end
+            end
+        end
+    end
+    if show < 0 then
+        return false
+    else
+        return true
+    end
+end
+
+
 function HWA.getPriority(env)
     local c = env and env.priority
     if not c then return 0 end
@@ -50,6 +94,12 @@ end
 
 -- Get spell info.
 function HWA.getSpell(env)
+    if not HWA.getShow(env.spell) then
+        return true, {
+            show = false
+        }
+    end
+    
     local spellID = env.spell and env.spell.id or 0
     if spellID == 0 then
         local sID, count = env.id:gsub(".+ %- ", "")
