@@ -250,7 +250,7 @@ function HWA.getTotem(env, init, totemSlot)
         return a.expirationTime > b.expirationTime
     end)
 
-    aura_env.totems = totems
+    env.totems = totems
 
     if totems[1] then
         local stacks = 0
