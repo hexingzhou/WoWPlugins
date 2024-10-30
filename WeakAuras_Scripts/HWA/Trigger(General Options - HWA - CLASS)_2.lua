@@ -16,16 +16,23 @@ function(event, ...)
         elseif "BARBER_SHOP_OPEN" == event then
             frame:SetAlpha(0)
         elseif "HWA_ALPHA" == event then
-            local class = UnitClassBase("player")
-            local isMounted = IsMounted() or ("DRUID" == class and tContains({3, 4, 27, 29}, GetShapeshiftFormID()))
-            local isSkyriding = WeakAuras.IsRetail() and isMounted and select(2, C_PlayerInfo.GetGlidingInfo())
-
             if not UnitAffectingCombat("player") then
                 alpha = min(alpha, config.out_of_combat or 35)
             end
 
-            if (isSkyriding or (isMounted and (not config.skyriding_only or (HasBonusActionBar() and (11 == GetBonusBarIndex() or ("EVOKER" == class and 7 == GetBonusBarIndex())))))) then
+            local class = UnitClassBase("player")
+            local isMounted = IsMounted() or ("DRUID" == class and tContains({3, 4, 27, 29}, GetShapeshiftFormID()))
+            local isSkyriding = WeakAuras.IsRetail() and isMounted and select(2, C_PlayerInfo.GetGlidingInfo())
+            local isPetBattle = C_PetBattles.IsInBattle()
+            local isVehicle = UnitInVehicle('player') or UnitOnTaxi('player')
+            local isVehicleUI = UnitHasVehicleUI('player') or HasOverrideActionBar() or HasVehicleActionBar()
+
+            if isSkyriding or (isMounted and not config.skyriding_only) then
                 alpha = min(alpha, config.mounted or 0)
+            elseif isPetBattle then
+                alpha = min(alpha, config.in_pet_battle or 0)
+            elseif isVehicle or isVehicleUI then
+                alpha = min(alpha, config.in_vehicle or 0)
             else
                 if UnitExists("target") then
                     local isEnemy = UnitCanAttack("player", "target") or UnitIsEnemy("player", "target")
