@@ -1,6 +1,0 @@
-## Interface: 80205
-## Title: WeakAruas Cooldown Formater
-## Notes: Format cooldown text in WeakAruas
-## Version: 1.0.0
-
-Core.lua

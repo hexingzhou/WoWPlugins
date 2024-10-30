@@ -1,3 +1,6 @@
+--[[
+Replace the entire file of InfoBox.lua.
+--]]
 -- GLOBALS: UIParent, GameFontNormal, BigWigs
 
 --------------------------------------------------------------------------------
