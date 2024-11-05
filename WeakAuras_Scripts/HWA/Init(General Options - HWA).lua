@@ -1,6 +1,5 @@
 HWA = HWA or {}
 
-
 local function tcontains(t, v)
     if not t then
         return false
@@ -15,7 +14,6 @@ local function tcontains(t, v)
     end
     return false
 end
-
 
 function HWA.getShow(config)
     if not config then
@@ -60,10 +58,11 @@ function HWA.getShow(config)
     end
 end
 
-
 function HWA.getPriority(env)
     local c = env and env.priority
-    if not c then return 0 end
+    if not c then
+        return 0
+    end
 
     local specID = 0
     local spec = GetSpecialization()
@@ -91,15 +90,14 @@ function HWA.getPriority(env)
     return p
 end
 
-
 -- Get spell info.
 function HWA.getSpell(env)
     if not HWA.getShow(env.spell) then
         return true, {
-            show = false
+            show = false,
         }
     end
-    
+
     local spellID = env.spell and env.spell.id or 0
     if spellID == 0 then
         local sID, count = env.id:gsub(".+ %- ", "")
@@ -111,7 +109,7 @@ function HWA.getSpell(env)
     end
     if spellID == 0 and spellName == "" then
         return true, {
-            show = false
+            show = false,
         }
     end
 
@@ -125,7 +123,7 @@ function HWA.getSpell(env)
     local spellInfo = C_Spell.GetSpellInfo(spell)
     if not spellInfo then
         return true, {
-            show = false
+            show = false,
         }
     end
 
@@ -176,30 +174,30 @@ function HWA.getSpell(env)
         end
     end
 
-    return true, {
-        show = true,
-        progressType = "timed",
-        duration = duration,
-        expirationTime = expirationTime,
-        icon = icon,
-        stacks = stacks,
-        charges = charges,
-        isUsable = isUsable,
-        noResource = noResource,
-        isSpellInRange = isSpellInRange,
-        hasTarget = hasTarget,
-        healthPercent = healthPercent,
-        priority = HWA.getPriority(env) or 0
-    }
+    return true,
+        {
+            show = true,
+            progressType = "timed",
+            duration = duration,
+            expirationTime = expirationTime,
+            icon = icon,
+            stacks = stacks,
+            charges = charges,
+            isUsable = isUsable,
+            noResource = noResource,
+            isSpellInRange = isSpellInRange,
+            hasTarget = hasTarget,
+            healthPercent = healthPercent,
+            priority = HWA.getPriority(env) or 0,
+        }
 end
-
 
 -- Get totem info.
 function HWA.getTotem(env, init, totemSlot)
     if init then
         env.totems = {}
         return true, {
-            show = false
+            show = false,
         }
     end
 
@@ -257,27 +255,27 @@ function HWA.getTotem(env, init, totemSlot)
         if #totems > 1 then
             stacks = #totems
         end
-        return true, {
-            show = true,
-            progressType = "timed",
-            duration = totems[1].duration,
-            expirationTime = totems[1].expirationTime,
-            stacks = stacks
-        }
+        return true,
+            {
+                show = true,
+                progressType = "timed",
+                duration = totems[1].duration,
+                expirationTime = totems[1].expirationTime,
+                stacks = stacks,
+            }
     else
         return true, {
-            show = false
+            show = false,
         }
     end
 end
-
 
 -- Get aura info.
 function HWA.getAura(env, init, unitTarget)
     if init then
         env.auras = {}
         return true, {
-            show = false
+            show = false,
         }
     end
     if not unitTarget then
@@ -312,7 +310,7 @@ function HWA.getAura(env, init, unitTarget)
                     maxCharges = auraData.maxCharges,
                     points = auraData.points,
                     sourceUnit = auraData.sourceUnit,
-                    spellID = auraData.spellId
+                    spellID = auraData.spellId,
                 })
             end
         end
@@ -324,7 +322,11 @@ function HWA.getAura(env, init, unitTarget)
         local inCache = false
         for index = #currentAuras, 1, -1 do
             local currentAura = currentAuras[index]
-            if aura.unitTarget == currentAura.unitTarget and aura.auraInstanceID == currentAura.auraInstanceID and aura.sourceUnit == currentAura.sourceUnit then
+            if
+                aura.unitTarget == currentAura.unitTarget
+                and aura.auraInstanceID == currentAura.auraInstanceID
+                and aura.sourceUnit == currentAura.sourceUnit
+            then
                 aura.configIndex = currentAura.configIndex
                 aura.charges = currentAura.charges
                 aura.duration = currentAura.duration
@@ -344,7 +346,7 @@ function HWA.getAura(env, init, unitTarget)
 
     if not next(auras) then
         return true, {
-            show = false
+            show = false,
         }
     end
 
@@ -359,32 +361,67 @@ function HWA.getAura(env, init, unitTarget)
     end)
 
     -- Use auras cache to update states.
-    local getState = auras[1].strategy.get_state or function(auras)
-        local aura = auras[1]
-        local stacks = 0
-        if aura.charges > 1 then
-            stacks = aura.charges
+    local getState = auras[1].strategy.get_state
+        or function(auras)
+            local aura = auras[1]
+            local stacks = 0
+            if aura.charges > 1 then
+                stacks = aura.charges
+            end
+            return {
+                progressType = "timed",
+                duration = aura.duration,
+                expirationTime = aura.expirationTime,
+                stacks = stacks,
+            }
         end
-        return {
-            progressType = "timed",
-            duration = aura.duration,
-            expirationTime = aura.expirationTime,
-            stacks = stacks
-        }
-    end
     local state = getState(auras)
     if state then
-        return true, {
-            show = true,
-            progressType = state.progressType,
-            duration = state.duration,
-            expirationTime = state.expirationTime,
-            name = state.name,
-            stacks = state.stacks
-        }
+        return true,
+            {
+                show = true,
+                progressType = state.progressType,
+                duration = state.duration,
+                expirationTime = state.expirationTime,
+                name = state.name,
+                stacks = state.stacks,
+            }
     else
         return true, {
-            show = false
+            show = false,
         }
     end
+end
+
+function HWA.getPower(env, init)
+    if init then
+        return true, {
+            show = false,
+        }
+    end
+    local config = env and env.power or {}
+    local unit = config.unit or "player"
+    local type = config.type or -1
+    local unmodified = config.unmodified or false
+    local per = config.per or 1
+
+    local current = UnitPower(unit, type, unmodified)
+    local maxCount = UnitPowerMax(unit, type, unmodified) / per
+    local states = {}
+    for i = 1, maxCount do
+        states[i] = {
+            show = true,
+            progressType = "static",
+            total = per,
+        }
+        local value = current - per * (i - 1)
+        if value > per then
+            value = per
+        end
+        states[i].value = value
+    end
+    return true, {
+        show = true,
+        states = states,
+    }
 end

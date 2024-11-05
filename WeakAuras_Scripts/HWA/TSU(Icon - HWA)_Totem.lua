@@ -22,7 +22,7 @@ function(states, event, ...)
         if not state.show then
             states[key] = {
                 show = false,
-                changed = true
+                changed = true,
             }
         else
             states[key] = {
@@ -32,7 +32,7 @@ function(states, event, ...)
                 progressType = state.progressType,
                 duration = state.duration,
                 expirationTime = state.expirationTime,
-                stacks = state.stacks
+                stacks = state.stacks,
             }
         end
         return true

@@ -1,3 +1,3 @@
 aura_env.totem = {
-    name = ""
+    name = "",
 }

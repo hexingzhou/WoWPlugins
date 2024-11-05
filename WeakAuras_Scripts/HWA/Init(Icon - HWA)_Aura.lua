@@ -2,14 +2,10 @@ aura_env.aura = {
     configs = {
         {
             id = 0, -- Key for auraInstanceID
-            unit_targets = {
-
-            },
-            source_units = {
-
-            },
-            group = 0
-        }
+            unit_targets = {},
+            source_units = {},
+            group = 0,
+        },
     },
     strategies = {
         -- Use groupID as key.
@@ -28,7 +24,7 @@ aura_env.aura = {
                     expirationTime = aura.expirationTime,
                     stacks = stacks
                 }
-            end ]]
-        }
-    }
+            end ]],
+        },
+    },
 }

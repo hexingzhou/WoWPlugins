@@ -98,7 +98,9 @@ local C_Timer = C_Timer
 
 if WeakAuras.IsImporting() then
     local function checkImport()
-        if WeakAuras.IsImporting() or not env.IsImporting then return end
+        if WeakAuras.IsImporting() or not env.IsImporting then
+            return
+        end
 
         env.isImporting:Cancel()
         env.isImporting = false
@@ -113,16 +115,15 @@ else
     env.isImporting = false
 end
 
-
 local function tclone(t)
     local tr = {}
-   
+
     if t then
         for k, v in pairs(t) do
             if "table" == type(v) then
                 v = tclone(v)
             end
-           
+
             if "string" == type(k) then
                 tr[k] = v
             else
@@ -130,19 +131,18 @@ local function tclone(t)
             end
         end
     end
-   
+
     return tr
 end
 
-
 local function tmerge(...)
-    local ts = {...}
+    local ts = { ... }
     local tr = tclone(ts[1])
     local t
-   
+
     for i = 2, #ts do
         t = ts[i] or {}
-       
+
         for k, v in pairs(t) do
             if "table" == type(v) then
                 v = tclone(v)
@@ -156,16 +156,14 @@ local function tmerge(...)
             end
         end
     end
-   
+
     return tr
 end
-
 
 local function setRegionSize(r, w, h)
     r:SetRegionWidth(w)
     r:SetRegionHeight(h)
 end
-
 
 function H.getConfig(group, force)
     local default = {
@@ -184,20 +182,23 @@ function H.getConfig(group, force)
             sub_vertical_spacing = 3,
             max_sub_icon_size_pl = 17,
             min_sub_icon_size_pl = 3,
-            sub_spacing = 3
+            sub_spacing = 3,
+        },
+        resource = {
+            x_offset = 0,
+            y_offset = 0,
+            width = 383,
+            height = 7,
+            horizontal_spacing = 2,
         },
         form = {
             -- Use ShapeshiftFormID to support different form.
             [1] = { -- For Druid Cat Form
-                core = {
-
-                }
+                core = {},
             },
             [5] = { -- For Druid Bear Form
-                core = {
-
-                }
-            }
+                core = {},
+            },
         },
         spec = {
             -- Use SpecializationID to support different duty.
@@ -209,8 +210,8 @@ function H.getConfig(group, force)
                     max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13
-                }
+                    sub_spacing = 13,
+                },
             },
             [105] = { -- For Druid Restoration
                 core = {
@@ -220,11 +221,9 @@ function H.getConfig(group, force)
                     max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13
+                    sub_spacing = 13,
                 },
-                form = {
-
-                }
+                form = {},
             },
             [256] = { -- For Priest Discipline
                 core = {
@@ -234,8 +233,8 @@ function H.getConfig(group, force)
                     max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13
-                }
+                    sub_spacing = 13,
+                },
             },
             [257] = { -- For Priest Holy
                 core = {
@@ -245,8 +244,8 @@ function H.getConfig(group, force)
                     max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13
-                }
+                    sub_spacing = 13,
+                },
             },
             [264] = { -- For Shaman Restoration
                 core = {
@@ -256,8 +255,8 @@ function H.getConfig(group, force)
                     max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13
-                }
+                    sub_spacing = 13,
+                },
             },
             [270] = { -- For Monk Mistweaver
                 core = {
@@ -267,8 +266,8 @@ function H.getConfig(group, force)
                     max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13
-                }
+                    sub_spacing = 13,
+                },
             },
             [1468] = { -- For Evoker Preservation
                 core = {
@@ -278,8 +277,8 @@ function H.getConfig(group, force)
                     max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13
-                }
+                    sub_spacing = 13,
+                },
             },
             [1473] = { -- For Evoker Augmentation
                 core = {
@@ -289,10 +288,10 @@ function H.getConfig(group, force)
                     max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13
-                }
-            }
-        }
+                    sub_spacing = 13,
+                },
+            },
+        },
     }
     local specID = 0
     local spec = GetSpecialization()
@@ -329,12 +328,13 @@ function H.getConfig(group, force)
     return config[specID][formID]
 end
 
-
 local initThrottledHandler = nil
 local initThrottledLastRunTime = 0
 
 function env.initThrottled()
-    if initThrottledHandler or env.isImporting then return end
+    if initThrottledHandler or env.isImporting then
+        return
+    end
 
     local currentTime, delay = time(), 0.25
 
@@ -347,27 +347,26 @@ function env.initThrottled()
     end)
 end
 
-
 function env.init()
-    if env.isImporting then return end
+    if env.isImporting then
+        return
+    end
 
     initThrottledLastRunTime = time()
 
     H.getConfig(nil, true)
-    
+
     if initThrottledHandler then
         initThrottledHandler:Cancel()
         initThrottledHandler = nil
     end
 end
 
-
 hooksecurefunc("SetUIVisibility", function(isVisible)
     if isVisible and env and env.initThrottled then
         env.initThrottled()
     end
 end)
-
 
 function H.coreGrow(newPositions, activeRegions)
     local config = H.getConfig("core")
@@ -394,8 +393,10 @@ function H.coreGrow(newPositions, activeRegions)
     local mid = (maxSize + 1) / 2
     for i, regionData in ipairs(activeRegions) do
         setRegionSize(regionData.region, width, height)
-        newPositions[i] = { (i - mid) * (width + hSpacing) + xOffset, yOffset}
-        if i == maxSize then break end
+        newPositions[i] = { (i - mid) * (width + hSpacing) + xOffset, yOffset }
+        if i == maxSize then
+            break
+        end
     end
 
     if maxOverflow > 0 then
@@ -413,7 +414,7 @@ function H.coreGrow(newPositions, activeRegions)
         local minLine = 0
 
         local remainCount = maxOverflow
-        while (remainCount > 0) do
+        while remainCount > 0 do
             if remainCount < maxLine then
                 minLine = remainCount
                 remainCount = remainCount - minLine
@@ -466,9 +467,7 @@ function H.coreGrow(newPositions, activeRegions)
             end
         end
     end
-
 end
-
 
 function H.coreSort(a, b)
     local priorityA = a.region and a.region.state and a.region.state.priority or 0
@@ -477,4 +476,22 @@ function H.coreSort(a, b)
         return a.dataIndex <= b.dataIndex
     end
     return priorityA < priorityB
+end
+
+function H.resourceGrow(newPositions, activeRegions)
+    local config = H.getConfig("resource")
+    local xOffset = config.x_offset
+    local yOffset = config.y_offset
+    local width = config.width
+    local height = config.height
+    local hSpacing = config.horizontal_spacing
+
+    local count = #activeRegions
+    local perWidth = (width - (count - 1) * hSpacing) / count
+    local mid = (count + 1) / 2
+
+    for i, regionData in ipairs(activeRegions) do
+        setRegionSize(regionData.region, perWidth, height)
+        newPositions[i] = { (i - mid) * (perWidth + hSpacing) + xOffset, yOffset }
+    end
 end
