@@ -7,7 +7,7 @@ function(states, event, ...)
             return
         end
     end
-    local max = aura_env.max, 1
+    local max = aura_env.max or 1
     local result, state = false, {}
     if HWA and HWA.getPower then
         result, state = HWA.getPower(aura_env, false)
