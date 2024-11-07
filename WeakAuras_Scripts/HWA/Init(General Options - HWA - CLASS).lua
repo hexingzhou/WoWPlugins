@@ -187,7 +187,7 @@ function H.getConfig(group, force)
         resource = {
             x_offset = 0,
             y_offset = 0,
-            width = 383,
+            total_width = 383,
             height = 7,
             horizontal_spacing = 2,
         },
@@ -450,16 +450,16 @@ function H.resourceGrow(newPositions, activeRegions)
     local config = H.getConfig("resource")
     local xOffset = config.x_offset
     local yOffset = config.y_offset
-    local width = config.width
+    local totalWidth = config.total_width
     local height = config.height
     local hSpacing = config.horizontal_spacing
 
     local count = #activeRegions
-    local perWidth = (width - (count - 1) * hSpacing) / count
+    local width = (totalWidth - (count - 1) * hSpacing) / count
     local mid = (count + 1) / 2
 
     for i, regionData in ipairs(activeRegions) do
-        setRegionSize(regionData.region, perWidth, height)
-        newPositions[i] = { (i - mid) * (perWidth + hSpacing) + xOffset, yOffset }
+        setRegionSize(regionData.region, width, height)
+        newPositions[i] = { (i - mid) * (width + hSpacing) + xOffset, yOffset }
     end
 end
