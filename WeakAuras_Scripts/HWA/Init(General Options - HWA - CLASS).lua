@@ -204,10 +204,6 @@ function H.getConfig(group, force)
             -- Use SpecializationID to support different duty.
             [65] = { -- For Paladin Holy
                 core = {
-                    y_offset = 16,
-                    width = 33,
-                    height = 33,
-                    max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
@@ -215,10 +211,6 @@ function H.getConfig(group, force)
             },
             [105] = { -- For Druid Restoration
                 core = {
-                    y_offset = 16,
-                    width = 33,
-                    height = 33,
-                    max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
@@ -227,10 +219,6 @@ function H.getConfig(group, force)
             },
             [256] = { -- For Priest Discipline
                 core = {
-                    y_offset = 16,
-                    width = 33,
-                    height = 33,
-                    max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
@@ -238,10 +226,6 @@ function H.getConfig(group, force)
             },
             [257] = { -- For Priest Holy
                 core = {
-                    y_offset = 16,
-                    width = 33,
-                    height = 33,
-                    max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
@@ -249,10 +233,6 @@ function H.getConfig(group, force)
             },
             [264] = { -- For Shaman Restoration
                 core = {
-                    y_offset = 16,
-                    width = 33,
-                    height = 33,
-                    max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
@@ -260,10 +240,6 @@ function H.getConfig(group, force)
             },
             [270] = { -- For Monk Mistweaver
                 core = {
-                    y_offset = 16,
-                    width = 33,
-                    height = 33,
-                    max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
@@ -271,10 +247,6 @@ function H.getConfig(group, force)
             },
             [1468] = { -- For Evoker Preservation
                 core = {
-                    y_offset = 16,
-                    width = 33,
-                    height = 33,
-                    max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
@@ -282,10 +254,6 @@ function H.getConfig(group, force)
             },
             [1473] = { -- For Evoker Augmentation
                 core = {
-                    y_offset = 16,
-                    width = 33,
-                    height = 33,
-                    max_icon_size_pl = 11,
                     direction = 1,
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,

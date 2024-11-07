@@ -355,7 +355,7 @@ function HWA.getAura(env, init, unitTarget)
         local priorityA = a.strategy.priority or 0
         local priorityB = b.strategy.priority or 0
         if priorityA == priorityB then
-            return a.index <= b.index
+            return a.index < b.index
         end
         return priorityA < priorityB
     end)
@@ -402,6 +402,9 @@ function HWA.getPower(env, init)
     local config = env and env.power or {}
     local unit = config.unit or "player"
     local type = config.type or -1
+    if type == -1 then
+        type = Enum.PowerType[env.id:gsub(" %- .+", "")]
+    end
     local unmodified = config.unmodified or false
     local per = config.per or 1
 

@@ -36,6 +36,31 @@ function(states, event, ...)
                     }
                 end
             end
+            local cooldown = {}
+            for i = 1, #rStates do
+                local startTime, duration, isRuneReady = GetRuneCooldown(i)
+                local c = {}
+                c.isRuneReady = isRuneReady
+                if isRuneReady then
+                    c.duration = 0
+                    c.expirationTime = 0
+                else
+                    c.duration = duration
+                    c.expirationTime = startTime + duration
+                end
+                table.insert(cooldown, c)
+            end
+            table.sort(cooldown, function(a, b)
+                return a.expirationTime < b.expirationTime
+            end)
+            for i = 1, #rStates do
+                local c = cooldown[i]
+                if not c.isRuneReady then
+                    states[i].progressType = "timed"
+                    states[i].duration = c.duration
+                    states[i].expirationTime = c.startTime + c.duration
+                end
+            end
             aura_env.max = #rStates
             if aura_env.max == 0 then
                 aura_env.max = 1
