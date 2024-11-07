@@ -7,23 +7,23 @@ function(states, event, ...)
             return
         end
     end
-    local max = aura_env.max or 1
+    local powerSize = aura_env.power_size or 1
     local result, state = false, {}
     if HWA and HWA.getPower then
         result, state = HWA.getPower(aura_env, false)
     end
     if result and state then
         if not state.show then
-            for i = 1, max do
+            for i = 1, powerSize do
                 states[i] = {
                     show = false,
                     changed = true,
                 }
             end
-            aura_env.max = 1
+            aura_env.power_size = 1
         else
             local rStates = state.states or {}
-            local size = max(max, #rStates)
+            local size = max(powerSize, #rStates)
             for i = 1, size do
                 if rStates[i] then
                     states[i] = rStates[i]
@@ -61,9 +61,9 @@ function(states, event, ...)
                     states[i].expirationTime = c.expirationTime
                 end
             end
-            aura_env.max = #rStates
-            if aura_env.max == 0 then
-                aura_env.max = 1
+            aura_env.power_size = #rStates
+            if aura_env.power_size == 0 then
+                aura_env.power_size = 1
             end
         end
         return true
