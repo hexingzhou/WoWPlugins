@@ -191,6 +191,17 @@ function H.getConfig(group, force)
             height = 7,
             horizontal_spacing = 2,
         },
+        dynamic_effects = {
+            x_offset = -192,
+            y_offset = 0,
+            width = 33,
+            height = 27,
+            horizontal_spacing = 2,
+            vertical_spacing = 3,
+            max_icon_size_pl = 11,
+            direction = 1,
+            grow = 1, -- 1 for left to right, 2 for mid, 3 for right to left
+        },
         form = {
             -- Use ShapeshiftFormID to support different form.
             [1] = { -- For Druid Cat Form
@@ -214,6 +225,9 @@ function H.getConfig(group, force)
                     direction = 1,
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
+                },
+                dynamic_effects = {
+                    y_offset = 72,
                 },
                 form = {},
             },
@@ -385,7 +399,7 @@ function H.coreGrow(newPositions, activeRegions)
         while remainCount > 0 do
             if remainCount < maxLine then
                 minLine = remainCount
-                remainCount = remainCount - minLine
+                remainCount = 0
                 lineCount = lineCount + 1
             elseif remainCount < maxLine * 2 then
                 if remainCount - maxCount < minCount then
@@ -461,5 +475,76 @@ function H.resourceGrow(newPositions, activeRegions)
     for i, regionData in ipairs(activeRegions) do
         setRegionSize(regionData.region, width, height)
         newPositions[i] = { (i - mid) * (width + hSpacing) + xOffset, yOffset }
+    end
+end
+
+function H.dynamicEffectsGrow(newPositions, activeRegions)
+    local config = H.getConfig("dynamic_effects")
+    local xOffset = config.x_offset
+    local yOffset = config.y_offset
+    local width = config.width
+    local height = config.height
+    local hSpacing = config.horizontal_spacing
+    local vSpacing = config.vertical_spacing
+    local direction = 1
+    if config.direction == 2 then
+        direction = -1
+    end
+    local maxSize = config.max_icon_size_pl
+    local growType = config.grow
+    local grow = 1
+    if growType == 3 then
+        grow = -1
+    end
+
+    local lineCount = 0
+    local minLine = 0
+    local remainCount = #activeRegions
+    while remainCount > 0 do
+        if remainCount < maxSize then
+            minLine = remainCount
+            remainCount = 0
+            lineCount = lineCount + 1
+        else
+            remainCount = remainCount - maxSize
+            lineCount = lineCount + 1
+        end
+    end
+    local currentLine = 0
+    if lineCount > 1 then
+        currentLine = maxSize
+    else
+        currentLine = minLine
+    end
+    local currentMid = 1
+    if growType == 2 then
+        currentMid = (currentLine + 1) / 2
+    end
+    local currentMin = 0
+    local currentMax = currentLine
+    local x0 = xOffset
+    if growType ~= 2 then
+        x0 = x0 + ((width - 1) / 2 + 1) * grow
+    end
+    local y = ((height - 1) / 2 + 1) * direction + yOffset
+    for i, regionData in ipairs(activeRegions) do
+        if i > currentMin then
+            setRegionSize(regionData.region, width, height)
+            newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + x0, y }
+            if i == currentMax then
+                lineCount = lineCount - 1
+                if lineCount > 1 then
+                    currentLine = maxSize
+                else
+                    currentLine = minLine
+                end
+                if growType == 2 then
+                    currentMid = (currentLine + 1) / 2
+                end
+                currentMin = currentMax
+                currentMax = currentMin + currentLine
+                y = y + (vSpacing + height) * direction
+            end
+        end
     end
 end
