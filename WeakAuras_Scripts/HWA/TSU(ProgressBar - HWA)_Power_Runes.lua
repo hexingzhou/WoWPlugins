@@ -58,7 +58,7 @@ function(states, event, ...)
                 if not c.isRuneReady then
                     states[i].progressType = "timed"
                     states[i].duration = c.duration
-                    states[i].expirationTime = c.startTime + c.duration
+                    states[i].expirationTime = c.expirationTime
                 end
             end
             aura_env.max = #rStates
