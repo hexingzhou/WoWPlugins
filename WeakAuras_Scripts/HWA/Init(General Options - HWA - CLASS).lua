@@ -1,3 +1,4 @@
+--[[
 -- CLASS identifier follows https://warcraft.wiki.gg/wiki/API_UnitClass.
 -- Include:
 -- 1. WARRIOR
@@ -14,7 +15,7 @@
 -- 12. DEMONHUNTER
 -- 13. EVOKER
 
---[[
+
 -- FORM follows https://warcraft.wiki.gg/wiki/API_GetShapeshiftFormID.
 
 ALL
@@ -49,9 +50,8 @@ WARRIOR
 - Battle Stance - 17
 - Berserker Stance - 19
 - Defensive Stance - 18
---]]
 
---[[
+
 -- SPEC follows https://warcraft.wiki.gg/wiki/SpecializationID.
 
                 Spec 1              Spec 2              Spec 3              Spec 4

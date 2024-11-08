@@ -1,6 +1,10 @@
--- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_UPDATE_CHARGES, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_USABLE, HWA_INIT
-
 --[[
+- Events: 
+UNIT_HEALTH, UNIT_TARGET, SPELL_UPDATE_CHARGES, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_USABLE, HWA_INIT
+or
+-- Call WeakAuras.WatchSpellCooldown(id) in Actions - On Init - Custom. Once initialised, will fire "events" for the spell.
+SPELL_COOLDOWN_READY:id, SPELL_COOLDOWN_CHANGED:id
+
 - Conditions:
 {
     duration = true,
@@ -32,7 +36,6 @@
     }
 }
 --]]
-
 -- Function checks the spell states with a few targets.
 -- It can work with spell using micros.
 function(states, event)

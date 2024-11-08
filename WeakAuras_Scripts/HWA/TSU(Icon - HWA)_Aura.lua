@@ -1,6 +1,6 @@
--- Events: UNIT_AURA, STATUS
-
 --[[
+- Events: UNIT_AURA, STATUS
+
 - Conditions:
 {
     duration = true,

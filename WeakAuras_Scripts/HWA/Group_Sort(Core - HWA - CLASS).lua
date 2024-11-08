@@ -1,8 +1,9 @@
 --[[
-For use:
-- [Require] Replace CLASS in name to the right one.
+- For use:
+[Require] Replace CLASS in name to the right one.
+
+- Run on: priority
 --]]
--- Run On: priority
 function(a, b)
     local HWA = HWA and HWA[aura_env.id:gsub("Core %- HWA %- ", "")] or {}
    

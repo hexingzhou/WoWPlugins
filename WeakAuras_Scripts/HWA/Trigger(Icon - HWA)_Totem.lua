@@ -1,5 +1,6 @@
--- Events: PLAYER_TOTEM_UPDATE, STATUS
-
+--[[
+- Events: PLAYER_TOTEM_UPDATE, STATUS
+--]]
 -- Trigger
 function(event, ...)
     local key = "TOTEM"

@@ -1,5 +1,8 @@
 HWA = HWA or {}
 
+-- Start GCD watching. This is used for GCD check in getSpell function.
+WeakAuras.WatchGCD()
+
 local function tcontains(t, v)
     if not t then
         return false
@@ -150,17 +153,16 @@ function HWA.getSpell(env)
             charges = chargeInfo.currentCharges
         end
     else
-        local globalCooldownInfo = C_Spell.GetSpellCooldown(61304)
-        if globalCooldownInfo and globalCooldownInfo.isEnabled and globalCooldownInfo.duration > 0 then
-            env.gcd = globalCooldownInfo.duration
-        end
         local spellCooldownInfo = C_Spell.GetSpellCooldown(spell)
-        if spellCooldownInfo and spellCooldownInfo.isEnabled and spellCooldownInfo.duration > 0 then
-            if env.gcd and spellCooldownInfo.duration ~= env.gcd then
-                duration = spellCooldownInfo.duration
-                expirationTime = spellCooldownInfo.startTime + spellCooldownInfo.duration
-                charges = 0
-            end
+        if
+            spellCooldownInfo
+            and spellCooldownInfo.isEnabled
+            and spellCooldownInfo.duration > 0
+            and spellCooldownInfo.duration ~= WeakAuras.gcdDuration()
+        then
+            duration = spellCooldownInfo.duration
+            expirationTime = spellCooldownInfo.startTime + spellCooldownInfo.duration
+            charges = 0
         end
     end
 

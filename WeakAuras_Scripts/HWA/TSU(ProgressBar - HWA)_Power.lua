@@ -1,5 +1,6 @@
--- Events: UNIT_POWER_FREQUENT, STATUS
-
+--[[
+- Events: UNIT_POWER_FREQUENT, STATUS
+--]]
 function(states, event, ...)
     if "UNIT_POWER_FREQUENT" == event then
         local unitTarget = ...

@@ -1,6 +1,6 @@
--- Events: PLAYER_TOTEM_UPDATE, STATUS
-
 --[[
+- Events: PLAYER_TOTEM_UPDATE, STATUS
+
 - Conditions:
 {
     duration = true,

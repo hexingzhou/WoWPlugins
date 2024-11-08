@@ -1,6 +1,6 @@
 --[[
-For use:
-- [Require] Replace CLASS in name to the right one.
+- For use:
+[Require] Replace CLASS in name to the right one.
 --]]
 function(newPositions, activeRegions)
     local HWA = HWA and HWA[aura_env.id:gsub("Maintenance %- HWA %- ", "")] or {}
