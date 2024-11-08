@@ -195,7 +195,7 @@ function H.getConfig(group, force)
         },
         dynamic_effects = {
             x_offset = -192,
-            y_offset = 103,
+            y_offset = 98,
             width = 41,
             height = 33,
             horizontal_spacing = 2,
@@ -232,7 +232,7 @@ function H.getConfig(group, force)
                     sub_spacing = 13,
                 },
                 dynamic_effects = {
-                    y_offset = 149,
+                    y_offset = 144,
                 },
             },
             [105] = { -- For Druid Restoration
@@ -241,7 +241,7 @@ function H.getConfig(group, force)
                     max_sub_icon_size_pl = 11,
                 },
                 dynamic_effects = {
-                    y_offset = 139,
+                    y_offset = 134,
                 },
                 form = {},
             },
@@ -251,7 +251,7 @@ function H.getConfig(group, force)
                     max_sub_icon_size_pl = 11,
                 },
                 dynamic_effects = {
-                    y_offset = 139,
+                    y_offset = 134,
                 },
             },
             [257] = { -- For Priest Holy
@@ -260,7 +260,7 @@ function H.getConfig(group, force)
                     max_sub_icon_size_pl = 11,
                 },
                 dynamic_effects = {
-                    y_offset = 139,
+                    y_offset = 134,
                 },
             },
             [264] = { -- For Shaman Restoration
@@ -269,7 +269,7 @@ function H.getConfig(group, force)
                     max_sub_icon_size_pl = 11,
                 },
                 dynamic_effects = {
-                    y_offset = 139,
+                    y_offset = 134,
                 },
             },
             [270] = { -- For Monk Mistweaver
@@ -278,7 +278,7 @@ function H.getConfig(group, force)
                     max_sub_icon_size_pl = 11,
                 },
                 dynamic_effects = {
-                    y_offset = 139,
+                    y_offset = 134,
                 },
             },
             [1468] = { -- For Evoker Preservation
@@ -288,7 +288,7 @@ function H.getConfig(group, force)
                     sub_spacing = 13,
                 },
                 dynamic_effects = {
-                    y_offset = 149,
+                    y_offset = 144,
                 },
             },
             [1473] = { -- For Evoker Augmentation
@@ -298,7 +298,7 @@ function H.getConfig(group, force)
                     sub_spacing = 13,
                 },
                 dynamic_effects = {
-                    y_offset = 149,
+                    y_offset = 144,
                 },
             },
         },
