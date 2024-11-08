@@ -378,6 +378,110 @@ hooksecurefunc("SetUIVisibility", function(isVisible)
     end
 end)
 
+local function baseGrow(newPositions, activeRegions, width, height, hSpacing, vSpacing, direction, minCount, maxCount, remainCount, growType, xOffset, yOffset)
+    local grow = 1
+    if growType == 3 then
+        grow = -1
+    end
+    local lineCount = 0
+    local maxLine = maxCount
+    local midLine = 0
+    local minLine = 0
+
+    local count = remainCount
+    while count > 0 do
+        if count < maxCount then
+            minLine = count
+            count = 0
+            lineCount = lineCount + 1
+        elseif count < maxCount * 2 then
+            if count - maxCount < minCount then
+                midLine = count - minCount
+            else
+                midLine = maxCount
+            end
+            minLine = count - midLine
+            count = count - midLine - minLine
+            lineCount = lineCount + 2
+        else
+            count = count - maxLine
+            lineCount = lineCount + 1
+        end
+    end
+
+    if direction < 0 then
+        local currentLine = 0
+        if lineCount > 2 then
+            currentLine = maxLine
+        elseif lineCount > 1 then
+            currentLine = midLine
+        else
+            currentLine = minLine
+        end
+        local currentMid = 1
+        if growType == 2 then
+            currentMid = (currentLine + 1) / 2
+        end
+        local currentMin = #activeRegions - remainCount
+        local currentMax = currentMin + currentLine
+        local y = yOffset
+        for i, regionData in ipairs(activeRegions) do
+            if i > currentMin then
+                setRegionSize(regionData.region, width, height)
+                newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + xOffset, y }
+                if i == currentMax then
+                    lineCount = lineCount - 1
+                    if lineCount > 2 then
+                        currentLine = maxLine
+                    elseif lineCount > 1 then
+                        currentLine = midLine
+                    else
+                        currentLine = minLine
+                    end
+                    if growType == 2 then
+                        currentMid = (currentLine + 1) / 2
+                    end
+                    currentMin = currentMax
+                    currentMax = currentMin + currentLine
+                    y = y + (height + vSpacing) * direction
+                end
+            end
+        end
+    else
+        local lineNumber = 1
+        local currentLine = minLine
+        local currentMid = 1
+        if growType == 2 then
+            currentMid = (currentLine + 1) / 2
+        end
+        local currentMin = #activeRegions - currentLine
+        local y = (lineCount - 1) * (height + vSpacing) * direction + yOffset
+        for i = #activeRegions, 1, -1 do
+            local regionData = activeRegions[i]
+            if i > currentMin then
+                setRegionSize(regionData.region, width, height)
+                newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + xOffset, y }
+                if i == currentMin + 1 then
+                    lineNumber = lineNumber + 1
+                    if lineNumber > lineCount then
+                        break
+                    end
+                    if lineNumber == 2 then
+                        currentLine = midLine
+                    else
+                        currentLine = maxLine
+                    end
+                    if growType == 2 then
+                        currentMid = (currentLine + 1) / 2
+                    end
+                    currentMin = currentMin - currentLine
+                    y = y - (height + vSpacing) * direction
+                end
+            end
+        end
+    end
+end
+
 function H.coreGrow(newPositions, activeRegions)
     local config = H.getConfig("core")
     local xOffset = config.x_offset
@@ -525,56 +629,11 @@ function H.dynamicEffectsGrow(newPositions, activeRegions)
         grow = -1
     end
 
-    local lineCount = 0
-    local minLine = 0
-    local remainCount = #activeRegions
-    while remainCount > 0 do
-        if remainCount < maxSize then
-            minLine = remainCount
-            remainCount = 0
-            lineCount = lineCount + 1
-        else
-            remainCount = remainCount - maxSize
-            lineCount = lineCount + 1
-        end
-    end
-    local currentLine = 0
-    if lineCount > 1 then
-        currentLine = maxSize
-    else
-        currentLine = minLine
-    end
-    local currentMid = 1
-    if growType == 2 then
-        currentMid = (currentLine + 1) / 2
-    end
-    local currentMin = 0
-    local currentMax = currentLine
     local x0 = xOffset
     if growType ~= 2 then
         x0 = x0 + ((width - 1) / 2 + 1) * grow
     end
-    local y = yOffset
-    for i, regionData in ipairs(activeRegions) do
-        if i > currentMin then
-            setRegionSize(regionData.region, width, height)
-            newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + x0, y }
-            if i == currentMax then
-                lineCount = lineCount - 1
-                if lineCount > 1 then
-                    currentLine = maxSize
-                else
-                    currentLine = minLine
-                end
-                if growType == 2 then
-                    currentMid = (currentLine + 1) / 2
-                end
-                currentMin = currentMax
-                currentMax = currentMin + currentLine
-                y = y + (vSpacing + height) * direction
-            end
-        end
-    end
+    baseGrow(newPositions, activeRegions, width, height, hSpacing, vSpacing, direction, 0, maxSize, #activeRegions, growType, x0, yOffset)
 end
 
 function H.maintenanceGrow(newPositions, activeRegions)
