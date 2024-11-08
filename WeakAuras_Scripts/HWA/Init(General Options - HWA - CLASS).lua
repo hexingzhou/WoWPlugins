@@ -649,47 +649,6 @@ function H.maintenanceGrow(newPositions, activeRegions)
         direction = -1
     end
     local maxSize = config.max_icon_size_pl
-    local lineCount = 0
-    local minLine = 0
-    local remainCount = #activeRegions
-    while remainCount > 0 do
-        if remainCount < maxSize then
-            minLine = remainCount
-            remainCount = 0
-            lineCount = lineCount + 1
-        else
-            remainCount = remainCount - maxSize
-            lineCount = lineCount + 1
-        end
-    end
-    local currentLine = 0
-    if lineCount > 1 then
-        currentLine = maxSize
-    else
-        currentLine = minLine
-    end
-    local currentMid = (currentLine + 1) / 2
-    local currentMin = 0
-    local currentMax = currentLine
-    local y = yOffset
-    for i, regionData in ipairs(activeRegions) do
-        if i > currentMin then
-            setRegionSize(regionData.region, width, height)
-            newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) + xOffset, y }
-            if i == currentMax then
-                lineCount = lineCount - 1
-                if lineCount > 1 then
-                    currentLine = maxSize
-                else
-                    currentLine = minLine
-                end
-                if growType == 2 then
-                    currentMid = (currentLine + 1) / 2
-                end
-                currentMin = currentMax
-                currentMax = currentMin + currentLine
-                y = y + (vSpacing + height) * direction
-            end
-        end
-    end
+
+    baseGrow(newPositions, activeRegions, width, height, hSpacing, vSpacing, direction, 0, maxSize, #activeRegions, 2, xOffset, yOffset)
 end
