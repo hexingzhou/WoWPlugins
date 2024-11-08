@@ -1,11 +1,13 @@
+--[[
+For use:
+- [Require] Replace CLASS in name to the right one.
+--]]
 -- Run On: priority
--- For use: replace CLASS to the right one.
-
 function(a, b)
-    local HWA = HWA and HWA["CLASS"] or {}
+    local HWA = HWA and HWA[aura_env.id:gsub("Core %- HWA %- ", "")] or {}
    
     if HWA and HWA.coreSort then
         return HWA.coreSort(a, b)
     end
-    return a.dataIndex <= b.dataIndex
+    return a.dataIndex < b.dataIndex
 end

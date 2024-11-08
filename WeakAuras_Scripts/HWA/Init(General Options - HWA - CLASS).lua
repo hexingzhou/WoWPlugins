@@ -166,6 +166,7 @@ local function setRegionSize(r, w, h)
 end
 
 function H.getConfig(group, force)
+    -- default config is set in the order as core, resouece, dynamic effects, and maintenance.
     local default = {
         core = {
             x_offset = 0,
@@ -184,6 +185,7 @@ function H.getConfig(group, force)
             min_sub_icon_size_pl = 3,
             sub_spacing = 3,
         },
+        -- resource config is used for single resource, such as power of Mana. So y_offset may be set by progress bar self.
         resource = {
             x_offset = 0,
             y_offset = 0,
@@ -193,14 +195,24 @@ function H.getConfig(group, force)
         },
         dynamic_effects = {
             x_offset = -192,
-            y_offset = 0,
-            width = 33,
-            height = 27,
+            y_offset = 103,
+            width = 41,
+            height = 33,
             horizontal_spacing = 2,
             vertical_spacing = 3,
-            max_icon_size_pl = 11,
+            max_icon_size_pl = 9,
             direction = 1,
             grow = 1, -- 1 for left to right, 2 for mid, 3 for right to left
+        },
+        maintenance = {
+            x_offset = 0,
+            y_offset = 541,
+            width = 41,
+            height = 43,
+            horizontal_spacing = 2,
+            vertical_spacing = 3,
+            max_icon_size_pl = 13,
+            direction = 1,
         },
         form = {
             -- Use ShapeshiftFormID to support different form.
@@ -219,15 +231,17 @@ function H.getConfig(group, force)
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
                 },
+                dynamic_effects = {
+                    y_offset = 149,
+                },
             },
             [105] = { -- For Druid Restoration
                 core = {
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13,
                 },
                 dynamic_effects = {
-                    y_offset = 72,
+                    y_offset = 139,
                 },
                 form = {},
             },
@@ -235,28 +249,36 @@ function H.getConfig(group, force)
                 core = {
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13,
+                },
+                dynamic_effects = {
+                    y_offset = 139,
                 },
             },
             [257] = { -- For Priest Holy
                 core = {
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13,
+                },
+                dynamic_effects = {
+                    y_offset = 139,
                 },
             },
             [264] = { -- For Shaman Restoration
                 core = {
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13,
+                },
+                dynamic_effects = {
+                    y_offset = 139,
                 },
             },
             [270] = { -- For Monk Mistweaver
                 core = {
                     direction = 1,
                     max_sub_icon_size_pl = 11,
-                    sub_spacing = 13,
+                },
+                dynamic_effects = {
+                    y_offset = 139,
                 },
             },
             [1468] = { -- For Evoker Preservation
@@ -265,12 +287,18 @@ function H.getConfig(group, force)
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
                 },
+                dynamic_effects = {
+                    y_offset = 149,
+                },
             },
             [1473] = { -- For Evoker Augmentation
                 core = {
                     direction = 1,
                     max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
+                },
+                dynamic_effects = {
+                    y_offset = 149,
                 },
             },
         },
@@ -526,11 +554,69 @@ function H.dynamicEffectsGrow(newPositions, activeRegions)
     if growType ~= 2 then
         x0 = x0 + ((width - 1) / 2 + 1) * grow
     end
-    local y = ((height - 1) / 2 + 1) * direction + yOffset
+    local y = yOffset
     for i, regionData in ipairs(activeRegions) do
         if i > currentMin then
             setRegionSize(regionData.region, width, height)
             newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + x0, y }
+            if i == currentMax then
+                lineCount = lineCount - 1
+                if lineCount > 1 then
+                    currentLine = maxSize
+                else
+                    currentLine = minLine
+                end
+                if growType == 2 then
+                    currentMid = (currentLine + 1) / 2
+                end
+                currentMin = currentMax
+                currentMax = currentMin + currentLine
+                y = y + (vSpacing + height) * direction
+            end
+        end
+    end
+end
+
+function H.maintenanceGrow(newPositions, activeRegions)
+    local config = H.getConfig("maintenance")
+    local xOffset = config.x_offset
+    local yOffset = config.y_offset
+    local width = config.width
+    local height = config.height
+    local hSpacing = config.horizontal_spacing
+    local vSpacing = config.vertical_spacing
+    local direction = 1
+    if config.direction == 2 then
+        direction = -1
+    end
+    local maxSize = config.max_icon_size_pl
+    local lineCount = 0
+    local minLine = 0
+    local remainCount = #activeRegions
+    while remainCount > 0 do
+        if remainCount < maxSize then
+            minLine = remainCount
+            remainCount = 0
+            lineCount = lineCount + 1
+        else
+            remainCount = remainCount - maxSize
+            lineCount = lineCount + 1
+        end
+    end
+    local currentLine = 0
+    if lineCount > 1 then
+        currentLine = maxSize
+    else
+        currentLine = minLine
+    end
+    local currentMid = (currentLine + 1) / 2
+    local currentMin = 0
+    local currentMax = currentLine
+    local y = yOffset
+    for i, regionData in ipairs(activeRegions) do
+        if i > currentMin then
+            setRegionSize(regionData.region, width, height)
+            newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) + xOffset, y }
             if i == currentMax then
                 lineCount = lineCount - 1
                 if lineCount > 1 then
