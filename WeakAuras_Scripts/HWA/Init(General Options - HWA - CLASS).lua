@@ -378,7 +378,21 @@ hooksecurefunc("SetUIVisibility", function(isVisible)
     end
 end)
 
-local function baseGrow(newPositions, activeRegions, width, height, hSpacing, vSpacing, direction, minCount, maxCount, remainCount, growType, xOffset, yOffset)
+local function baseGrow(
+    newPositions,
+    activeRegions,
+    width,
+    height,
+    hSpacing,
+    vSpacing,
+    direction,
+    minCount,
+    maxCount,
+    remainCount,
+    growType,
+    xOffset,
+    yOffset
+)
     local grow = 1
     if growType == 3 then
         grow = -1
@@ -409,76 +423,61 @@ local function baseGrow(newPositions, activeRegions, width, height, hSpacing, vS
         end
     end
 
-    if direction < 0 then
-        local currentLine = 0
-        if lineCount > 2 then
-            currentLine = maxLine
-        elseif lineCount > 1 then
-            currentLine = midLine
-        else
-            currentLine = minLine
-        end
-        local currentMid = 1
-        if growType == 2 then
-            currentMid = (currentLine + 1) / 2
-        end
-        local currentMin = #activeRegions - remainCount
-        local currentMax = currentMin + currentLine
-        local y = yOffset
-        for i, regionData in ipairs(activeRegions) do
-            if i > currentMin then
-                setRegionSize(regionData.region, width, height)
-                newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + xOffset, y }
-                if i == currentMax then
-                    lineCount = lineCount - 1
-                    if lineCount > 2 then
-                        currentLine = maxLine
-                    elseif lineCount > 1 then
-                        currentLine = midLine
-                    else
-                        currentLine = minLine
-                    end
-                    if growType == 2 then
-                        currentMid = (currentLine + 1) / 2
-                    end
-                    currentMin = currentMax
-                    currentMax = currentMin + currentLine
-                    y = y + (height + vSpacing) * direction
-                end
-            end
-        end
+    local currentLine = 0
+    if lineCount > 2 then
+        currentLine = maxLine
+    elseif lineCount > 1 then
+        currentLine = midLine
     else
-        local lineNumber = 1
-        local currentLine = minLine
-        local currentMid = 1
-        if growType == 2 then
-            currentMid = (currentLine + 1) / 2
+        currentLine = minLine
+    end
+    local currentMid = 1
+    if growType == 2 then
+        currentMid = (currentLine + 1) / 2
+    end
+    local currentMin = #activeRegions - remainCount
+    local currentMax = currentMin + currentLine
+    local y = yOffset
+    for i = 1, #activeRegions do
+        local index = i
+        if direction > 0 then
+            index = #activeRegions - i + 1
         end
-        local currentMin = #activeRegions - currentLine
-        local y = (lineCount - 1) * (height + vSpacing) * direction + yOffset
-        for i = #activeRegions, 1, -1 do
-            local regionData = activeRegions[i]
-            if i > currentMin then
-                setRegionSize(regionData.region, width, height)
-                newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + xOffset, y }
-                if i == currentMin + 1 then
-                    lineNumber = lineNumber + 1
-                    if lineNumber > lineCount then
-                        break
-                    end
-                    if lineNumber == 2 then
-                        currentLine = midLine
-                    else
-                        currentLine = maxLine
-                    end
-                    if growType == 2 then
-                        currentMid = (currentLine + 1) / 2
-                    end
-                    currentMin = currentMin - currentLine
-                    y = y - (height + vSpacing) * direction
+        local regionData = activeRegions[index]
+        if i > currentMin then
+            setRegionSize(regionData.region, width, height)
+            newPositions[index] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + xOffset, y }
+            if i == currentMax then
+                lineCount = lineCount - 1
+                if lineCount > 2 then
+                    currentLine = maxLine
+                elseif lineCount > 1 then
+                    currentLine = midLine
+                else
+                    currentLine = minLine
                 end
+                if growType == 2 then
+                    currentMid = (currentLine + 1) / 2
+                end
+                currentMin = currentMax
+                currentMax = currentMin + currentLine
+                y = y + (height + vSpacing) * direction
             end
         end
+    end
+end
+
+local function baseSort(a, priorityA, b, priorityB, direction)
+    if direction < 0 then
+        if priorityA == priorityB then
+            return a.dataIndex < b.dataIndex
+        end
+        return priorityA < priorityB
+    else
+        if priorityA == priorityB then
+            return a.dataIndex > b.dataIndex
+        end
+        return priorityA > priorityB
     end
 end
 
@@ -505,9 +504,14 @@ function H.coreGrow(newPositions, activeRegions)
     end
 
     local mid = (maxSize + 1) / 2
-    for i, regionData in ipairs(activeRegions) do
+    for i = 1, #activeRegions do
+        local index = i
+        if direction > 0 then
+            index = #activeRegions - i + 1
+        end
+        local regionData = activeRegions[index]
         setRegionSize(regionData.region, width, height)
-        newPositions[i] = { (i - mid) * (width + hSpacing) + xOffset, yOffset }
+        newPositions[index] = { (i - mid) * (width + hSpacing) + xOffset, yOffset }
         if i == maxSize then
             break
         end
@@ -519,77 +523,36 @@ function H.coreGrow(newPositions, activeRegions)
         local subHSpacing = config.sub_horizontal_spacing
         local subVSpacing = config.sub_vertical_spacing
         local subSpacing = config.sub_spacing
-
-        local lineCount = 0
         local maxCount = config.max_sub_icon_size_pl
         local minCount = config.min_sub_icon_size_pl
-        local maxLine = maxCount
-        local midLine = 0
-        local minLine = 0
 
-        local remainCount = maxOverflow
-        while remainCount > 0 do
-            if remainCount < maxLine then
-                minLine = remainCount
-                remainCount = 0
-                lineCount = lineCount + 1
-            elseif remainCount < maxLine * 2 then
-                if remainCount - maxCount < minCount then
-                    midLine = remainCount - minCount
-                else
-                    midLine = maxCount
-                end
-                minLine = remainCount - midLine
-                remainCount = remainCount - midLine - minLine
-                lineCount = lineCount + 2
-            else
-                remainCount = remainCount - maxLine
-                lineCount = lineCount + 1
-            end
-        end
-
-        local currentLine = 0
-        if lineCount > 2 then
-            currentLine = maxLine
-        elseif lineCount > 1 then
-            currentLine = midLine
-        else
-            currentLine = minLine
-        end
-        local currentMid = (currentLine + 1) / 2
-        local currentMin = maxSize
-        local currentMax = currentMin + currentLine
-        local y = (subSpacing + (height - 1) / 2 + (subHeight - 1) / 2 + 1) * direction + yOffset
-        for i, regionData in ipairs(activeRegions) do
-            if i > currentMin then
-                setRegionSize(regionData.region, subWidth, subHeight)
-                newPositions[i] = { (i - currentMin - currentMid) * (subWidth + subHSpacing) + xOffset, y }
-                if i == currentMax then
-                    lineCount = lineCount - 1
-                    if lineCount > 2 then
-                        currentLine = maxLine
-                    elseif lineCount > 1 then
-                        currentLine = midLine
-                    else
-                        currentLine = minLine
-                    end
-                    currentMid = (currentLine + 1) / 2
-                    currentMin = currentMax
-                    currentMax = currentMin + currentLine
-                    y = y + (subVSpacing + subHeight) * direction
-                end
-            end
-        end
+        baseGrow(
+            newPositions,
+            activeRegions,
+            subWidth,
+            subHeight,
+            subHSpacing,
+            subVSpacing,
+            direction,
+            minCount,
+            maxCount,
+            maxOverflow,
+            2,
+            xOffset,
+            (subSpacing + (height - 1) / 2 + (subHeight - 1) / 2 + 1) * direction + yOffset
+        )
     end
 end
 
 function H.coreSort(a, b)
+    local config = H.getConfig("core")
+    local direction = 1
+    if config.direction == 2 then
+        direction = -1
+    end
     local priorityA = a.region and a.region.state and a.region.state.priority or 0
     local priorityB = b.region and b.region.state and b.region.state.priority or 0
-    if priorityA == priorityB then
-        return a.dataIndex <= b.dataIndex
-    end
-    return priorityA < priorityB
+    return baseSort(a, priorityA, b, priorityB, direction)
 end
 
 function H.resourceGrow(newPositions, activeRegions)
@@ -633,7 +596,30 @@ function H.dynamicEffectsGrow(newPositions, activeRegions)
     if growType ~= 2 then
         x0 = x0 + ((width - 1) / 2 + 1) * grow
     end
-    baseGrow(newPositions, activeRegions, width, height, hSpacing, vSpacing, direction, 0, maxSize, #activeRegions, growType, x0, yOffset)
+    baseGrow(
+        newPositions,
+        activeRegions,
+        width,
+        height,
+        hSpacing,
+        vSpacing,
+        direction,
+        0,
+        maxSize,
+        #activeRegions,
+        growType,
+        x0,
+        yOffset
+    )
+end
+
+function H.dynamicEffectsSort(a, b)
+    local config = H.getConfig("dynamic_effects")
+    local direction = 1
+    if config.direction == 2 then
+        direction = -1
+    end
+    return baseSort(a, 0, b, 0, direction)
 end
 
 function H.maintenanceGrow(newPositions, activeRegions)
@@ -650,5 +636,28 @@ function H.maintenanceGrow(newPositions, activeRegions)
     end
     local maxSize = config.max_icon_size_pl
 
-    baseGrow(newPositions, activeRegions, width, height, hSpacing, vSpacing, direction, 0, maxSize, #activeRegions, 2, xOffset, yOffset)
+    baseGrow(
+        newPositions,
+        activeRegions,
+        width,
+        height,
+        hSpacing,
+        vSpacing,
+        direction,
+        0,
+        maxSize,
+        #activeRegions,
+        2,
+        xOffset,
+        yOffset
+    )
+end
+
+function H.maintenanceSort(a, b)
+    local config = H.getConfig("maintenance")
+    local direction = 1
+    if config.direction == 2 then
+        direction = -1
+    end
+    return baseSort(a, 0, b, 0, direction)
 end
