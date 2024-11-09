@@ -150,8 +150,8 @@ function HWA.getSpell(env)
         end
         if chargeInfo.maxCharges > 1 then
             stacks = chargeInfo.currentCharges
-            charges = chargeInfo.currentCharges
         end
+        charges = chargeInfo.currentCharges
     else
         local spellCooldownInfo = C_Spell.GetSpellCooldown(spell)
         if
