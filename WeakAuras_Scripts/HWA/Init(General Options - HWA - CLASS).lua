@@ -438,15 +438,10 @@ local function baseGrow(
     local currentMin = #activeRegions - remainCount
     local currentMax = currentMin + currentLine
     local y = yOffset
-    for i = 1, #activeRegions do
-        local index = i
-        if direction > 0 then
-            index = #activeRegions - i + 1
-        end
-        local regionData = activeRegions[index]
+    for i, regionData in ipairs(activeRegions) do
         if i > currentMin then
             setRegionSize(regionData.region, width, height)
-            newPositions[index] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + xOffset, y }
+            newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + xOffset, y }
             if i == currentMax then
                 lineCount = lineCount - 1
                 if lineCount > 2 then
@@ -467,18 +462,11 @@ local function baseGrow(
     end
 end
 
-local function baseSort(a, priorityA, b, priorityB, direction)
-    if direction < 0 then
-        if priorityA == priorityB then
-            return a.dataIndex < b.dataIndex
-        end
-        return priorityA < priorityB
-    else
-        if priorityA == priorityB then
-            return a.dataIndex > b.dataIndex
-        end
-        return priorityA > priorityB
+local function baseSort(a, priorityA, b, priorityB)
+    if priorityA == priorityB then
+        return a.dataIndex < b.dataIndex
     end
+    return priorityA < priorityB
 end
 
 function H.coreGrow(newPositions, activeRegions)
@@ -504,14 +492,9 @@ function H.coreGrow(newPositions, activeRegions)
     end
 
     local mid = (maxSize + 1) / 2
-    for i = 1, #activeRegions do
-        local index = i
-        if direction > 0 then
-            index = #activeRegions - i + 1
-        end
-        local regionData = activeRegions[index]
+    for i, regionData in ipairs(activeRegions) do
         setRegionSize(regionData.region, width, height)
-        newPositions[index] = { (i - mid) * (width + hSpacing) + xOffset, yOffset }
+        newPositions[i] = { (i - mid) * (width + hSpacing) + xOffset, yOffset }
         if i == maxSize then
             break
         end
@@ -545,14 +528,9 @@ function H.coreGrow(newPositions, activeRegions)
 end
 
 function H.coreSort(a, b)
-    local config = H.getConfig("core")
-    local direction = 1
-    if config.direction == 2 then
-        direction = -1
-    end
     local priorityA = a.region and a.region.state and a.region.state.priority or 0
     local priorityB = b.region and b.region.state and b.region.state.priority or 0
-    return baseSort(a, priorityA, b, priorityB, direction)
+    return baseSort(a, priorityA, b, priorityB)
 end
 
 function H.resourceGrow(newPositions, activeRegions)
@@ -614,12 +592,7 @@ function H.dynamicEffectsGrow(newPositions, activeRegions)
 end
 
 function H.dynamicEffectsSort(a, b)
-    local config = H.getConfig("dynamic_effects")
-    local direction = 1
-    if config.direction == 2 then
-        direction = -1
-    end
-    return baseSort(a, 0, b, 0, direction)
+    return baseSort(a, 0, b, 0)
 end
 
 function H.maintenanceGrow(newPositions, activeRegions)
@@ -654,10 +627,5 @@ function H.maintenanceGrow(newPositions, activeRegions)
 end
 
 function H.maintenanceSort(a, b)
-    local config = H.getConfig("maintenance")
-    local direction = 1
-    if config.direction == 2 then
-        direction = -1
-    end
-    return baseSort(a, 0, b, 0, direction)
+    return baseSort(a, 0, b, 0)
 end
