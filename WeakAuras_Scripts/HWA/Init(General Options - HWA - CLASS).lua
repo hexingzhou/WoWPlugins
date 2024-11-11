@@ -171,47 +171,47 @@ function H.getConfig(group, force)
         core = {
             x_offset = 0,
             y_offset = 21,
-            width = 41,
+            width = 43,
             height = 43,
-            horizontal_spacing = 2,
+            horizontal_spacing = 1,
             vertical_spacing = 3,
-            max_icon_size_pl = 9,
+            max_icon_size_pl = 12,
             direction = 2, -- 1 for up, 2 for down
-            sub_width = 33,
-            sub_height = 33,
-            sub_horizontal_spacing = 2,
+            sub_width = 37,
+            sub_height = 37,
+            sub_horizontal_spacing = 1,
             sub_vertical_spacing = 3,
-            max_sub_icon_size_pl = 17,
+            max_sub_icon_size_pl = 14,
             min_sub_icon_size_pl = 3,
             sub_spacing = 3,
         },
         -- resource config is used for single resource, such as power of Mana. So y_offset may be set by progress bar self.
         resource = {
             x_offset = 0,
-            y_offset = 0,
-            total_width = 383,
+            y_offset = 49,
+            total_width = 531,
             height = 7,
-            horizontal_spacing = 2,
+            horizontal_spacing = 1,
         },
         dynamic_effects = {
-            x_offset = -192,
-            y_offset = 98,
-            width = 41,
-            height = 33,
-            horizontal_spacing = 2,
+            x_offset = -266,
+            y_offset = 104,
+            width = 43,
+            height = 37,
+            horizontal_spacing = 1,
             vertical_spacing = 3,
-            max_icon_size_pl = 9,
+            max_icon_size_pl = 12,
             direction = 1,
             grow = 1, -- 1 for left to right, 2 for mid, 3 for right to left
         },
         maintenance = {
             x_offset = 0,
             y_offset = 541,
-            width = 41,
+            width = 43,
             height = 43,
-            horizontal_spacing = 2,
+            horizontal_spacing = 1,
             vertical_spacing = 3,
-            max_icon_size_pl = 13,
+            max_icon_size_pl = 12,
             direction = 1,
         },
         form = {
@@ -228,77 +228,69 @@ function H.getConfig(group, force)
             [65] = { -- For Paladin Holy
                 core = {
                     direction = 1,
-                    max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
                 },
                 dynamic_effects = {
-                    y_offset = 144,
+                    y_offset = 154,
                 },
             },
             [105] = { -- For Druid Restoration
                 core = {
                     direction = 1,
-                    max_sub_icon_size_pl = 11,
                 },
                 dynamic_effects = {
-                    y_offset = 134,
+                    y_offset = 144,
                 },
                 form = {},
             },
             [256] = { -- For Priest Discipline
                 core = {
                     direction = 1,
-                    max_sub_icon_size_pl = 11,
                 },
                 dynamic_effects = {
-                    y_offset = 134,
+                    y_offset = 144,
                 },
             },
             [257] = { -- For Priest Holy
                 core = {
                     direction = 1,
-                    max_sub_icon_size_pl = 11,
                 },
                 dynamic_effects = {
-                    y_offset = 134,
+                    y_offset = 144,
                 },
             },
             [264] = { -- For Shaman Restoration
                 core = {
                     direction = 1,
-                    max_sub_icon_size_pl = 11,
                 },
                 dynamic_effects = {
-                    y_offset = 134,
+                    y_offset = 144,
                 },
             },
             [270] = { -- For Monk Mistweaver
                 core = {
                     direction = 1,
-                    max_sub_icon_size_pl = 11,
                 },
                 dynamic_effects = {
-                    y_offset = 134,
+                    y_offset = 144,
                 },
             },
             [1468] = { -- For Evoker Preservation
                 core = {
                     direction = 1,
-                    max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
                 },
                 dynamic_effects = {
-                    y_offset = 144,
+                    y_offset = 154,
                 },
             },
             [1473] = { -- For Evoker Augmentation
                 core = {
                     direction = 1,
-                    max_sub_icon_size_pl = 11,
                     sub_spacing = 13,
                 },
                 dynamic_effects = {
-                    y_offset = 144,
+                    y_offset = 154,
                 },
             },
         },

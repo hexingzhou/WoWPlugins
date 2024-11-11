@@ -1,12 +1,16 @@
 --[[
-- Events: PLAYER_TOTEM_UPDATE, STATUS
+- Events: UNIT_AURA, STATUS
 --]]
 -- Trigger
 function(event, ...)
     local key = "AURA"
-    local totemSlot = nil
-    if "PLAYER_TOTEM_UPDATE" == event then
-        totemSlot = ...
+    local unitTarget = nil
+    if "UNIT_AURA" == event then
+        local updateInfo = nil
+        unitTarget, updateInfo = ...
+        if not updateInfo or updateInfo.isFullUpdate then
+            return false
+        end
     end
     local result, state = false, {}
     if HWA and HWA.getAura then

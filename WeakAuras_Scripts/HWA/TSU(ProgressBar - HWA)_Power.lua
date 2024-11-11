@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_POWER_FREQUENT, STATUS
+- Events: UNIT_POWER_FREQUENT, STATUS, HWA_INIT
 --]]
 function(states, event, ...)
     if "UNIT_POWER_FREQUENT" == event then
