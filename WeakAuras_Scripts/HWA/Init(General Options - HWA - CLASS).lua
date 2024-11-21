@@ -206,7 +206,7 @@ function H.getConfig(group, force)
         },
         maintenance = {
             x_offset = 0,
-            y_offset = 541,
+            y_offset = 634,
             width = 43,
             height = 43,
             horizontal_spacing = 1,
