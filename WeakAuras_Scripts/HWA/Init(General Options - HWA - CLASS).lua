@@ -175,32 +175,32 @@ function H.getConfig(group, force)
             height = 43,
             horizontal_spacing = 1,
             vertical_spacing = 3,
-            max_icon_size_pl = 12,
+            max_icon_size_pl = 9,
             direction = 2, -- 1 for up, 2 for down
-            sub_width = 37,
-            sub_height = 37,
+            sub_width = 35,
+            sub_height = 35,
             sub_horizontal_spacing = 1,
             sub_vertical_spacing = 3,
-            max_sub_icon_size_pl = 14,
+            max_sub_icon_size_pl = 11,
             min_sub_icon_size_pl = 3,
             sub_spacing = 3,
         },
         -- resource config is used for single resource, such as power of Mana. So y_offset may be set by progress bar self.
         resource = {
             x_offset = 0,
-            y_offset = 49,
-            total_width = 531,
+            y_offset = 0,
+            total_width = 395,
             height = 7,
             horizontal_spacing = 1,
         },
         dynamic_effects = {
-            x_offset = -266,
-            y_offset = 104,
+            x_offset = -198,
+            y_offset = 101,
             width = 43,
-            height = 37,
+            height = 35,
             horizontal_spacing = 1,
             vertical_spacing = 3,
-            max_icon_size_pl = 12,
+            max_icon_size_pl = 3,
             direction = 1,
             grow = 1, -- 1 for left to right, 2 for mid, 3 for right to left
         },
@@ -211,7 +211,7 @@ function H.getConfig(group, force)
             height = 43,
             horizontal_spacing = 1,
             vertical_spacing = 3,
-            max_icon_size_pl = 12,
+            max_icon_size_pl = 9,
             direction = 1,
         },
         form = {
@@ -226,72 +226,29 @@ function H.getConfig(group, force)
         spec = {
             -- Use SpecializationID to support different duty.
             [65] = { -- For Paladin Holy
-                core = {
-                    direction = 1,
-                    sub_spacing = 13,
-                },
-                dynamic_effects = {
-                    y_offset = 154,
-                },
+                core = {},
             },
             [105] = { -- For Druid Restoration
-                core = {
-                    direction = 1,
-                },
-                dynamic_effects = {
-                    y_offset = 144,
-                },
+                core = {},
                 form = {},
             },
             [256] = { -- For Priest Discipline
-                core = {
-                    direction = 1,
-                },
-                dynamic_effects = {
-                    y_offset = 144,
-                },
+                core = {},
             },
             [257] = { -- For Priest Holy
-                core = {
-                    direction = 1,
-                },
-                dynamic_effects = {
-                    y_offset = 144,
-                },
+                core = {},
             },
             [264] = { -- For Shaman Restoration
-                core = {
-                    direction = 1,
-                },
-                dynamic_effects = {
-                    y_offset = 144,
-                },
+                core = {},
             },
             [270] = { -- For Monk Mistweaver
-                core = {
-                    direction = 1,
-                },
-                dynamic_effects = {
-                    y_offset = 144,
-                },
+                core = {},
             },
             [1468] = { -- For Evoker Preservation
-                core = {
-                    direction = 1,
-                    sub_spacing = 13,
-                },
-                dynamic_effects = {
-                    y_offset = 154,
-                },
+                core = {},
             },
             [1473] = { -- For Evoker Augmentation
-                core = {
-                    direction = 1,
-                    sub_spacing = 13,
-                },
-                dynamic_effects = {
-                    y_offset = 154,
-                },
+                core = {},
             },
         },
     }
