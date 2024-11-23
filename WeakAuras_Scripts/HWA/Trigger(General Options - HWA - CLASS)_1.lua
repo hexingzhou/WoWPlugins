@@ -25,6 +25,4 @@ function(event, ...)
             WeakAuras.ScanEvents("HWA_UPDATE_SHAPESHIFT_FORM")
         end
     end
-   
-    return true
 end
