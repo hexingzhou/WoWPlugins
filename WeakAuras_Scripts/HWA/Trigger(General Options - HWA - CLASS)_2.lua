@@ -49,7 +49,5 @@ function(event, ...)
                 WeakAuras.ScanEvents("HWA_ALPHA")
             end)
         end
-
-        return true
     end
 end
