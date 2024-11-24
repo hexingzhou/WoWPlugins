@@ -191,7 +191,7 @@ function H.getConfig(group, force)
             y_offset = 0,
             total_width = 395,
             height = 7,
-            horizontal_spacing = 1,
+            horizontal_spacing = 3,
         },
         dynamic_effects = {
             x_offset = -198,
