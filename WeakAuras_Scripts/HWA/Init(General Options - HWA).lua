@@ -408,22 +408,24 @@ function HWA.getPower(env, init)
         type = Enum.PowerType[env.id:gsub(" %- .+", "")]
     end
     local unmodified = config.unmodified or false
-    local per = config.per or 1
+    local per = config.per or 0
 
     local current = UnitPower(unit, type, unmodified)
-    local maxCount = UnitPowerMax(unit, type, unmodified) / per
+    local max = UnitPowerMax(unit, type, unmodified)
+    local total = max
+    local count = 1
+    if per > 0 then
+        total = per
+        count = max / per
+    end
     local states = {}
-    for i = 1, maxCount do
+    for i = 1, count do
         states[i] = {
             show = true,
             progressType = "static",
-            total = per,
+            total = total,
+            value = current - per * (i - 1),
         }
-        local value = current - per * (i - 1)
-        if value > per then
-            value = per
-        end
-        states[i].value = value
     end
     return true, {
         show = true,
