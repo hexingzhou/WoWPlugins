@@ -93,6 +93,12 @@ local config = nil
 H.configs = H.configs or {}
 H.configs["general"] = env.config
 
+local bgMaxPlayers = {}
+for i = 1, GetNumBattlegroundTypes() do
+    local _, _, _, _, _, _, bgInstanceID, maxPlayers = GetBattlegroundInfo(index)
+    bgMaxPlayers[bgInstanceID] = maxPlayers
+end
+
 -- Local copy.
 local C_Timer = C_Timer
 
@@ -165,6 +171,58 @@ local function setRegionSize(r, w, h)
     r:SetRegionHeight(h)
 end
 
+-- 1: solo
+-- 5: party
+-- 20: mythic raid
+-- 30: normal raid
+-- 40: outdoor raid
+local function getLocalGroupID()
+    local inInstance, instanceType = IsInInstance()
+
+    if instanceType == "pvp" then
+        local _, _, _, _, _, _, isDynamic, instanceID, instanceGroupSize, lfgDungeonID = GetInstanceInfo()
+        if bgMaxPlayers[lfgDungeonID] then
+            if bgMaxPlayers[lfgDungeonID] <= 15 then
+                return 30
+            else
+                return 40
+            end
+        else
+            return 30
+        end
+    elseif instanceType == "arena" then
+        return 5
+    else -- party or raid
+        if IsInRaid() then
+            local difficultyID = select(3, GetInstanceInfo())
+            if difficultyID == 16 then
+                return 20
+            elseif inInstance then
+                return 30
+            else
+                return 40
+            end
+        elseif IsInGroup() then
+            return 5
+        else
+            return 1
+        end
+    end
+end
+
+local function getLocalConfig(config, specID, formID, groupID)
+    local c = config or {}
+    local gc = c.group or c.group[groupID] or {}
+    local fc = c.form and c.form[formID] or {}
+    local fgc = fc.group or fc.group[groupID] or {}
+    local sc = c.spec and c.spec[specID] or {}
+    local sgc = sc.group and sc.group[groupID] or {}
+    local sfc = sc.form and sc.form[formID] or {}
+    local sfgc = sfc.group and sfc.group[groupID] or {}
+
+    return tmerge(c, gc, fc, fgc, sc, sgc, sfc, sfgc)
+end
+
 function H.getConfig(group, force)
     -- default config is set in the order as core, resouece, dynamic effects, and maintenance.
     local default = {
@@ -214,6 +272,11 @@ function H.getConfig(group, force)
             max_icon_size_pl = 9,
             direction = 1,
         },
+        group = {
+            [1] = {
+                core = {},
+            },
+        },
         form = {
             -- Use ShapeshiftFormID to support different form.
             [1] = { -- For Druid Cat Form
@@ -230,7 +293,11 @@ function H.getConfig(group, force)
             },
             [105] = { -- For Druid Restoration
                 core = {},
-                form = {},
+                form = {
+                    [1] = {
+                        core = {},
+                    },
+                },
             },
             [256] = { -- For Priest Discipline
                 core = {},
@@ -252,32 +319,23 @@ function H.getConfig(group, force)
             },
         },
     }
+
     local specID = 0
     local spec = GetSpecialization()
     if spec then
         specID = GetSpecializationInfo(spec) or 0
     end
     local formID = GetShapeshiftFormID() or 0
+    local groupID = getLocalGroupID() or 1
+
     config = config or {}
     config[specID] = config[specID] or {}
     if force or not config[specID][formID] or WeakAuras.IsOptionsOpen() then
-        local c = default or {}
-        local fc = c.form and c.form[formID] or {}
-        local sc = c.spec and c.spec[specID] or {}
-        local sfc = sc[formID] or {}
-        config[specID][formID] = tmerge(c, fc, sc, sfc)
-
-        c = H.configs["general"] or {}
-        fc = c.form and c.form[formID] or {}
-        sc = c.spec and c.spec[specID] or {}
-        sfc = sc[formID] or {}
-        config[specID][formID] = tmerge(config[specID][formID], c, fc, sc, sfc)
-
-        c = H.configs["class"] or {}
-        fc = c.form and c.form[formID] or {}
-        sc = c.spec and c.spec[specID] or {}
-        sfc = sc[formID] or {}
-        config[specID][formID] = tmerge(config[specID][formID], c, fc, sc, sfc)
+        config[specID][formID] = getLocalConfig(default, specID, formID, groupID)
+        config[specID][formID] =
+            tmerge(config[specID][formID], getLocalConfig(H.configs["general"], specID, formID, groupID))
+        config[specID][formID] =
+            tmerge(config[specID][formID], getLocalConfig(H.configs["class"], specID, formID, groupID))
     end
 
     if group then
