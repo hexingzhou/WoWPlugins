@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_POWER_FREQUENT, STATUS, HWA_INIT
+- Events: UNIT_POWER_FREQUENT, STATUS, HWA_UPDATE_SHAPESHIFT_FORM, HWA_RESET, HWA_INIT
 
 - Conditions:
 {
@@ -11,13 +11,13 @@ function(states, event, ...)
     if "UNIT_POWER_FREQUENT" == event then
         local unitTarget = ...
         if unitTarget ~= "player" then
-            return
+            return false
         end
     end
     local powerSize = aura_env.power_size or 1
     local result, state = false, {}
     if HWA and HWA.getPower then
-        result, state = HWA.getPower(aura_env, false)
+        result, state = HWA.getPower(aura_env, "HWA_RESET" == event)
     end
     if result and state then
         if not state.show then
