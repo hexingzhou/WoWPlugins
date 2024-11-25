@@ -40,6 +40,10 @@ SPELL_COOLDOWN_READY:id, SPELL_COOLDOWN_CHANGED:id
 -- It can work with spell using micros.
 function(states, event)
     local key = "SPELL"
+    local initTime = 0
+    if "HWA_INIT" == event then
+        initTime = GetTime()
+    end
     local result, state = false, {}
     if HWA and HWA.getSpell then
         result, state = HWA.getSpell(aura_env)
@@ -65,7 +69,8 @@ function(states, event)
                 isSpellInRange = state.isSpellInRange,
                 hasTarget = state.hasTarget,
                 healthPercent = state.healthPercent,
-                priority = state.priority
+                priority = state.priority,
+                initTime = initTime,
             }
         end
         return true

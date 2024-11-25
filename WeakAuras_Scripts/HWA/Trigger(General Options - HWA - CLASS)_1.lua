@@ -10,13 +10,12 @@ function(event, ...)
     elseif "HWA_INIT" == event then
         aura_env.init()
        
-    elseif ("PLAYER_ENTERING_WORLD" == event and (arg1 or arg2)) or "PLAYER_SPECIALIZATION_CHANGED" == event or "TRAIT_CONFIG_UPDATED" == event then
-        WeakAuras.ScanEvents("HWA_RESET")
+    elseif "PLAYER_ENTERING_WORLD" == event or "PLAYER_SPECIALIZATION_CHANGED" == event or "TRAIT_CONFIG_UPDATED" == event then
         aura_env.initThrottled()
         C_Timer.After(1, function()
             WeakAuras.ScanEvents("HWA_INIT", true)
         end)
-        
+
     elseif "UPDATE_SHAPESHIFT_FORM" == event then
         local formID = GetShapeshiftFormID()
         if aura_env.formID ~= formID then
