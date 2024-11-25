@@ -95,7 +95,7 @@ H.configs["general"] = env.config
 
 local bgMaxPlayers = {}
 for i = 1, GetNumBattlegroundTypes() do
-    local _, _, _, _, _, _, bgInstanceID, maxPlayers = GetBattlegroundInfo(index)
+    local _, _, _, _, _, _, bgInstanceID, maxPlayers = GetBattlegroundInfo(i)
     bgMaxPlayers[bgInstanceID] = maxPlayers
 end
 
