@@ -212,9 +212,9 @@ end
 
 local function getLocalConfig(config, specID, formID, groupID)
     local c = config or {}
-    local gc = c.group or c.group[groupID] or {}
+    local gc = c.group and c.group[groupID] or {}
     local fc = c.form and c.form[formID] or {}
-    local fgc = fc.group or fc.group[groupID] or {}
+    local fgc = fc.group and fc.group[groupID] or {}
     local sc = c.spec and c.spec[specID] or {}
     local sgc = sc.group and sc.group[groupID] or {}
     local sfc = sc.form and sc.form[formID] or {}
