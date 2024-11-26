@@ -3,7 +3,7 @@
 [Require] Replace CLASS in name to the right one.
 [Options] Replace Power in name to the power type making the name a unique one.
 
-- Run on: initTime
+- Run on: init
 --]]
 function(newPositions, activeRegions)
     local HWA = HWA and HWA[aura_env.id:gsub(".+ %- HWA %- ", "")] or {}

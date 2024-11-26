@@ -2,7 +2,7 @@
 - For use:
 [Require] Replace CLASS in name to the right one.
 
-- Run on: initTime
+- Run on: init
 --]]
 function(newPositions, activeRegions)
     local HWA = HWA and HWA[aura_env.id:gsub("Core %- HWA %- ", "")] or {}
