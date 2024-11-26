@@ -4,7 +4,7 @@
 --]]
 function(a, b)
     local HWA = HWA and HWA[aura_env.id:gsub("Maintenance %- HWA %- ", "")] or {}
-   
+
     if HWA and HWA.maintenanceSort then
         return HWA.maintenanceSort(a, b)
     end

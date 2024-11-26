@@ -24,7 +24,6 @@ function(event, ...)
     return false
 end
 
-
 -- Untrigger
 function(event, ...)
     local key = "TOTEM"
@@ -35,7 +34,6 @@ function(event, ...)
     return false
 end
 
-
 -- Duration Info
 function()
     local key = "TOTEM"
@@ -45,7 +43,6 @@ function()
     end
     return 0, 0
 end
-
 
 -- Stack Info
 function()

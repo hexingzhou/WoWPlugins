@@ -28,7 +28,6 @@ function(event, ...)
     return false
 end
 
-
 -- Untrigger
 function(event, ...)
     local key = "AURA"
@@ -38,7 +37,6 @@ function(event, ...)
     end
     return false
 end
-
 
 -- Duration Info
 function()
@@ -50,7 +48,6 @@ function()
     return 0, 0
 end
 
-
 -- Name Info
 function()
     local key = "AURA"
@@ -60,7 +57,6 @@ function()
     end
     return nil
 end
-
 
 -- Stack Info
 function()

@@ -22,11 +22,11 @@ function(event, ...)
             end
 
             local class = UnitClassBase("player")
-            local isMounted = IsMounted() or ("DRUID" == class and tContains({3, 4, 27, 29}, GetShapeshiftFormID()))
+            local isMounted = IsMounted() or ("DRUID" == class and tContains({ 3, 4, 27, 29 }, GetShapeshiftFormID()))
             local isSkyriding = WeakAuras.IsRetail() and isMounted and select(2, C_PlayerInfo.GetGlidingInfo())
             local isPetBattle = C_PetBattles.IsInBattle()
-            local isVehicle = UnitInVehicle('player') or UnitOnTaxi('player')
-            local isVehicleUI = UnitHasVehicleUI('player') or HasOverrideActionBar() or HasVehicleActionBar()
+            local isVehicle = UnitInVehicle("player") or UnitOnTaxi("player")
+            local isVehicleUI = UnitHasVehicleUI("player") or HasOverrideActionBar() or HasVehicleActionBar()
 
             if isSkyriding or (isMounted and not config.skyriding_only) then
                 alpha = min(alpha, config.mounted or 0)

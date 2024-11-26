@@ -44,7 +44,7 @@ function(states, event)
         if not state.show then
             states[key] = {
                 show = false,
-                changed = true
+                changed = true,
             }
         else
             states[key] = {
