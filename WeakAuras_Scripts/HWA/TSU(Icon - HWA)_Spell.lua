@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_UPDATE_CHARGES, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_USABLE, UPDATE_SHAPESHIFT_FORM, HWA_INIT
+- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_UPDATE_CHARGES, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_USABLE, HWA_UPDATE
 
 - Conditions:
 {
@@ -62,7 +62,7 @@ function(states, event)
                 hasTarget = state.hasTarget,
                 healthPercent = state.healthPercent,
                 priority = state.priority,
-                init = "HWA_INIT" == event,
+                init = state.init,
             }
         end
         return true

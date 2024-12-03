@@ -1,5 +1,5 @@
 --[[
-- Events: OPTIONS, HWA_OPTIONS, HWA_INIT, PLAYER_ENTERING_WORLD, PLAYER_SPECIALIZATION_CHANGED, TRAIT_CONFIG_UPDATED, GROUP_JOINED, GROUP_LEFT, UPDATE_SHAPESHIFT_FORM
+- Events: OPTIONS, HWA_INIT, PLAYER_ENTERING_WORLD, PLAYER_SPECIALIZATION_CHANGED, TRAIT_CONFIG_UPDATED, GROUP_JOINED, GROUP_LEFT, UPDATE_SHAPESHIFT_FORM
 --]]
 function(event, ...)
     local arg = ...
@@ -23,7 +23,7 @@ function(event, ...)
         local formID = GetShapeshiftFormID()
         if aura_env.formID ~= formID then
             aura_env.formID = formID
-            WeakAuras.ScanEvents("HWA_UPDATE_SHAPESHIFT_FORM")
+            WeakAuras.ScanEvents("HWA_UPDATE")
         end
     end
 end

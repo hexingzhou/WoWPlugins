@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_POWER_FREQUENT, STATUS, UPDATE_SHAPESHIFT_FORM, HWA_INIT
+- Events: UNIT_POWER_FREQUENT, STATUS, HWA_UPDATE
 
 - Conditions:
 {
@@ -36,7 +36,6 @@ function(states, event, ...)
                     states[i] = rStates[i]
                     states[i].show = true
                     states[i].changed = true
-                    states[i].init = "HWA_INIT" == event
                 else
                     states[i] = {
                         show = false,
