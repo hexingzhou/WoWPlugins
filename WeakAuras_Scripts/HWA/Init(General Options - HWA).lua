@@ -70,7 +70,22 @@ WARLOCK         265  Affliction     266  Demonology     267  Destruction
 WARRIOR         71   Arms           72   Fury           73   Protection
 --]]
 
--- default config is set in the order as core, resouece, dynamic effects, and maintenance.
+---------------- Config ------------------
+-- Default config is set in the order as core, resouece, dynamic effects, and maintenance.
+-- Control in order: read from 1 to 8, and the higher can override the lower with the same key if exists.
+-- root
+--  |________________________________
+--  |1      |       |               |
+-- core    form    group           spec
+--          |       |________       |________________
+--          |2      |3      |       |5      |       |
+--         core    core    form    core    form    group
+--                          |               |       |________
+--                          |4              |6      |7      |
+--                         core            core    core    form
+--                                                          |
+--                                                          |8
+--                                                         core
 local default = {
     core = {
         x_offset = 0,
@@ -136,7 +151,55 @@ local default = {
     spec = {
         -- Use SpecializationID to support different duty.
         [65] = { -- For Paladin Holy
-            core = {},
+            core = {
+                max_icon_size_pl = 14,
+                max_sub_icon_size_pl = 17,
+            },
+            resource = {
+                total_width = 615,
+            },
+            dynamic_effects = {
+                x_offset = -308,
+                max_icon_size_pl = 14,
+            },
+            group = {
+                [5] = {
+                    core = {
+                        y_offset = 73,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 149,
+                    },
+                },
+                [20] = {
+                    core = {
+                        y_offset = 73,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 149,
+                    },
+                },
+                [30] = {
+                    core = {
+                        y_offset = 73,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 149,
+                    },
+                },
+            },
         },
         [105] = { -- For Druid Restoration
             core = {
@@ -167,30 +230,396 @@ local default = {
                     dynamic_effects = {
                         y_offset = 139,
                     },
-                    form = {},
+                    form = {
+                        [1] = {
+                            core = {
+                                y_offset = 83,
+                            },
+                            dynamic_effects = {
+                                y_offset = 159,
+                            },
+                        },
+                        [5] = {
+                            core = {
+                                y_offset = 73,
+                            },
+                            dynamic_effects = {
+                                y_offset = 149,
+                            },
+                        },
+                    },
+                },
+                [20] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                    form = {
+                        [1] = {
+                            core = {
+                                y_offset = 83,
+                            },
+                            dynamic_effects = {
+                                y_offset = 159,
+                            },
+                        },
+                        [5] = {
+                            core = {
+                                y_offset = 73,
+                            },
+                            dynamic_effects = {
+                                y_offset = 149,
+                            },
+                        },
+                    },
+                },
+                [30] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                    form = {
+                        [1] = {
+                            core = {
+                                y_offset = 83,
+                            },
+                            dynamic_effects = {
+                                y_offset = 159,
+                            },
+                        },
+                        [5] = {
+                            core = {
+                                y_offset = 73,
+                            },
+                            dynamic_effects = {
+                                y_offset = 149,
+                            },
+                        },
+                    },
                 },
             },
         },
         [256] = { -- For Priest Discipline
-            core = {},
+            core = {
+                max_icon_size_pl = 14,
+                max_sub_icon_size_pl = 17,
+            },
+            resource = {
+                total_width = 615,
+            },
+            dynamic_effects = {
+                x_offset = -308,
+                max_icon_size_pl = 14,
+            },
+            group = {
+                [5] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+                [20] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+                [30] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+            },
         },
         [257] = { -- For Priest Holy
-            core = {},
+            core = {
+                max_icon_size_pl = 14,
+                max_sub_icon_size_pl = 17,
+            },
+            resource = {
+                total_width = 615,
+            },
+            dynamic_effects = {
+                x_offset = -308,
+                max_icon_size_pl = 14,
+            },
+            group = {
+                [5] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+                [20] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+                [30] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+            },
         },
         [264] = { -- For Shaman Restoration
-            core = {},
+            core = {
+                max_icon_size_pl = 14,
+                max_sub_icon_size_pl = 17,
+            },
+            resource = {
+                total_width = 615,
+            },
+            dynamic_effects = {
+                x_offset = -308,
+                max_icon_size_pl = 14,
+            },
+            group = {
+                [5] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+                [20] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+                [30] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+            },
         },
         [270] = { -- For Monk Mistweaver
-            core = {},
+            core = {
+                max_icon_size_pl = 14,
+                max_sub_icon_size_pl = 17,
+            },
+            resource = {
+                total_width = 615,
+            },
+            dynamic_effects = {
+                x_offset = -308,
+                max_icon_size_pl = 14,
+            },
+            group = {
+                [5] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+                [20] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+                [30] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                },
+            },
         },
         [1468] = { -- For Evoker Preservation
-            core = {},
+            core = {
+                max_icon_size_pl = 14,
+                max_sub_icon_size_pl = 17,
+            },
+            resource = {
+                total_width = 615,
+            },
+            dynamic_effects = {
+                x_offset = -308,
+                max_icon_size_pl = 14,
+            },
+            group = {
+                [5] = {
+                    core = {
+                        y_offset = 73,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 149,
+                    },
+                },
+                [20] = {
+                    core = {
+                        y_offset = 73,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 149,
+                    },
+                },
+                [30] = {
+                    core = {
+                        y_offset = 73,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 149,
+                    },
+                },
+            },
         },
         [1473] = { -- For Evoker Augmentation
-            core = {},
+            core = {
+                max_icon_size_pl = 14,
+                max_sub_icon_size_pl = 17,
+            },
+            resource = {
+                total_width = 615,
+            },
+            dynamic_effects = {
+                x_offset = -308,
+                max_icon_size_pl = 14,
+            },
+            group = {
+                [5] = {
+                    core = {
+                        y_offset = 73,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 149,
+                    },
+                },
+                [20] = {
+                    core = {
+                        y_offset = 73,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 149,
+                    },
+                },
+                [30] = {
+                    core = {
+                        y_offset = 73,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 149,
+                    },
+                },
+            },
         },
     },
 }
+---------------- Config ------------------
 
 ---------------- Global ------------------
 HWA = HWA or {}
