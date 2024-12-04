@@ -1,13 +1,19 @@
 --[[
-- Events: OPTIONS, HWA_INIT, PLAYER_ENTERING_WORLD, PLAYER_SPECIALIZATION_CHANGED, TRAIT_CONFIG_UPDATED, GROUP_JOINED, GROUP_LEFT, UPDATE_SHAPESHIFT_FORM
+- Events: OPTIONS, PLAYER_ENTERING_WORLD, PLAYER_SPECIALIZATION_CHANGED, TRAIT_CONFIG_UPDATED, GROUP_JOINED, GROUP_LEFT, UPDATE_SHAPESHIFT_FORM, HWA_OPTIONS, HWA_INIT
 --]]
 function(event, ...)
+    if not HWA then
+        return
+    end
     local arg = ...
 
-    if "OPTIONS" == event or "HWA_OPTIONS" == event or ("HWA_INIT" == event and arg) then
-        aura_env.initThrottled()
+    if "OPTIONS" == event or "HWA_OPTIONS" == event then
+        HWA.getConfig()
+        HWA.initThrottled()
+    elseif "HWA_INIT" == event and arg then
+        HWA.initThrottled()
     elseif "HWA_INIT" == event then
-        aura_env.init()
+        HWA.init()
     elseif
         "PLAYER_ENTERING_WORLD" == event
         or "PLAYER_SPECIALIZATION_CHANGED" == event
@@ -15,7 +21,7 @@ function(event, ...)
         or "GROUP_JOINED" == event
         or "GROUP_LEFT" == event
     then
-        aura_env.initThrottled()
+        HWA.initThrottled()
         C_Timer.After(1, function()
             WeakAuras.ScanEvents("HWA_INIT", true)
         end)

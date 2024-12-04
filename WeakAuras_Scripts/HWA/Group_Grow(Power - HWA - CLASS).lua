@@ -6,9 +6,7 @@
 - Run on: init
 --]]
 function(newPositions, activeRegions)
-    local HWA = HWA and HWA[aura_env.id:gsub(".+ %- HWA %- ", "")] or {}
-
     if HWA and HWA.resourceGrow then
-        HWA.resourceGrow(newPositions, activeRegions)
+        HWA.resourceGrow(newPositions, activeRegions, aura_env.id:gsub("Power %- HWA %- ", ""))
     end
 end

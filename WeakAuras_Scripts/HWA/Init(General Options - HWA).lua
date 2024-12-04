@@ -70,31 +70,133 @@ WARLOCK         265  Affliction     266  Demonology     267  Destruction
 WARRIOR         71   Arms           72   Fury           73   Protection
 --]]
 
+-- default config is set in the order as core, resouece, dynamic effects, and maintenance.
+local default = {
+    core = {
+        x_offset = 0,
+        y_offset = 21,
+        width = 43,
+        height = 43,
+        horizontal_spacing = 1,
+        vertical_spacing = 3,
+        max_icon_size_pl = 9,
+        direction = 2, -- 1 for up, 2 for down
+        sub_width = 35,
+        sub_height = 35,
+        sub_horizontal_spacing = 1,
+        sub_vertical_spacing = 3,
+        max_sub_icon_size_pl = 11,
+        min_sub_icon_size_pl = 3,
+        sub_spacing = 3,
+    },
+    -- resource config is used for single resource, such as power of Mana. So y_offset may be set by progress bar self.
+    resource = {
+        x_offset = 0,
+        y_offset = 0,
+        total_width = 395,
+        height = 7,
+        horizontal_spacing = 3,
+    },
+    dynamic_effects = {
+        x_offset = -198,
+        y_offset = 105,
+        width = 43,
+        height = 43,
+        horizontal_spacing = 1,
+        vertical_spacing = 3,
+        max_icon_size_pl = 9,
+        direction = 1,
+        grow = 1, -- 1 for left to right, 2 for mid, 3 for right to left
+    },
+    maintenance = {
+        x_offset = 0,
+        y_offset = 634,
+        width = 43,
+        height = 43,
+        horizontal_spacing = 1,
+        vertical_spacing = 3,
+        max_icon_size_pl = 14,
+        direction = 1,
+    },
+    form = {
+        -- Use ShapeshiftFormID to support different form.
+        [1] = { -- For Druid Cat Form
+            core = {},
+        },
+        [5] = { -- For Druid Bear Form
+            core = {},
+        },
+    },
+    group = {
+        [1] = {
+            core = {},
+            form = {},
+        },
+    },
+    spec = {
+        -- Use SpecializationID to support different duty.
+        [65] = { -- For Paladin Holy
+            core = {},
+        },
+        [105] = { -- For Druid Restoration
+            core = {
+                max_icon_size_pl = 14,
+                max_sub_icon_size_pl = 17,
+            },
+            resource = {
+                total_width = 615,
+            },
+            dynamic_effects = {
+                x_offset = -308,
+                max_icon_size_pl = 14,
+            },
+            form = {
+                [1] = {
+                    core = {},
+                },
+            },
+            group = {
+                [5] = {
+                    core = {
+                        y_offset = 63,
+                        width = 35,
+                        height = 35,
+                        max_icon_size_pl = 17,
+                        direction = 1,
+                    },
+                    dynamic_effects = {
+                        y_offset = 139,
+                    },
+                    form = {},
+                },
+            },
+        },
+        [256] = { -- For Priest Discipline
+            core = {},
+        },
+        [257] = { -- For Priest Holy
+            core = {},
+        },
+        [264] = { -- For Shaman Restoration
+            core = {},
+        },
+        [270] = { -- For Monk Mistweaver
+            core = {},
+        },
+        [1468] = { -- For Evoker Preservation
+            core = {},
+        },
+        [1473] = { -- For Evoker Augmentation
+            core = {},
+        },
+    },
+}
+
+---------------- Global ------------------
+HWA = HWA or {}
+
 -- Start GCD watching. This is used for GCD check in getSpell function.
 WeakAuras.WatchGCD()
-
-local env = aura_env
-local class = env.id:gsub("General Options %- HWA %- ", "")
-env.class = class
-
-local class_group = WeakAuras.GetData(env.id).parent
-local dynamic_effects_group = "Dynamic Effects - HWA - " .. class
-local core_group = "Core - HWA - " .. class
-local left_side_group = "Left Side - HWA - " .. class
-local right_side_group = "Right Side - HWA - " .. class
-local maintenance_group = "Maintenance - HWA - " .. class
-local resource_group = "Resource - HWA - " .. class
-
-env.parent = class_group
-
-HWA = HWA or {}
-HWA[class] = HWA[class] or {}
-
-local H = HWA[class]
-
-local config = nil
-H.configs = H.configs or {}
-H.configs["general"] = env.config
 
 local function tcontains(t, v)
     if not t then
@@ -111,7 +213,69 @@ local function tcontains(t, v)
     return false
 end
 
-HWA.bit = {
+local function tclone(t)
+    local tr = {}
+
+    if t then
+        for k, v in pairs(t) do
+            if "table" == type(v) then
+                v = tclone(v)
+            end
+
+            if "string" == type(k) then
+                tr[k] = v
+            else
+                tinsert(tr, v)
+            end
+        end
+    end
+
+    return tr
+end
+
+local function tmerge(...)
+    local ts = { ... }
+    local tr = tclone(ts[1])
+    local t
+
+    for i = 2, #ts do
+        t = ts[i] or {}
+
+        for k, v in pairs(t) do
+            if "table" == type(v) then
+                v = tclone(v)
+                if tr[k] and #tr[k] == 0 then
+                    tr[k] = tmerge(tr[k], v)
+                else
+                    tr[k] = v
+                end
+            else
+                tr[k] = v
+            end
+        end
+    end
+
+    return tr
+end
+---------------- Global ------------------
+
+---------------- Base ------------------
+local config = nil
+local env = aura_env
+local bgMaxPlayers = {}
+local H = HWA
+
+env.parent = WeakAuras.GetData(env.id).parent
+
+for i = 1, GetNumBattlegroundTypes() do
+    local _, _, _, _, _, _, bgInstanceID, maxPlayers = GetBattlegroundInfo(i)
+    bgMaxPlayers[bgInstanceID] = maxPlayers
+end
+
+H.configs = H.configs or {}
+H.configs["GENERAL"] = env.config
+
+H.bit = {
     tobit = function(x)
         x = x % (2 ^ 32)
         if x >= 2 ^ 31 then
@@ -291,7 +455,7 @@ HWA.bit = {
 -- 20: mythic raid
 -- 30: normal raid
 -- 40: outdoor raid
-function env.getLocalGroupID()
+function H.getLocalGroupID()
     local inInstance, instanceType = IsInInstance()
 
     if instanceType == "pvp" then
@@ -325,7 +489,7 @@ function env.getLocalGroupID()
     end
 end
 
-local function getShow(config)
+function H.getStateShow(config)
     if not config then
         return true
     end
@@ -360,14 +524,13 @@ local function getShow(config)
     end
 end
 
-local function getInit()
-    local specID = env.specID or 0
-    local groupID = env.groupID or 0
-    local formID = env.formID or 0
-    return specID * 10000 + groupID * 100 + formID
+-- The init value is used to trigger group grow.
+function H.getStateInit()
+    return (env.specID or 0) * 10000 + (env.groupID or 0) * 100 + (env.formID or 0)
 end
 
-local function getPriority(config)
+-- The priority value is used to trigger group sort.
+function H.getStatePriority(config)
     local c = config
     if not c then
         return 0
@@ -395,9 +558,92 @@ local function getPriority(config)
     return p
 end
 
+function H.updateEnv()
+    local update = false
+    local specID = 0
+    local spec = GetSpecialization()
+    if spec then
+        specID = GetSpecializationInfo(spec) or 0
+    end
+    if env.specID ~= specID then
+        env.specID = specID
+        update = true
+    end
+    local groupID = H.getLocalGroupID() or 0
+    if env.groupID ~= groupID then
+        env.groupID = groupID
+        update = true
+    end
+    local formID = GetShapeshiftFormID() or 0
+    if env.formID ~= formID then
+        env.formID = formID
+        update = true
+    end
+
+    return update
+end
+
+function H.getLocalConfig(config, key, specID, groupID, formID)
+    if not config then
+        return {}
+    end
+    local c = config or {}
+    local f = c.form and c.form[formID] or {}
+    local g = c.group and c.group[groupID] or {}
+    local gf = g.form and g.form[formID] or {}
+    local s = c.spec and c.spec[specID] or {}
+    local sf = s.form and s.form[formID] or {}
+    local sg = s.group and s.group[groupID] or {}
+    local sgf = sg.form and sg.form[formID] or {}
+
+    return tmerge(
+        c[key] or {},
+        f[key] or {},
+        g[key] or {},
+        gf[key] or {},
+        s[key] or {},
+        sf[key] or {},
+        sg[key] or {},
+        sgf[key] or {}
+    )
+end
+
+function H.getConfig(key, class)
+    if not key then
+        config = nil
+        return
+    end
+
+    local specID = env.specID or 0
+    local groupID = env.groupID or 0
+    local formID = env.formID or 0
+
+    config = config or {}
+    config[specID] = config[specID] or {}
+    config[specID][groupID] = config[specID][groupID] or {}
+    config[specID][groupID][formID] = config[specID][groupID][formID] or {}
+    if not config[specID][groupID][formID][key] or WeakAuras.IsOptionsOpen() then
+        config[specID][groupID][formID][key] = H.getLocalConfig(default, key, specID, groupID, formID)
+        config[specID][groupID][formID][key] = tmerge(
+            config[specID][groupID][formID][key],
+            H.getLocalConfig(H.configs["GENERAL"], key, specID, groupID, formID)
+        )
+        if class then
+            config[specID][groupID][formID][key] = tmerge(
+                config[specID][groupID][formID][key],
+                H.getLocalConfig(H.configs[class], key, specID, groupID, formID)
+            )
+        end
+    end
+
+    return config[specID][groupID][formID][key]
+end
+---------------- Base ------------------
+
+---------------- Trigger ------------------
 -- Get spell info.
-function HWA.getSpell(env)
-    if not getShow(env.spell) then
+function H.getSpell(env)
+    if not H.getStateShow(env.spell) then
         return true, {
             show = false,
         }
@@ -492,13 +738,13 @@ function HWA.getSpell(env)
             isSpellInRange = isSpellInRange,
             hasTarget = hasTarget,
             healthPercent = healthPercent,
-            priority = getPriority(env.priority) or 0,
-            init = getInit() or 0,
+            priority = H.getStatePriority(env.priority) or 0,
+            init = H.getStateInit() or 0,
         }
 end
 
 -- Get totem info.
-function HWA.getTotem(env, init, totemSlot)
+function H.getTotem(env, init, totemSlot)
     if init then
         env.totems = {}
         return true, {
@@ -576,7 +822,7 @@ function HWA.getTotem(env, init, totemSlot)
 end
 
 -- Get aura info.
-function HWA.getAura(env, init, unitTarget)
+function H.getAura(env, init, unitTarget)
     if init then
         env.auras = {}
         return true, {
@@ -698,13 +944,18 @@ function HWA.getAura(env, init, unitTarget)
     end
 end
 
-function HWA.getPower(env, init)
+function H.getPower(env, init)
     if init then
         return true, {
             show = false,
         }
     end
-    local config = env and env.power or {}
+    if not H.getStateShow(env.power) then
+        return true, {
+            show = false,
+        }
+    end
+    local config = env.power or {}
     local unit = config.unit or "player"
     local type = config.type or -1
     if type == -1 then
@@ -728,7 +979,7 @@ function HWA.getPower(env, init)
             progressType = "static",
             total = total,
             value = current - per * (i - 1),
-            init = getInit(),
+            init = H.getStateInit(),
         }
     end
     return true, {
@@ -736,285 +987,15 @@ function HWA.getPower(env, init)
         states = states,
     }
 end
+---------------- Trigger ------------------
 
-local bgMaxPlayers = {}
-for i = 1, GetNumBattlegroundTypes() do
-    local _, _, _, _, _, _, bgInstanceID, maxPlayers = GetBattlegroundInfo(i)
-    bgMaxPlayers[bgInstanceID] = maxPlayers
-end
-
--- Local copy.
-local C_Timer = C_Timer
-
-if WeakAuras.IsImporting() then
-    local function checkImport()
-        if WeakAuras.IsImporting() or not env.IsImporting then
-            return
-        end
-
-        env.isImporting:Cancel()
-        env.isImporting = false
-
-        C_Timer.After(1, function()
-            WeakAuras.ScanEvents("HWA_INIT", true)
-        end)
-    end
-
-    env.isImporting = C_Timer.NewTicker(0.5, checkImport)
-else
-    env.isImporting = false
-end
-
-local function tclone(t)
-    local tr = {}
-
-    if t then
-        for k, v in pairs(t) do
-            if "table" == type(v) then
-                v = tclone(v)
-            end
-
-            if "string" == type(k) then
-                tr[k] = v
-            else
-                tinsert(tr, v)
-            end
-        end
-    end
-
-    return tr
-end
-
-local function tmerge(...)
-    local ts = { ... }
-    local tr = tclone(ts[1])
-    local t
-
-    for i = 2, #ts do
-        t = ts[i] or {}
-
-        for k, v in pairs(t) do
-            if "table" == type(v) then
-                v = tclone(v)
-                if tr[k] and #tr[k] == 0 then
-                    tr[k] = tmerge(tr[k], v)
-                else
-                    tr[k] = v
-                end
-            else
-                tr[k] = v
-            end
-        end
-    end
-
-    return tr
-end
-
-local function setRegionSize(r, w, h)
+---------------- Region ------------------
+function H.setRegionSize(r, w, h)
     r:SetRegionWidth(w)
     r:SetRegionHeight(h)
 end
 
-local function getLocalConfig(config, key, specID, groupID, formID)
-    local c = config or {}
-    local f = c.form and c.form[formID] or {}
-    local g = c.group and c.group[groupID] or {}
-    local gf = g.form and g.form[formID] or {}
-    local s = c.spec and c.spec[specID] or {}
-    local sf = s.form and s.form[formID] or {}
-    local sg = s.group and s.group[groupID] or {}
-    local sgf = sg.form and sg.form[formID] or {}
-
-    return tmerge(
-        c[key] or {},
-        f[key] or {},
-        g[key] or {},
-        gf[key] or {},
-        s[key] or {},
-        sf[key] or {},
-        sg[key] or {},
-        sgf[key] or {}
-    )
-end
-
--- default config is set in the order as core, resouece, dynamic effects, and maintenance.
-local default = {
-    core = {
-        x_offset = 0,
-        y_offset = 21,
-        width = 43,
-        height = 43,
-        horizontal_spacing = 1,
-        vertical_spacing = 3,
-        max_icon_size_pl = 9,
-        direction = 2, -- 1 for up, 2 for down
-        sub_width = 35,
-        sub_height = 35,
-        sub_horizontal_spacing = 1,
-        sub_vertical_spacing = 3,
-        max_sub_icon_size_pl = 11,
-        min_sub_icon_size_pl = 3,
-        sub_spacing = 3,
-    },
-    -- resource config is used for single resource, such as power of Mana. So y_offset may be set by progress bar self.
-    resource = {
-        x_offset = 0,
-        y_offset = 0,
-        total_width = 395,
-        height = 7,
-        horizontal_spacing = 3,
-    },
-    dynamic_effects = {
-        x_offset = -198,
-        y_offset = 101,
-        width = 43,
-        height = 35,
-        horizontal_spacing = 1,
-        vertical_spacing = 3,
-        max_icon_size_pl = 3,
-        direction = 1,
-        grow = 1, -- 1 for left to right, 2 for mid, 3 for right to left
-    },
-    maintenance = {
-        x_offset = 0,
-        y_offset = 634,
-        width = 43,
-        height = 43,
-        horizontal_spacing = 1,
-        vertical_spacing = 3,
-        max_icon_size_pl = 9,
-        direction = 1,
-    },
-    form = {
-        -- Use ShapeshiftFormID to support different form.
-        [1] = { -- For Druid Cat Form
-            core = {},
-        },
-        [5] = { -- For Druid Bear Form
-            core = {},
-        },
-    },
-    group = {
-        [1] = {
-            core = {},
-            form = {},
-        },
-    },
-    spec = {
-        -- Use SpecializationID to support different duty.
-        [65] = { -- For Paladin Holy
-            core = {},
-        },
-        [105] = { -- For Druid Restoration
-            core = {},
-            form = {
-                [1] = {
-                    core = {},
-                },
-            },
-            group = {
-                [1] = {
-                    core = {},
-                    form = {},
-                },
-            },
-        },
-        [256] = { -- For Priest Discipline
-            core = {},
-        },
-        [257] = { -- For Priest Holy
-            core = {},
-        },
-        [264] = { -- For Shaman Restoration
-            core = {},
-        },
-        [270] = { -- For Monk Mistweaver
-            core = {},
-        },
-        [1468] = { -- For Evoker Preservation
-            core = {},
-        },
-        [1473] = { -- For Evoker Augmentation
-            core = {},
-        },
-    },
-}
-
-function H.getConfig(key)
-    if not key then
-        config = nil
-        return
-    end
-
-    local specID = env.specID or 0
-    local groupID = env.groupID or 0
-    local formID = env.formID or 0
-
-    config = config or {}
-    config[specID] = config[specID] or {}
-    config[specID][groupID] = config[specID][groupID] or {}
-    config[specID][groupID][formID] = config[specID][groupID][formID] or {}
-    if not config[specID][groupID][formID][key] or WeakAuras.IsOptionsOpen() then
-        config[specID][groupID][formID][key] = getLocalConfig(default, key, specID, groupID, formID)
-        config[specID][groupID][formID][key] =
-            tmerge(config[specID][groupID][formID][key], getLocalConfig(H.configs["general"], specID, groupID, formID))
-    end
-
-    return config[specID][groupID][formID][key]
-end
-
-local initThrottledHandler = nil
-local initThrottledLastRunTime = 0
-
-function env.initThrottled()
-    if initThrottledHandler or env.isImporting then
-        return
-    end
-
-    local currentTime, delay = time(), 0.25
-
-    if initThrottledLastRunTime > currentTime - 0.25 then
-        delay = max(0.25, currentTime - initThrottledLastRunTime)
-    end
-
-    initThrottledHandler = C_Timer.NewTimer(delay, function()
-        WeakAuras.ScanEvents("HWA_INIT")
-    end)
-end
-
-function env.init()
-    if env.isImporting then
-        return
-    end
-
-    initThrottledLastRunTime = time()
-
-    local spec = GetSpecialization()
-    if spec then
-        env.specID = GetSpecializationInfo(spec) or 0
-    else
-        env.specID = 0
-    end
-    env.groupID = env.getLocalGroupID() or 0
-    env.formID = GetShapeshiftFormID() or 0
-
-    H.getConfig(nil, true)
-
-    WeakAuras.ScanEvents("HWA_UPDATE")
-
-    if initThrottledHandler then
-        initThrottledHandler:Cancel()
-        initThrottledHandler = nil
-    end
-end
-
-hooksecurefunc("SetUIVisibility", function(isVisible)
-    if isVisible and env and env.initThrottled then
-        env.initThrottled()
-    end
-end)
-
-local function baseGrow(
+function H.baseGrow(
     newPositions,
     activeRegions,
     width,
@@ -1076,7 +1057,7 @@ local function baseGrow(
     local y = yOffset
     for i, regionData in ipairs(activeRegions) do
         if i > currentMin then
-            setRegionSize(regionData.region, width, height)
+            H.setRegionSize(regionData.region, width, height)
             newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + xOffset, y }
             if i == currentMax then
                 lineCount = lineCount - 1
@@ -1098,15 +1079,15 @@ local function baseGrow(
     end
 end
 
-local function baseSort(a, priorityA, b, priorityB)
+function H.baseSort(a, priorityA, b, priorityB)
     if priorityA == priorityB then
         return a.dataIndex < b.dataIndex
     end
     return priorityA < priorityB
 end
 
-function H.coreGrow(newPositions, activeRegions)
-    local config = H.getConfig("core")
+function H.coreGrow(newPositions, activeRegions, class)
+    local config = H.getConfig("core", class)
     local xOffset = config.x_offset
     local yOffset = config.y_offset
     local width = config.width
@@ -1129,7 +1110,7 @@ function H.coreGrow(newPositions, activeRegions)
 
     local mid = (maxSize + 1) / 2
     for i, regionData in ipairs(activeRegions) do
-        setRegionSize(regionData.region, width, height)
+        H.setRegionSize(regionData.region, width, height)
         newPositions[i] = { (i - mid) * (width + hSpacing) + xOffset, yOffset }
         if i == maxSize then
             break
@@ -1145,7 +1126,7 @@ function H.coreGrow(newPositions, activeRegions)
         local maxCount = config.max_sub_icon_size_pl
         local minCount = config.min_sub_icon_size_pl
 
-        baseGrow(
+        H.baseGrow(
             newPositions,
             activeRegions,
             subWidth,
@@ -1166,11 +1147,11 @@ end
 function H.coreSort(a, b)
     local priorityA = a.region and a.region.state and a.region.state.priority or 0
     local priorityB = b.region and b.region.state and b.region.state.priority or 0
-    return baseSort(a, priorityA, b, priorityB)
+    return H.baseSort(a, priorityA, b, priorityB)
 end
 
-function H.resourceGrow(newPositions, activeRegions)
-    local config = H.getConfig("resource")
+function H.resourceGrow(newPositions, activeRegions, class)
+    local config = H.getConfig("resource", class)
     local xOffset = config.x_offset
     local yOffset = config.y_offset
     local totalWidth = config.total_width
@@ -1182,13 +1163,13 @@ function H.resourceGrow(newPositions, activeRegions)
     local mid = (count + 1) / 2
 
     for i, regionData in ipairs(activeRegions) do
-        setRegionSize(regionData.region, width, height)
+        H.setRegionSize(regionData.region, width, height)
         newPositions[i] = { (i - mid) * (width + hSpacing) + xOffset, yOffset }
     end
 end
 
-function H.dynamicEffectsGrow(newPositions, activeRegions)
-    local config = H.getConfig("dynamic_effects")
+function H.dynamicEffectsGrow(newPositions, activeRegions, class)
+    local config = H.getConfig("dynamic_effects", class)
     local xOffset = config.x_offset
     local yOffset = config.y_offset
     local width = config.width
@@ -1231,8 +1212,8 @@ function H.dynamicEffectsSort(a, b)
     return baseSort(a, 0, b, 0)
 end
 
-function H.maintenanceGrow(newPositions, activeRegions)
-    local config = H.getConfig("maintenance")
+function H.maintenanceGrow(newPositions, activeRegions, class)
+    local config = H.getConfig("maintenance", class)
     local xOffset = config.x_offset
     local yOffset = config.y_offset
     local width = config.width
@@ -1265,3 +1246,64 @@ end
 function H.maintenanceSort(a, b)
     return baseSort(a, 0, b, 0)
 end
+---------------- Region ------------------
+
+---------------- Init ------------------
+-- Local copy.
+local C_Timer = C_Timer
+
+local initThrottledHandler = nil
+local initThrottledLastRunTime = 0
+
+if WeakAuras.IsImporting() then
+    local function checkImport()
+        if WeakAuras.IsImporting() or not env.IsImporting then
+            return
+        end
+
+        env.isImporting:Cancel()
+        env.isImporting = false
+
+        C_Timer.After(1, function()
+            WeakAuras.ScanEvents("HWA_INIT", true)
+        end)
+    end
+
+    env.isImporting = C_Timer.NewTicker(0.5, checkImport)
+else
+    env.isImporting = false
+end
+
+function H.initThrottled()
+    if initThrottledHandler or env.isImporting then
+        return
+    end
+
+    initThrottledHandler = C_Timer.NewTimer(0.25, function()
+        WeakAuras.ScanEvents("HWA_INIT")
+    end)
+end
+
+function H.init()
+    if env.isImporting then
+        return
+    end
+
+    initThrottledLastRunTime = time()
+
+    H.updateEnv()
+
+    if initThrottledHandler then
+        initThrottledHandler:Cancel()
+        initThrottledHandler = nil
+    end
+
+    WeakAuras.ScanEvents("HWA_UPDATE")
+end
+
+hooksecurefunc("SetUIVisibility", function(isVisible)
+    if isVisible and H and H.initThrottled then
+        H.initThrottled()
+    end
+end)
+---------------- Init ------------------
