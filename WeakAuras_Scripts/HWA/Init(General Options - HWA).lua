@@ -1620,7 +1620,7 @@ function H.dynamicEffectsGrow(newPositions, activeRegions, class)
     if growType ~= 2 then
         x0 = x0 + ((width - 1) / 2 + 1) * grow
     end
-    baseGrow(
+    H.baseGrow(
         newPositions,
         activeRegions,
         width,
@@ -1638,7 +1638,7 @@ function H.dynamicEffectsGrow(newPositions, activeRegions, class)
 end
 
 function H.dynamicEffectsSort(a, b)
-    return baseSort(a, 0, b, 0)
+    return H.baseSort(a, 0, b, 0)
 end
 
 function H.maintenanceGrow(newPositions, activeRegions, class)
@@ -1655,7 +1655,7 @@ function H.maintenanceGrow(newPositions, activeRegions, class)
     end
     local maxSize = config.max_icon_size_pl
 
-    baseGrow(
+    H.baseGrow(
         newPositions,
         activeRegions,
         width,
@@ -1673,7 +1673,7 @@ function H.maintenanceGrow(newPositions, activeRegions, class)
 end
 
 function H.maintenanceSort(a, b)
-    return baseSort(a, 0, b, 0)
+    return H.baseSort(a, 0, b, 0)
 end
 ---------------- Region ------------------
 
