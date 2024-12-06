@@ -1,5 +1,5 @@
 --[[
-- Events: PLAYER_TOTEM_UPDATE, STATUS
+- Events: PLAYER_TOTEM_UPDATE
 --]]
 -- Trigger
 function(event, ...)
@@ -10,7 +10,7 @@ function(event, ...)
     end
     local result, state = false, {}
     if HWA and HWA.getTotem then
-        result, state = HWA.getTotem(aura_env, "STATUS" == event, totemSlot)
+        result, state = HWA.getTotem(aura_env, false, totemSlot)
     end
     if result and state then
         aura_env.result = aura_env.result or {}

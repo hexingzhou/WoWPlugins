@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_AURA, STATUS
+- Events: UNIT_AURA
 
 - Conditions:
 {
@@ -20,7 +20,7 @@ function(states, event, ...)
     end
     local result, state = false, {}
     if HWA and HWA.getAura then
-        result, state = HWA.getAura(aura_env, "STATUS" == event, unitTarget)
+        result, state = HWA.getAura(aura_env, false, unitTarget)
     end
     if result and state then
         if not state.show then

@@ -1,17 +1,15 @@
 aura_env.aura = {
     configs = {
-        {
-            id = 0, -- Key for auraInstanceID
+        [0] = { -- The id of config in configs.
+            id = 0, -- auraInstanceID
             unit_targets = {},
             source_units = {},
-            group = 0,
         },
     },
     strategies = {
-        -- Use groupID as key.
-        [0] = {
-            priority = 0,
-            get_state = nil --[[ function(auras)
+        {
+            ids = {}, -- { id, id, }, ids of config used to trigger strategy.
+            func = nil, --[[ function(auras)
                 local aura = auras[1]
                 local stacks = 0
                 if aura.charges > 1 then
@@ -24,7 +22,8 @@ aura_env.aura = {
                     expirationTime = aura.expirationTime,
                     stacks = stacks
                 }
-            end ]],
+            end ]]
+            func_string = nil,
         },
     },
 }

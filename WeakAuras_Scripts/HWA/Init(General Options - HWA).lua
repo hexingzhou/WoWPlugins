@@ -686,6 +686,34 @@ local function tmerge(...)
 
     return tr
 end
+
+local function createFunctionCache()
+    local cache = {
+        funcs = setmetatable({}, { __mode = "v" }),
+    }
+    cache.load = function(self, string, silent)
+        if self.funcs[string] then
+            return self.funcs[string]
+        else
+            local loadedFunction, errorString = loadstring(string, firstLine(string))
+            if errorString then
+                if not silent then
+                    print(errorString)
+                end
+                return nil, errorString
+            elseif loadedFunction then
+                --- @cast loadedFunction -nil
+                local success, func = pcall(assert(loadedFunction))
+                if success then
+                    self.funcs[string] = func
+                    return func
+                end
+            end
+        end
+    end
+    return cache
+end
+local function_cache_custom = createFunctionCache()
 ---------------- Global ------------------
 
 ---------------- Base ------------------
@@ -879,6 +907,10 @@ H.bit = {
     end,
 }
 
+function H.loadFunction(str)
+    return function_cache_custom:load(str)
+end
+
 -- 1: solo
 -- 5: party
 -- 20: mythic raid
@@ -1071,50 +1103,47 @@ end
 
 ---------------- Trigger ------------------
 -- Get spell info.
-function H.getSpell(env)
+function H.getSpell(env, id)
     if not H.getStateShow(env.spell) then
         return true, {
             show = false,
         }
     end
 
-    local spellID = env.spell and env.spell.id or 0
+    local spellID = id or 0
     if spellID == 0 then
-        local sID, count = env.id:gsub(".+ %- ", "")
-        spellID = tonumber(sID) or 0
+        spellID = env.spell and env.spell.id or 0
+        if spellID == 0 then
+            spellID = tonumber(env.id:gsub(".+ %- ", "")) or 0
+        end
     end
-    local spellName = env.spell and env.spell.name or ""
-    if spellName == "" then
-        spellName = env.id:gsub(" %- %d+", "")
-    end
-    if spellID == 0 and spellName == "" then
-        return true, {
-            show = false,
-        }
+    if spellID == 0 then
+        return false
     end
 
-    local spell = nil
-    if spellID == 0 then
-        spell = spellName
-    else
-        spell = spellID
-    end
-
+    local spell = spellID
     local spellInfo = C_Spell.GetSpellInfo(spell)
+    if spellInfo then
+        if not env.precise then
+            spell = spellInfo.name
+            spellInfo = C_Spell.GetSpellInfo(spell)
+        end
+    end
+
     if not spellInfo then
         return true, {
             show = false,
         }
     end
 
-    local unitTargets = env.unit_targets or { "target" }
+    local target = env.target or false
 
-    local icon = spellInfo and spellInfo.iconID
+    local icon = spellInfo.iconID
     local duration = 0
     local expirationTime = 0
     local stacks = 0
     local charges = 1
-    local isSpellInRange = false
+    local isSpellInRange = true
     local hasTarget = false
     local isUsable, noResource = C_Spell.IsSpellUsable(spell)
     local healthPercent = 0
@@ -1143,13 +1172,12 @@ function H.getSpell(env)
         end
     end
 
-    for i = 1, #unitTargets do
-        local inRange = C_Spell.IsSpellInRange(spell, unitTargets[i])
+    if target then
+        local inRange = C_Spell.IsSpellInRange(spell, "target")
         if inRange ~= nil then
             isSpellInRange = inRange == 1
             hasTarget = true
-            healthPercent = UnitHealth(unitTargets[i]) / UnitHealthMax(unitTargets[i]) * 100
-            break
+            healthPercent = UnitHealth("target") / UnitHealthMax("target") * 100
         end
     end
 
@@ -1250,6 +1278,40 @@ function H.getTotem(env, init, totemSlot)
     end
 end
 
+function H.defaultStrategyFunc(auras)
+    if not next(auras) then
+        return true, {
+            show = false,
+        }
+    end
+    table.sort(auras, function(a, b)
+        return a.expirationTime < b.expirationTime
+    end)
+    local stacks = #auras
+    local charges = 0
+    for i, aura in pairs(auras) do
+        charges = charges + aura.charges
+    end
+    local aura = auras[1]
+    if stacks == 1 then
+        if aura.maxCharges > 1 then
+            stacks = aura.charges
+        else
+            stacks = 0
+        end
+    end
+    return true,
+        {
+            show = true,
+            progressType = "timed",
+            duration = aura.duration,
+            expirationTime = aura.expirationTime,
+            icon = aura.icon,
+            charges = charges,
+            stacks = stacks,
+        }
+end
+
 -- Get aura info.
 function H.getAura(env, init, unitTarget)
     if init then
@@ -1262,25 +1324,21 @@ function H.getAura(env, init, unitTarget)
         return false
     end
 
-    env.auras = env.auras or {}
-    env.auras[unitTarget] = env.auras[unitTarget] or {}
-
-    local auras = env.auras[unitTarget] or {}
+    local auras = env.auras or {}
     local configs = env.configs or {}
     local strategies = env.strategies or {}
 
     local currentAuras = {}
 
     -- Find current auras.
-    for i, config in ipairs(configs) do
+    for i, config in pairs(configs) do
         local unitTargets = config.unit_targets
         local sourceUnits = config.source_units
         if tcontains(unitTargets, unitTarget) then
             local info = C_UnitAuras.GetAuraDataByAuraInstanceID(unitTarget, config.id or 0)
             if info and tcontains(sourceUnits, info.sourceUnit) then
                 table.insert(currentAuras, {
-                    index = i,
-                    strategy = strategies[config.group or 0] or {},
+                    id = i,
                     unitTarget = unitTarget,
                     auraInstanceID = auraData.auraInstanceID,
                     charges = auraData.charges,
@@ -1307,7 +1365,7 @@ function H.getAura(env, init, unitTarget)
                 and aura.auraInstanceID == currentAura.auraInstanceID
                 and aura.sourceUnit == currentAura.sourceUnit
             then
-                aura.configIndex = currentAura.configIndex
+                aura.id = currentAura.id
                 aura.charges = currentAura.charges
                 aura.duration = currentAura.duration
                 aura.expirationTime = currentAura.expirationTime
@@ -1324,53 +1382,55 @@ function H.getAura(env, init, unitTarget)
         end
     end
 
+    env.auras = auras
+
     if not next(auras) then
         return true, {
             show = false,
         }
     end
 
-    -- Use strategies to sort auras.
-    table.sort(auras, function(a, b)
-        local priorityA = a.strategy.priority or 0
-        local priorityB = b.strategy.priority or 0
-        if priorityA == priorityB then
-            return a.index < b.index
-        end
-        return priorityA < priorityB
-    end)
-
-    -- Use auras cache to update states.
-    local getState = auras[1].strategy.get_state
-        or function(auras)
-            local aura = auras[1]
-            local stacks = 0
-            if aura.charges > 1 then
-                stacks = aura.charges
+    for i, strategy in pairs(strategies) do
+        local match = true
+        local checkAuras = {}
+        for index, id in ipairs(strategy.ids or {}) do
+            local inCache = false
+            for auraIndex, aura in ipairs(auras) do
+                if id == aura.id then
+                    inCache = true
+                    table.insert(checkAuras, aura)
+                end
             end
-            return {
-                progressType = "timed",
-                duration = aura.duration,
-                expirationTime = aura.expirationTime,
-                stacks = stacks,
-            }
+            if not inCache then
+                match = false
+            end
         end
-    local state = getState(auras)
-    if state then
-        return true,
-            {
-                show = true,
-                progressType = state.progressType,
-                duration = state.duration,
-                expirationTime = state.expirationTime,
-                name = state.name,
-                stacks = state.stacks,
-            }
-    else
-        return true, {
-            show = false,
-        }
+        if match then
+            if not strategy.func then
+                return strategy.func(checkAuras)
+            end
+            break
+        end
     end
+
+    -- Use default strategy with first matched config in configs.
+    for i, config in pairs(configs) do
+        local match = false
+        local checkAuras = {}
+        for index, aura in ipairs(auras) do
+            if i == aura.id then
+                match = true
+                table.insert(checkAuras, aura)
+            end
+        end
+        if match then
+            return H.defaultStrategyFunc(checkAuras)
+        end
+    end
+
+    return true, {
+        show = false,
+    }
 end
 
 function H.getPower(env, init)
@@ -1410,6 +1470,56 @@ function H.getPower(env, init)
             value = current - per * (i - 1),
             init = H.getStateInit(),
         }
+    end
+    return true, {
+        show = true,
+        states = states,
+    }
+end
+
+function H.initCore(env)
+    local core = env and env.core or {}
+    local index = 1
+    for id, config in pairs(core) do
+        config.__index__ = index
+        if not config.func and config.func_string then
+            config.func = H.loadFunction(config.func_string)
+        end
+        if config.aura and config.aura.strategies then
+            for i, strategy in ipairs(config.aura.strategies) do
+                if not strategy.func and strategy.func_string then
+                    strategy.func = H.loadFunction(strategy.func_string)
+                end
+            end
+        end
+        index = index + 1
+    end
+end
+
+function H.getCoreState(env, id)
+    if not id then
+        return false
+    end
+    return H.getSpell(env, id)
+end
+
+function H.getCoreStates(env, ids)
+    local states = {}
+    if not ids then
+        for id, config in pairs(env.core or {}) do
+            local result, state = H.getCoreState(config or {}, id)
+            if result and state then
+                states[id] = state
+            end
+        end
+    else
+        local core = env.core or {}
+        for i, id in ipairs(ids) do
+            local result, state = H.getCoreState(core[id] or {}, id)
+            if result and state then
+                states[id] = state
+            end
+        end
     end
     return true, {
         show = true,
@@ -1727,7 +1837,7 @@ function H.init()
         initThrottledHandler = nil
     end
 
-    WeakAuras.ScanEvents("HWA_UPDATE")
+    WeakAuras.ScanEvents("HWA_UPDATE:init")
 end
 
 hooksecurefunc("SetUIVisibility", function(isVisible)

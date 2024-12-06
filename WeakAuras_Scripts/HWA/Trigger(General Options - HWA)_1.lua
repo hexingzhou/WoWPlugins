@@ -29,7 +29,7 @@ function(event, ...)
         local formID = GetShapeshiftFormID()
         if aura_env.formID ~= formID then
             aura_env.formID = formID
-            WeakAuras.ScanEvents("HWA_UPDATE")
+            WeakAuras.ScanEvents("HWA_UPDATE:form")
         end
     end
 end

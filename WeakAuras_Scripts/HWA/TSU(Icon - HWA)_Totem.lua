@@ -1,5 +1,5 @@
 --[[
-- Events: PLAYER_TOTEM_UPDATE, STATUS
+- Events: PLAYER_TOTEM_UPDATE
 
 - Conditions:
 {
@@ -16,7 +16,7 @@ function(states, event, ...)
     end
     local result, state = false, {}
     if HWA and HWA.getTotem then
-        result, state = HWA.getTotem(aura_env, "STATUS" == event, totemSlot)
+        result, state = HWA.getTotem(aura_env, false, totemSlot)
     end
     if result and state then
         if not state.show then

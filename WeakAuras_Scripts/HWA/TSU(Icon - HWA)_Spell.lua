@@ -32,8 +32,6 @@
     },
 }
 --]]
--- Function checks the spell states with a few targets.
--- It can work with spell using micros.
 function(states, event)
     local key = "SPELL"
     local result, state = false, {}

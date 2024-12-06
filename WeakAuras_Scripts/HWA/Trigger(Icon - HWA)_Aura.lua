@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_AURA, STATUS
+- Events: UNIT_AURA
 --]]
 -- Trigger
 function(event, ...)
@@ -14,7 +14,7 @@ function(event, ...)
     end
     local result, state = false, {}
     if HWA and HWA.getAura then
-        result, state = HWA.getAura(aura_env, "STATUS" == event, totemSlot)
+        result, state = HWA.getAura(aura_env, false, totemSlot)
     end
     if result and state then
         aura_env.result = aura_env.result or {}
