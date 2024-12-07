@@ -954,31 +954,35 @@ function H.getStateShow(config)
     if not config then
         return true
     end
-    local show = config.show or 0
+
+    local specID = env.specID or 0
     local formID = env.formID or 0
+
+    local value = config.value or 0
+
     if config.form then
-        local s = config.form[formID] and config.form[formID].show or 0
-        if s ~= 0 then
-            show = s
+        local show = config.form[formID] and config.form[formID].value or 0
+        if show ~= 0 then
+            value = show
         end
     end
+
     if config.spec then
-        local specID = env.specID or 0
         local sConfig = config.spec[specID]
         if sConfig then
-            local s = sConfig.show or 0
-            if s ~= 0 then
-                show = s
+            local show = sConfig.value or 0
+            if show ~= 0 then
+                value = show
             end
             if sConfig.form then
-                s = sConfig.form[formID] and sConfig.form[formID].show or 0
-                if s ~= 0 then
-                    show = s
+                show = sConfig.form[formID] and sConfig.form[formID].value or 0
+                if show ~= 0 then
+                    value = show
                 end
             end
         end
     end
-    if show < 0 then
+    if value < 0 then
         return false
     else
         return true
@@ -992,31 +996,39 @@ end
 
 -- The priority value is used to trigger group sort.
 function H.getStatePriority(config)
-    local c = config
-    if not c then
+    if not config then
         return 0
     end
 
     local specID = env.specID or 0
     local formID = env.formID or 0
 
-    local p = c.value or 0
-    local fp = c.form and c.form[formID] or 0
-    if fp ~= 0 then
-        p = fp
+    local value = config.value or 0
+
+    if config.form then
+        local priority = config.form[formID] and config.form[formID].value or 0
+        if priority ~= 0 then
+            value = priority
+        end
     end
 
-    local cs = c.spec and c.spec[specID] or {}
-    local sp = cs.value or 0
-    if sp ~= 0 then
-        p = sp
-    end
-    local sfp = cs.form and c.form[formID] or 0
-    if sfp ~= 0 then
-        p = sfp
+    if config.spec then
+        local sConfig = config.spec[specID]
+        if sConfig then
+            local priority = sConfig.value or 0
+            if priority ~= 0 then
+                value = priority
+            end
+            if sConfig.form then
+                priority = sConfig.form[formID] and sConfig.form[formID].value or 0
+                if priority ~= 0 then
+                    value = priority
+                end
+            end
+        end
     end
 
-    return p
+    return value
 end
 
 function H.updateEnv()
@@ -1103,8 +1115,9 @@ end
 
 ---------------- Trigger ------------------
 -- Get spell info.
-function H.getSpell(env, id)
-    if not H.getStateShow(env.spell) then
+function H.getSpell(env, config, id)
+    local config = config or {}
+    if not H.getStateShow(config.show) then
         return true, {
             show = false,
         }
@@ -1112,7 +1125,7 @@ function H.getSpell(env, id)
 
     local spellID = id or 0
     if spellID == 0 then
-        spellID = env.spell and env.spell.id or 0
+        spellID = config.id or 0
         if spellID == 0 then
             spellID = tonumber(env.id:gsub(".+ %- ", "")) or 0
         end
@@ -1124,7 +1137,7 @@ function H.getSpell(env, id)
     local spell = spellID
     local spellInfo = C_Spell.GetSpellInfo(spell)
     if spellInfo then
-        if not env.precise then
+        if not config.precise then
             spell = spellInfo.name
             spellInfo = C_Spell.GetSpellInfo(spell)
         end
@@ -1136,7 +1149,7 @@ function H.getSpell(env, id)
         }
     end
 
-    local target = env.target or false
+    local target = config.target or false
 
     local icon = spellInfo.iconID
     local duration = 0
@@ -1195,51 +1208,64 @@ function H.getSpell(env, id)
             isSpellInRange = isSpellInRange,
             hasTarget = hasTarget,
             healthPercent = healthPercent,
-            priority = H.getStatePriority(env.priority) or 0,
+            priority = H.getStatePriority(config.priority) or 0,
             init = H.getStateInit() or 0,
         }
 end
 
 -- Get totem info.
-function H.getTotem(env, init, totemSlot)
-    if init then
-        env.totems = {}
-        return true, {
-            show = false,
-        }
-    end
-
+function H.getTotem(env, cache, config, totemSlot)
     if not totemSlot then
         return false
     end
 
-    -- There may be more than one totem exist at the same time.
-    local name = env.totem and env.totem.name or ""
-    if name == "" then
-        name = env.id:gsub(" %- %d+", "")
-    end
-
-    local totems = env.totems or {}
+    local config = config or {}
+    local totems = cache and cache.totems or {}
 
     local haveTotem, totemName, startTime, duration, icon = GetTotemInfo(totemSlot)
 
-    if haveTotem and name == totemName then
+    if haveTotem then
         local inCache = false
-        for i = 1, #totems do
-            local totem = totems[i]
-            if totem.totemSlot == totemSlot then
-                totem.duration = duration
-                totem.expirationTime = startTime + duration
-                inCache = true
-                break
+        for name, c in pairs(config) do
+            if name == totemName then
+                for i, totem in ipairs(totems) do
+                    if totem.totemSlot == totemSlot then
+                        totem.strategy = c.strategy or 0
+                        totem.name = name
+                        totem.duration = duration
+                        totem.expirationTime = startTime + duration
+                        totem.icon = icon
+                        inCache = true
+                        break
+                    end
+                end
             end
         end
         if not inCache then
-            local totem = {}
-            totem.totemSlot = totemSlot
-            totem.duration = duration
-            totem.expirationTime = startTime + duration
-
+            local name = env.id:gsub(" %- %d+", "")
+            if name == totemName then
+                for i, totem in ipairs(totems) do
+                    if totem.totemSlot == totemSlot then
+                        totem.strategy = c.strategy or 0
+                        totem.name = name
+                        totem.duration = duration
+                        totem.expirationTime = startTime + duration
+                        totem.icon = icon
+                        inCache = true
+                        break
+                    end
+                end
+            end
+        end
+        if not inCache then
+            local totem = {
+                strategy = c.strategy or 0,
+                totemSlot = totemSlot,
+                name = name,
+                duration = duration,
+                expirationTime = startTime + duration,
+                icon = icon,
+            }
             table.insert(totems, totem)
         end
     else
@@ -1251,94 +1277,58 @@ function H.getTotem(env, init, totemSlot)
         end
     end
 
-    -- Sorted by the expirationTime of totem. The first totem will be choozen.
-    table.sort(totems, function(a, b)
-        return a.expirationTime > b.expirationTime
-    end)
+    if cache then
+        cache.totems = totems
+    end
 
-    env.totems = totems
+    local states = {}
+    for i, totem in ipairs(totems) do
+        local state = {
+            progressType = "timed",
+            strategy = totem.strategy,
+            totemSlot = totem.totemSlot,
+            name = totem.name,
+            duration = totem.duration,
+            expirationTime = totem.expirationTime,
+            icon = totem.icon,
+            index = totem.totemSlot,
+        }
+        table.insert(states, state)
+    end
 
-    if totems[1] then
-        local stacks = 0
-        if #totems > 1 then
-            stacks = #totems
-        end
-        return true,
-            {
-                show = true,
-                progressType = "timed",
-                duration = totems[1].duration,
-                expirationTime = totems[1].expirationTime,
-                stacks = stacks,
-            }
+    if not next(states) then
+        return true, {
+            show = false,
+        }
     else
         return true, {
-            show = false,
-        }
-    end
-end
-
-function H.defaultStrategyFunc(auras)
-    if not next(auras) then
-        return true, {
-            show = false,
-        }
-    end
-    table.sort(auras, function(a, b)
-        return a.expirationTime < b.expirationTime
-    end)
-    local stacks = #auras
-    local charges = 0
-    for i, aura in pairs(auras) do
-        charges = charges + aura.charges
-    end
-    local aura = auras[1]
-    if stacks == 1 then
-        if aura.maxCharges > 1 then
-            stacks = aura.charges
-        else
-            stacks = 0
-        end
-    end
-    return true,
-        {
             show = true,
-            progressType = "timed",
-            duration = aura.duration,
-            expirationTime = aura.expirationTime,
-            icon = aura.icon,
-            charges = charges,
-            stacks = stacks,
+            states = states,
         }
+    end
 end
 
 -- Get aura info.
-function H.getAura(env, init, unitTarget)
-    if init then
-        env.auras = {}
-        return true, {
-            show = false,
-        }
-    end
+function H.getAura(env, cache, config, unitTarget)
     if not unitTarget then
         return false
     end
 
-    local auras = env.auras or {}
-    local configs = env.configs or {}
-    local strategies = env.strategies or {}
+    local config = config or {}
+    local auras = cache and cache.auras or {}
 
     local currentAuras = {}
 
+    local index = 1
     -- Find current auras.
-    for i, config in pairs(configs) do
-        local unitTargets = config.unit_targets
-        local sourceUnits = config.source_units
+    for id, c in pairs(config) do
+        local unitTargets = c.unit_targets
+        local sourceUnits = c.source_units
         if tcontains(unitTargets, unitTarget) then
-            local info = C_UnitAuras.GetAuraDataByAuraInstanceID(unitTarget, config.id or 0)
+            local info = C_UnitAuras.GetAuraDataByAuraInstanceID(unitTarget, id)
             if info and tcontains(sourceUnits, info.sourceUnit) then
                 table.insert(currentAuras, {
-                    id = i,
+                    strategy = c.strategy or 0,
                     unitTarget = unitTarget,
                     auraInstanceID = auraData.auraInstanceID,
                     charges = auraData.charges,
@@ -1349,40 +1339,19 @@ function H.getAura(env, init, unitTarget)
                     points = auraData.points,
                     sourceUnit = auraData.sourceUnit,
                     spellID = auraData.spellId,
+                    index = index,
                 })
             end
         end
+        index = index + 1
     end
 
     -- Update auras cache.
-    for i = #auras, 1, -1 do
-        local aura = auras[i]
-        local inCache = false
-        for index = #currentAuras, 1, -1 do
-            local currentAura = currentAuras[index]
-            if
-                aura.unitTarget == currentAura.unitTarget
-                and aura.auraInstanceID == currentAura.auraInstanceID
-                and aura.sourceUnit == currentAura.sourceUnit
-            then
-                aura.id = currentAura.id
-                aura.charges = currentAura.charges
-                aura.duration = currentAura.duration
-                aura.expirationTime = currentAura.expirationTime
-                aura.icon = currentAura.icon
-                aura.maxCharges = currentAura.maxCharges
-                aura.points = currentAura.points
-                aura.spellID = currentAura.spellID
-                inCache = true
-                table.remove(currentAuras, index)
-            end
-        end
-        if not inCache then
-            table.remove(auras, i)
-        end
-    end
+    auras[unitTarget] = currentAuras
 
-    env.auras = auras
+    if cache then
+        cache.auras = auras
+    end
 
     if not next(auras) then
         return true, {
@@ -1390,66 +1359,59 @@ function H.getAura(env, init, unitTarget)
         }
     end
 
-    for i, strategy in pairs(strategies) do
-        local match = true
-        local checkAuras = {}
-        for index, id in ipairs(strategy.ids or {}) do
-            local inCache = false
-            for auraIndex, aura in ipairs(auras) do
-                if id == aura.id then
-                    inCache = true
-                    table.insert(checkAuras, aura)
-                end
-            end
-            if not inCache then
-                match = false
-            end
-        end
-        if match then
-            if not strategy.func then
-                return strategy.func(checkAuras)
-            end
-            break
+    local states = {}
+    for _, unitTargetAuras in pairs(auras) do
+        for i, aura in ipairs(unitTargetAuras) do
+            local state = {
+                progressType = "timed",
+                strategy = aura.strategy,
+                unitTarget = aura.unitTarget,
+                auraInstanceID = aura.auraInstanceID,
+                charges = aura.charges,
+                duration = aura.duration,
+                expirationTime = aura.expirationTime,
+                icon = aura.icon,
+                maxCharges = aura.maxCharges,
+                points = aura.points,
+                sourceUnit = aura.sourceUnit,
+                spellID = aura.spellId,
+                index = aura.index,
+            }
         end
     end
 
-    -- Use default strategy with first matched config in configs.
-    for i, config in pairs(configs) do
-        local match = false
-        local checkAuras = {}
-        for index, aura in ipairs(auras) do
-            if i == aura.id then
-                match = true
-                table.insert(checkAuras, aura)
-            end
-        end
-        if match then
-            return H.defaultStrategyFunc(checkAuras)
-        end
+    if not next(states) then
+        return true, {
+            show = false,
+        }
+    else
+        return true, {
+            show = true,
+            states = states,
+        }
     end
-
-    return true, {
-        show = false,
-    }
 end
 
-function H.getPower(env, init)
-    if init then
+function H.getPower(env, config, type)
+    local config = config or {}
+    if not H.getStateShow(config.show) then
         return true, {
             show = false,
         }
     end
-    if not H.getStateShow(env.power) then
-        return true, {
-            show = false,
-        }
+
+    local type = type or -1
+    if type < 0 then
+        type = config.type or -1
+        if type < 0 then
+            type = Enum.PowerType[env.id:gsub(" %- .+", "")] or -1
+        end
     end
-    local config = env.power or {}
+    if type < 0 then
+        return false
+    end
+
     local unit = config.unit or "player"
-    local type = config.type or -1
-    if type == -1 then
-        type = Enum.PowerType[env.id:gsub(" %- .+", "")]
-    end
     local unmodified = config.unmodified or false
     local per = config.per or 0
 
@@ -1463,68 +1425,126 @@ function H.getPower(env, init)
     end
     local states = {}
     for i = 1, count do
-        states[i] = {
-            show = true,
+        local state = {
             progressType = "static",
             total = total,
             value = current - per * (i - 1),
             init = H.getStateInit(),
+            index = i,
+        }
+        table.insert(states, state)
+    end
+
+    if not next(states) then
+        return true, {
+            show = false,
+        }
+    else
+        return true, {
+            show = true,
+            states = states,
         }
     end
-    return true, {
+end
+
+function H.getDefaultTimedStrategyState(states)
+    table.sort(states, function(a, b)
+        return a.expirationTime < b.expirationTime
+    end)
+    local state = states[1]
+    return {
         show = true,
-        states = states,
+        progressType = state.progressType,
+        duration = state.duration,
+        expirationTime = state.expirationTime,
+        icon = state.icon,
+        stacks = #states,
     }
 end
 
-function H.initCore(env)
-    local core = env and env.core or {}
-    local index = 1
-    for id, config in pairs(core) do
-        config.__index__ = index
-        if not config.func and config.func_string then
-            config.func = H.loadFunction(config.func_string)
+function H.getTotemState(env, cache, config, strategy, totemSlot)
+    local result, state = H.getTotem(env, cache, config, totemSlot)
+    if result and state then
+        if state.show then
+            return true, H.getDefaultTimedStrategyState(state.states)
         end
-        if config.aura and config.aura.strategies then
-            for i, strategy in ipairs(config.aura.strategies) do
-                if not strategy.func and strategy.func_string then
-                    strategy.func = H.loadFunction(strategy.func_string)
-                end
-            end
-        end
-        index = index + 1
     end
+    return false
 end
 
-function H.getCoreState(env, id)
+function H.getAuraState(env, cache, config, strategy, unitTarget)
+    local result, state = H.getAura(env, cache, config, unitTarget)
+    if result and state then
+        if state.show then
+            return true, H.getDefaultTimedStrategyState(state.states)
+        end
+    end
+    return false
+end
+
+function H.initCoreStates(env, config)
+    local config = config or {}
+    local cache = cache or {}
+    local index = 1
+    for id, c in pairs(config) do
+        cache[id] = {}
+        cache[id].strategy = {}
+        for i, strategy in ipairs(c.strategy or {}) do
+            if not strategy.func and strategy.func_string then
+                cache[id].strategy[i] = H.loadFunction(strategy.func_string)
+            else
+                cache[id].strategy[i] = strategy.func
+            end
+        end
+        cache[id].index = index
+        index = index + 1
+    end
+    return cache
+end
+
+function H.getCoreState(env, cache, config, id, params)
     if not id then
         return false
     end
-    return H.getSpell(env, id)
+    return H.getSpell(env, config, id)
 end
 
-function H.getCoreStates(env, ids)
+function H.getCoreStates(env, cache, config, checkList)
+    local cache = cache or {}
+    local config = config or {}
+    local checkList = checkList or {}
+
     local states = {}
-    if not ids then
-        for id, config in pairs(env.core or {}) do
-            local result, state = H.getCoreState(config or {}, id)
-            if result and state then
+
+    if not next(checkList) then
+        -- Check all in config.
+        for id, c in pairs(config) do
+            local result, state = H.getCoreState(env, cache[id], c, id, nil)
+            if result and state and state.show then
                 states[id] = state
+                states[id].index = cache[id] and cache[id].index or 0
             end
         end
     else
-        local core = env.core or {}
-        for i, id in ipairs(ids) do
-            local result, state = H.getCoreState(core[id] or {}, id)
-            if result and state then
+        for id, params in pairs(checkList) do
+            local result, state = H.getCoreState(env, cache[id], config[id], id, params)
+            if result and state and state.show then
                 states[id] = state
+                states[id].index = cache[id] and cache[id].index or 0
             end
         end
     end
-    return true, {
-        show = true,
-        states = states,
-    }
+
+    if not next(states) then
+        return true, {
+            show = false,
+        }
+    else
+        return true, {
+            show = true,
+            states = states,
+        }
+    end
 end
 ---------------- Trigger ------------------
 

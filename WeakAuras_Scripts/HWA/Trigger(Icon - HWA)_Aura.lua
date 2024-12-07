@@ -4,6 +4,7 @@
 -- Trigger
 function(event, ...)
     local key = "AURA"
+
     local unitTarget = nil
     if "UNIT_AURA" == event then
         local updateInfo = nil
@@ -12,17 +13,20 @@ function(event, ...)
             return false
         end
     end
-    local result, state = false, {}
-    if HWA and HWA.getAura then
-        result, state = HWA.getAura(aura_env, false, totemSlot)
-    end
-    if result and state then
+
+    if HWA and HWA.getAuraState then
+        aura_env.cache = aura_env.cache or {}
         aura_env.result = aura_env.result or {}
-        aura_env.result[key] = state
-        if not state.show then
-            return false
-        else
-            return true
+
+        local result, state = HWA.getAuraState(aura_env, aura_env.cache, aura_env.aura, aura_env.strategy, unitTarget)
+        if result and state then
+            if state.show then
+                aura_env.result[key] = state
+                return true
+            else
+                aura_env.result[key] = nil
+                return false
+            end
         end
     end
     return false
@@ -32,7 +36,7 @@ end
 function(event, ...)
     local key = "AURA"
     local state = aura_env.result and aura_env.result[key]
-    if state and not state.show then
+    if state then
         return true
     end
     return false
@@ -42,27 +46,17 @@ end
 function()
     local key = "AURA"
     local state = aura_env.result and aura_env.result[key]
-    if state and state.show then
+    if state then
         return state.duration, state.expirationTime
     end
     return 0, 0
-end
-
--- Name Info
-function()
-    local key = "AURA"
-    local state = aura_env.result and aura_env.result[key]
-    if state and state.show then
-        return state.name
-    end
-    return nil
 end
 
 -- Stack Info
 function()
     local key = "AURA"
     local state = aura_env.result and aura_env.result[key]
-    if state and state.show then
+    if state then
         return state.stacks
     end
     return 0

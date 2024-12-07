@@ -3,70 +3,64 @@ aura_env.core = {
         spell = {
             precise = false,
             target = false,
-            show = 0, -- 1 for show, -1 for hide, 0 for default
-            form = {
-                [0] = {
-                    show = 0,
+            show = {
+                value = 0, -- 1 for show, -1 for hide, 0 for default
+                form = {
+                    [0] = {
+                        value = 0,
+                    },
+                },
+                spec = {
+                    [0] = {
+                        value = 0,
+                        form = {
+                            [0] = {
+                                value = 0,
+                            },
+                        },
+                    },
                 },
             },
-            spec = {
-                [0] = {
-                    show = 0,
-                    form = {
-                        [0] = {
-                            show = 0,
+            priority = {
+                value = 0,
+                form = {
+                    [0] = {
+                        value = 0,
+                    },
+                },
+                spec = {
+                    [0] = {
+                        value = 0,
+                        form = {
+                            [0] = {
+                                value = 0,
+                            },
                         },
                     },
                 },
             },
         },
         totem = {
-            name = "",
-        },
-        priority = {
-            value = 0,
-            form = {
-                [0] = 0,
-            },
-            spec = {
-                [0] = {
-                    value = 0,
-                    form = {
-                        [0] = 0,
-                    },
-                },
+            [""] = { -- totemName
+                strategy = 0,
             },
         },
         aura = {
-            configs = {
-                [0] = { -- The id of config in configs.
-                    id = 0, -- auraInstanceID
-                    unit_targets = {},
-                    source_units = {},
-                },
-            },
-            strategies = {
-                {
-                    ids = {}, -- { id, id, }, ids of config used to trigger strategy.
-                    func = nil, --[[ function(auras)
-                        local aura = auras[1]
-                        local stacks = 0
-                        if aura.charges > 1 then
-                            states = aura.charges
-                        end
-                        return {
-                            autoHide = true,
-                            progressType = "timed",
-                            duration = aura.duration,
-                            expirationTime = aura.expirationTime,
-                            stacks = stacks
-                        }
-                    end ]]
-                    func_string = nil,
-                },
+            [0] = { -- auraInstanceID
+                strategy = 0,
+                unit_targets = {},
+                source_units = {},
             },
         },
-        func = nil,
-        func_string = nil,
+        strategy = {
+            {
+                id = {
+                    aura = {}, -- Example: { strategy_x, strategy_y }, strategy_x is the value of aura[x].strategy
+                    totem = {}, -- Example: { strategy_x, strategy_y }, strategy_x is the value of totem[x].strategy
+                },
+                func = nil, -- function() end
+                func_string = nil, -- ""
+            },
+        },
     },
 }

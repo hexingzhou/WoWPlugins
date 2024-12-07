@@ -34,36 +34,36 @@
 --]]
 function(states, event)
     local key = "SPELL"
-    local result, state = false, {}
+
     if HWA and HWA.getSpell then
-        result, state = HWA.getSpell(aura_env)
-    end
-    if result and state then
-        if not state.show then
-            states[key] = {
-                show = false,
-                changed = true,
-            }
-        else
-            states[key] = {
-                show = true,
-                changed = true,
-                progressType = state.progressType,
-                duration = state.duration,
-                expirationTime = state.expirationTime,
-                icon = state.icon,
-                stacks = state.stacks,
-                charges = state.charges,
-                isUsable = state.isUsable,
-                noResource = state.noResource,
-                isSpellInRange = state.isSpellInRange,
-                hasTarget = state.hasTarget,
-                healthPercent = state.healthPercent,
-                priority = state.priority,
-                init = state.init,
-            }
+        local result, state = HWA.getSpell(aura_env, aura_env.spell)
+        if result and state then
+            if state.show then
+                states[key] = {
+                    show = true,
+                    changed = true,
+                    progressType = state.progressType,
+                    duration = state.duration,
+                    expirationTime = state.expirationTime,
+                    icon = state.icon,
+                    stacks = state.stacks,
+                    charges = state.charges,
+                    isUsable = state.isUsable,
+                    noResource = state.noResource,
+                    isSpellInRange = state.isSpellInRange,
+                    hasTarget = state.hasTarget,
+                    healthPercent = state.healthPercent,
+                    priority = state.priority,
+                    init = state.init,
+                }
+            else
+                states[key] = {
+                    show = false,
+                    changed = true,
+                }
+            end
+            return true
         end
-        return true
     end
     return false
 end
