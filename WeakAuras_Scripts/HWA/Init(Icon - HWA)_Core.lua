@@ -1,5 +1,6 @@
 aura_env.core = {
     [0] = { -- spellID
+        name = "",
         spell = {
             precise = false,
             target = false,
