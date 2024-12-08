@@ -1127,7 +1127,9 @@ function H.getSpell(env, config, id)
     if spellID == 0 then
         spellID = config.id or 0
         if spellID == 0 then
-            spellID = tonumber(env.id:gsub(".+ %- ", "")) or 0
+            xpcall(function()
+                spellID = tonumber(env.id:gsub(".+ %- ", "")) or 0
+            end, function(error) end)
         end
     end
     if spellID == 0 then
