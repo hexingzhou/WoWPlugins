@@ -36,7 +36,6 @@ function(states, event, ...)
                             total = s.total,
                             value = s.value,
                             init = s.init,
-                            index = s.index,
                         }
                     else
                         states[i] = {

@@ -54,7 +54,7 @@ aura_env.core = {
         },
         strategy = {
             {
-                id = {
+                match = {
                     aura = {}, -- Example: { strategy_x, strategy_y }, strategy_x is the value of aura[x].strategy
                     totem = {}, -- Example: { strategy_x, strategy_y }, strategy_x is the value of totem[x].strategy
                 },

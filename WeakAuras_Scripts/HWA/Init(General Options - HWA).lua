@@ -1291,7 +1291,6 @@ function H.getTotem(env, cache, config, totemSlot)
             duration = totem.duration,
             expirationTime = totem.expirationTime,
             icon = totem.icon,
-            index = totem.totemSlot,
         }
         table.insert(states, state)
     end
@@ -1319,7 +1318,6 @@ function H.getAura(env, cache, config, unitTarget)
 
     local currentAuras = {}
 
-    local index = 1
     -- Find current auras.
     for id, c in pairs(config) do
         local unitTargets = c.unit_targets
@@ -1339,11 +1337,9 @@ function H.getAura(env, cache, config, unitTarget)
                     points = auraData.points,
                     sourceUnit = auraData.sourceUnit,
                     spellID = auraData.spellId,
-                    index = index,
                 })
             end
         end
-        index = index + 1
     end
 
     -- Update auras cache.
@@ -1375,7 +1371,6 @@ function H.getAura(env, cache, config, unitTarget)
                 points = aura.points,
                 sourceUnit = aura.sourceUnit,
                 spellID = aura.spellId,
-                index = aura.index,
             }
         end
     end
@@ -1430,7 +1425,6 @@ function H.getPower(env, config, type)
             total = total,
             value = current - per * (i - 1),
             init = H.getStateInit(),
-            index = i,
         }
         table.insert(states, state)
     end
@@ -1447,26 +1441,32 @@ function H.getPower(env, config, type)
     end
 end
 
-function H.getDefaultTimedStrategyState(states)
-    table.sort(states, function(a, b)
-        return a.expirationTime < b.expirationTime
-    end)
-    local state = states[1]
-    return {
-        show = true,
-        progressType = state.progressType,
-        duration = state.duration,
-        expirationTime = state.expirationTime,
-        icon = state.icon,
-        stacks = #states,
-    }
-end
-
 function H.getTotemState(env, cache, config, strategy, totemSlot)
     local result, state = H.getTotem(env, cache, config, totemSlot)
     if result and state then
         if state.show then
-            return true, H.getDefaultTimedStrategyState(state.states)
+            local states = state.states
+            table.sort(states, function(a, b)
+                return a.expirationTime < b.expirationTime
+            end)
+            local s = states[1]
+            local stacks = #states
+            if stacks == 1 then
+                stacks = 0
+            end
+            return true,
+                {
+                    show = true,
+                    progressType = s.progressType,
+                    duration = s.duration,
+                    expirationTime = s.expirationTime,
+                    icon = s.icon,
+                    stacks = stacks,
+                }
+        else
+            return true, {
+                show = false,
+            }
         end
     end
     return false
@@ -1476,7 +1476,28 @@ function H.getAuraState(env, cache, config, strategy, unitTarget)
     local result, state = H.getAura(env, cache, config, unitTarget)
     if result and state then
         if state.show then
-            return true, H.getDefaultTimedStrategyState(state.states)
+            local states = state.states
+            table.sort(states, function(a, b)
+                return a.expirationTime < b.expirationTime
+            end)
+            local s = states[1]
+            local stacks = 0
+            if s.maxCharges > 1 then
+                stacks = s.charges
+            end
+            return true,
+                {
+                    show = true,
+                    progressType = s.progressType,
+                    duration = s.duration,
+                    expirationTime = s.expirationTime,
+                    icon = s.icon,
+                    stacks = stacks,
+                }
+        else
+            return true, {
+                show = false,
+            }
         end
     end
     return false
@@ -1484,19 +1505,12 @@ end
 
 function H.initCoreStates(env, config)
     local config = config or {}
-    local cache = cache or {}
+    local cache = {}
     local index = 1
-    for id, c in pairs(config) do
-        cache[id] = {}
-        cache[id].strategy = {}
-        for i, strategy in ipairs(c.strategy or {}) do
-            if not strategy.func and strategy.func_string then
-                cache[id].strategy[i] = H.loadFunction(strategy.func_string)
-            else
-                cache[id].strategy[i] = strategy.func
-            end
-        end
-        cache[id].index = index
+    for id, _ in pairs(config) do
+        cache[id] = {
+            index = index,
+        }
         index = index + 1
     end
     return cache
@@ -1506,7 +1520,10 @@ function H.getCoreState(env, cache, config, id, params)
     if not id then
         return false
     end
-    return H.getSpell(env, config, id)
+
+    local config = config or {}
+
+    return H.getSpell(env, config.spell, id)
 end
 
 function H.getCoreStates(env, cache, config, checkList)

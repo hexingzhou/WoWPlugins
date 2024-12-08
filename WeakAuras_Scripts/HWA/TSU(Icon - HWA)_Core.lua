@@ -32,7 +32,7 @@
     },
 }
 --]]
-function a(states, event, ...)
+function(states, event, ...)
     local key = "CORE"
 
     local checkList = {}
@@ -41,7 +41,7 @@ function a(states, event, ...)
         local arg = ...
         if arg == "init" then
             if HWA and HWA.initCoreStates then
-                HWA.initCoreStates(aura_env, aura_env.core)
+                aura_env.cache = HWA.initCoreStates(aura_env, aura_env.core)
             end
         end
     end
