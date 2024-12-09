@@ -30,6 +30,10 @@
         display = "法术可用",
         type = "bool",
     },
+    gcd = {
+        display = "法术存在公共冷却",
+        type = "bool",
+    },
 }
 --]]
 function(states, event)

@@ -33,30 +33,42 @@
 }
 --]]
 function(states, event, ...)
+    aura_env.cache = aura_env.cache or {}
+    aura_env.result = aura_env.result or {}
+
     local key = "CORE"
 
-    local checkList = {}
+    local checkList = nil
 
-    if "HWA_UPDATE" == event then
-        local arg = ...
-        if arg == "init" then
-            if HWA and HWA.initCoreStates then
-                aura_env.cache = HWA.initCoreStates(aura_env, aura_env.core)
-            end
+    if "OPTIONS" == event then
+        aura_env.cache[key] = {}
+    elseif "HWA_UPDATE" == event then
+        local type = ...
+        if type == "init" then
+            aura_env.cache[key] = {}
         end
     end
 
     if HWA and HWA.getCoreStates then
-        aura_env.cache = aura_env.cache or {}
-        aura_env.result = aura_env.result or {}
+        aura_env.cache[key] = aura_env.cache[key] or {}
 
-        local result, state = HWA.getCoreStates(aura_env, aura_env.cache, aura_env.core, checkList)
+        local result, state = HWA.getCoreStates(aura_env, aura_env.cache[key], aura_env.core, checkList)
         if result and state then
             local records = aura_env.result[key] or {}
-            if not next(checkList) then
-                checkList = aura_env.core or {}
+            local checks = checkList or {}
+            if not next(checks) then
+                checks = aura_env.cache[key]
+                for id, record in pairs(records) do
+                    if not checks[id] and record then
+                        states[id] = {
+                            show = false,
+                            changed = true,
+                        }
+                        records[id] = nil
+                    end
+                end
             end
-            for id, _ in pairs(checkList) do
+            for id, _ in pairs(checks) do
                 if state.show then
                     local s = state.states[id]
                     if s then

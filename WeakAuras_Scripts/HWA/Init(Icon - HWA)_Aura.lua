@@ -1,14 +1,14 @@
 aura_env.aura = {
     [0] = { -- auraInstanceID
-        strategy = 0,
+        id = 0,
         unit_targets = {},
         source_units = {},
     },
 }
 aura_env.strategy = {
     {
-        id = {
-            aura = {}, -- Example: { strategy_x, strategy_y }, strategy_x is the value of aura[x].strategy
+        match = {
+            aura = {}, -- Example: { id_x, id_y }, id_x is the value of aura[x].id
             totem = {},
         },
         func = nil, -- function() end

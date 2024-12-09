@@ -1,6 +1,8 @@
 aura_env.spell = {
     id = 0, -- spellID
+    name = "",
     precise = false,
+    gcd = false,
     target = false,
     show = {
         value = 0, -- 1 for show, -1 for hide, 0 for default

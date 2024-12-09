@@ -1209,6 +1209,7 @@ function H.getSpell(env, config, id)
             isSpellInRange = isSpellInRange,
             hasTarget = hasTarget,
             healthPercent = healthPercent,
+            gcd = config.gcd or false,
             priority = H.getStatePriority(config.priority) or 0,
             init = H.getStateInit() or 0,
         }
@@ -1443,8 +1444,21 @@ function H.getPower(env, config, type)
     end
 end
 
-function H.getTotemState(env, cache, config, strategy, totemSlot)
-    local result, state = H.getTotem(env, cache, config, totemSlot)
+function H.getTotemState(env, cache, config, strategy, totemSlots)
+    local totemSlots = totemSlots or {}
+    if #totemSlots == 0 then
+        for i = 1, MAX_TOTEMS do
+            table.insert(totemSlots, i)
+        end
+    end
+    local result, state = nil, nil
+    for _, totemSlot in ipairs(totemSlots) do
+        local r, s = H.getTotem(env, cache, config, totemSlot)
+        if r and s then
+            result = r
+            state = s
+        end
+    end
     if result and state then
         if state.show then
             local states = state.states
@@ -1474,8 +1488,27 @@ function H.getTotemState(env, cache, config, strategy, totemSlot)
     return false
 end
 
-function H.getAuraState(env, cache, config, strategy, unitTarget)
-    local result, state = H.getAura(env, cache, config, unitTarget)
+function H.getAuraState(env, cache, config, strategy, unitTargets)
+    local unitTargets = unitTargets or {}
+    if #unitTargets == 0 then
+        local units = {}
+        for _, c in pairs(config or {}) do
+            for _, unit in ipairs(c.unit_targets or {}) do
+                units[unit] = true
+            end
+        end
+        for unitTarget, _ in pairs(units) do
+            table.insert(unitTargets, unitTarget)
+        end
+    end
+    local result, state = nil, nil
+    for _, unitTarget in ipairs(unitTargets) do
+        local r, s = H.getAura(env, cache, config, unitTarget)
+        if r and s then
+            result = r
+            state = s
+        end
+    end
     if result and state then
         if state.show then
             local states = state.states
@@ -1508,17 +1541,16 @@ end
 function H.initCoreStates(env, config)
     local config = config or {}
     local cache = {}
-    local index = 1
-    for id, _ in pairs(config) do
-        cache[id] = {
-            index = index,
-        }
-        index = index + 1
+    for i, c in pairs(config) do
+        if c and c.id then
+            cache[c.id] = c
+            cache[c.id].index = i
+        end
     end
     return cache
 end
 
-function H.getCoreState(env, cache, config, id, params)
+function H.getCoreState(env, cache, config, id, param)
     if not id then
         return false
     end
@@ -1533,11 +1565,15 @@ function H.getCoreStates(env, cache, config, checkList)
     local config = config or {}
     local checkList = checkList or {}
 
+    if not next(cache) then
+        cache = H.initCoreStates(env, config)
+    end
+
     local states = {}
 
     if not next(checkList) then
         -- Check all in config.
-        for id, c in pairs(config) do
+        for id, c in pairs(cache) do
             local result, state = H.getCoreState(env, cache[id], c, id, nil)
             if result and state and state.show then
                 states[id] = state
@@ -1546,7 +1582,7 @@ function H.getCoreStates(env, cache, config, checkList)
         end
     else
         for id, params in pairs(checkList) do
-            local result, state = H.getCoreState(env, cache[id], config[id], id, params)
+            local result, state = H.getCoreState(env, cache[id], cache[id], id, params)
             if result and state and state.show then
                 states[id] = state
                 states[id].index = cache[id] and cache[id].index or 0
@@ -1876,7 +1912,7 @@ function H.init()
         initThrottledHandler = nil
     end
 
-    WeakAuras.ScanEvents("HWA_UPDATE:init")
+    WeakAuras.ScanEvents("HWA_UPDATE", "init")
 end
 
 hooksecurefunc("SetUIVisibility", function(isVisible)

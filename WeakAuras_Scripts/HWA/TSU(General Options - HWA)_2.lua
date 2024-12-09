@@ -1,7 +1,7 @@
 --[[
 - Events: PLAYER_ENTERING_WORLD, PLAYER_REGEN_ENABLED, PLAYER_REGEN_DISABLED, PLAYER_TARGET_CHANGED, PLAYER_ALIVE, PLAYER_DEAD, PLAYER_UNGHOST, BARBER_SHOP_OPEN, BARBER_SHOP_CLOSE, PLAYER_MOUNT_DISPLAY_CHANGED, UPDATE_BONUS_ACTIONBAR, UPDATE_VEHICLE_ACTIONBAR, UPDATE_OVERRIDE_ACTIONBAR, HWA_UPDATE, HWA_ALPHA
 --]]
-function(event, ...)
+function a(event, ...)
     if not aura_env.parentFrame and aura_env.parent then
         aura_env.parentFrame = WeakAuras.GetRegion(aura_env.parent)
     end
@@ -12,7 +12,7 @@ function(event, ...)
         local config = aura_env.config and aura_env.config.alpha or {}
         local alpha = config.global or 100
 
-        if "STATUS" == event or WeakAuras.IsOptionsOpen() then
+        if WeakAuras.IsOptionsOpen() then
             frame:SetAlpha(1)
         elseif "BARBER_SHOP_OPEN" == event then
             frame:SetAlpha(0)

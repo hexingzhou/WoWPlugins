@@ -1,8 +1,10 @@
 aura_env.core = {
-    [0] = { -- spellID
-        name = "",
+    {
         spell = {
+            id = 0, -- spellID
+            name = "",
             precise = false,
+            gcd = false,
             target = false,
             show = {
                 value = 0, -- 1 for show, -1 for hide, 0 for default
@@ -43,12 +45,12 @@ aura_env.core = {
         },
         totem = {
             [""] = { -- totemName
-                strategy = 0,
+                id = 0,
             },
         },
         aura = {
             [0] = { -- auraInstanceID
-                strategy = 0,
+                id = 0,
                 unit_targets = {},
                 source_units = {},
             },
@@ -56,8 +58,8 @@ aura_env.core = {
         strategy = {
             {
                 match = {
-                    aura = {}, -- Example: { strategy_x, strategy_y }, strategy_x is the value of aura[x].strategy
-                    totem = {}, -- Example: { strategy_x, strategy_y }, strategy_x is the value of totem[x].strategy
+                    aura = {}, -- Example: { id_x, id_y }, id_x is the value of aura[x].id
+                    totem = {}, -- Example: { id_x, id_y }, id_y is the value of totem[x].id
                 },
                 func = nil, -- function() end
                 func_string = nil, -- ""

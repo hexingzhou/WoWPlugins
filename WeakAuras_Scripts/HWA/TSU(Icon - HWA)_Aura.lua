@@ -9,22 +9,26 @@
 }
 --]]
 function(states, event, ...)
+    aura_env.cache = aura_env.cache or {}
+
     local key = "AURA"
 
-    local unitTarget = nil
-    if "UNIT_AURA" == event then
-        local updateInfo = nil
-        unitTarget, updateInfo = ...
-        if not updateInfo or updateInfo.isFullUpdate then
-            return false
+    local unitTargets = nil
+
+    if "OPTIONS" == event then
+        aura_env.cache[key] = {}
+    elseif "UNIT_AURA" == event then
+        local unitTarget, updateInfo = ...
+        if unitTarget and updateInfo and not updateInfo.isFullUpdate then
+            unitTargets = { unitTarget }
         end
     end
 
     if HWA and HWA.getAuraState then
-        aura_env.cache = aura_env.cache or {}
-        aura_env.result = aura_env.result or {}
+        aura_env.cache[key] = aura_env.cache[key] or {}
 
-        local result, state = HWA.getAuraState(aura_env, aura_env.cache, aura_env.aura, aura_env.strategy, unitTarget)
+        local result, state =
+            HWA.getAuraState(aura_env, aura_env.cache[key], aura_env.aura, aura_env.strategy, unitTargets)
         if result and state then
             if state.show then
                 states[key] = {
@@ -36,13 +40,11 @@ function(states, event, ...)
                     expirationTime = state.expirationTime,
                     stacks = state.stacks,
                 }
-                aura_env.result[key] = state
             else
                 states[key] = {
                     show = false,
                     changed = true,
                 }
-                aura_env.result[key] = nil
             end
             return true
         end

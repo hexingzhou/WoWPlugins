@@ -1,19 +1,23 @@
 --[[
-- Events: OPTIONS, PLAYER_ENTERING_WORLD, PLAYER_SPECIALIZATION_CHANGED, TRAIT_CONFIG_UPDATED, GROUP_JOINED, GROUP_LEFT, UPDATE_SHAPESHIFT_FORM, HWA_OPTIONS, HWA_INIT
+- Events: PLAYER_ENTERING_WORLD, PLAYER_SPECIALIZATION_CHANGED, TRAIT_CONFIG_UPDATED, GROUP_JOINED, GROUP_LEFT, UPDATE_SHAPESHIFT_FORM, HWA_OPTIONS, HWA_INIT
 --]]
 function(event, ...)
     if not HWA then
         return
     end
-    local arg = ...
 
     if "OPTIONS" == event or "HWA_OPTIONS" == event then
+        -- Reset config first.
         HWA.getConfig()
-        HWA.initThrottled()
-    elseif "HWA_INIT" == event and arg then
+        -- Then, delay init.
         HWA.initThrottled()
     elseif "HWA_INIT" == event then
-        HWA.init()
+        local delay = ...
+        if delay then
+            HWA.initThrottled()
+        else
+            HWA.init()
+        end
     elseif
         "PLAYER_ENTERING_WORLD" == event
         or "PLAYER_SPECIALIZATION_CHANGED" == event
@@ -29,7 +33,7 @@ function(event, ...)
         local formID = GetShapeshiftFormID()
         if aura_env.formID ~= formID then
             aura_env.formID = formID
-            WeakAuras.ScanEvents("HWA_UPDATE:form")
+            WeakAuras.ScanEvents("HWA_UPDATE", "form")
         end
     end
 end

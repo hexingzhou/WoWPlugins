@@ -8,6 +8,8 @@
 }
 --]]
 function(states, event, ...)
+    aura_env.result = aura_env.result or {}
+
     local key = "POWER"
 
     if "UNIT_POWER_FREQUENT" == event then
@@ -18,8 +20,6 @@ function(states, event, ...)
     end
 
     if HWA and HWA.getPower then
-        aura_env.result = aura_env.result or {}
-
         local result, state = HWA.getPower(aura_env, aura_env.power)
         if result and state then
             local records = aura_env.result[key] or {}
