@@ -1127,9 +1127,8 @@ function H.getSpell(env, config, id)
     if spellID == 0 then
         spellID = config.id or 0
         if spellID == 0 then
-            xpcall(function()
-                spellID = tonumber(env.id:gsub(".+ %- ", "")) or 0
-            end, function(error) end)
+            local value, _ = env.id:gsub(".+ %- ", "")
+            spellID = tonumber(value) or 0
         end
     end
     if spellID == 0 then
@@ -1244,7 +1243,7 @@ function H.getTotem(env, cache, config, totemSlot)
             end
         end
         if not inCache then
-            local name = env.id:gsub(" %- %d+", "")
+            local name, _ = env.id:gsub(" %- %d+", "")
             if name == totemName then
                 for i, totem in ipairs(totems) do
                     if totem.totemSlot == totemSlot then
@@ -1401,7 +1400,8 @@ function H.getPower(env, config, type)
     if type < 0 then
         type = config.type or -1
         if type < 0 then
-            type = Enum.PowerType[env.id:gsub(" %- .+", "")] or -1
+            local name, _ = env.id:gsub(" %- .+", "")
+            type = Enum.PowerType[name] or -1
         end
     end
     if type < 0 then

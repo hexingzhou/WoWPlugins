@@ -4,6 +4,7 @@
 --]]
 function(newPositions, activeRegions)
     if HWA and HWA.maintenanceGrow then
-        HWA.maintenanceGrow(newPositions, activeRegions, aura_env.id:gsub("Maintenance %- HWA %- ", ""))
+        local class, _ = aura_env.id:gsub("Maintenance %- HWA %- ", "")
+        HWA.maintenanceGrow(newPositions, activeRegions, class)
     end
 end

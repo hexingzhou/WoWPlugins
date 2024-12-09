@@ -7,6 +7,7 @@
 --]]
 function(newPositions, activeRegions)
     if HWA and HWA.resourceGrow then
-        HWA.resourceGrow(newPositions, activeRegions, aura_env.id:gsub(".+ %- HWA %- ", ""))
+        local class, _ = aura_env.id:gsub(".+ %- HWA %- ", "")
+        HWA.resourceGrow(newPositions, activeRegions, class)
     end
 end

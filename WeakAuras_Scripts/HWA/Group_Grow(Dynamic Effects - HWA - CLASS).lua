@@ -4,6 +4,7 @@
 --]]
 function(newPositions, activeRegions)
     if HWA and HWA.dynamicEffectsGrow then
-        HWA.dynamicEffectsGrow(newPositions, activeRegions, aura_env.id:gsub("Dynamic Effects %- HWA %- ", ""))
+        local class, _ = aura_env.id:gsub("Dynamic Effects %- HWA %- ", "")
+        HWA.dynamicEffectsGrow(newPositions, activeRegions, class)
     end
 end
