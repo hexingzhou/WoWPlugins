@@ -1655,13 +1655,36 @@ end
 function H.initCoreStates(env, config)
     local config = config or {}
     local cache = {}
+
+    local targetList = {}
+    local auraList = {}
+    local totemList = {}
+
     for i, c in pairs(config) do
         local id = c.spell and c.spell.id or 0
         if id ~= 0 then
             cache[id] = c
             cache[id].index = i
+
+            if c.spell and c.spell.target then
+                table.insert(targetList, id)
+            end
+            if c.totem then
+                table.insert(totemList, id)
+            end
+            for _, aura in pairs(c.aura or {}) do
+                for _, unit in ipairs(aura.unit_targets or {}) do
+                    auraList[unit] = auraList[unit] or {}
+                    table.insert(auraList[unit], id)
+                end
+            end
         end
     end
+
+    cache.targetList = targetList
+    cache.auraList = auraList
+    cache.totemList = totemList
+
     return cache
 end
 
@@ -1724,8 +1747,14 @@ function H.getCoreState(env, cache, config, id, param)
     local result, state = H.getSpell(env, config.spell, id)
     if result and state and state.show then
         local param = param or {}
-        local totemResult, totemState = H.getTotemStates(env, cache, config.totem, param.totemSlots)
-        local auraResult, auraState = H.getAuraStates(env, cache, config.aura, param.unitTargets)
+        local totemResult, totemState = nil, nil
+        if config.totem then
+            totemResult, totemState = H.getTotemStates(env, cache, config.totem, param.totemSlots)
+        end
+        local auraResult, auraState = nil, nil
+        if config.aura then
+            auraResult, auraState = H.getAuraStates(env, cache, config.aura, param.unitTargets)
+        end
         local r, s = H.getCoreStrategyState(
             env,
             config.strategy,

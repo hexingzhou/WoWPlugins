@@ -39,8 +39,34 @@
 function(states, event)
     local key = "SPELL"
 
+    local config = aura_env.spell
+
+    if "UNIT_HEALTH" == event then
+        local unitTarget = ...
+        if unitTarget == "target" then
+            if config and config.target then
+                -- Continue.
+            else
+                return false
+            end
+        else
+            return false
+        end
+    elseif "UNIT_TARGET" == event then
+        local unitTarget = ...
+        if unitTarget == "player" then
+            if config and config.target then
+                -- Continue.
+            else
+                return false
+            end
+        else
+            return false
+        end
+    end
+
     if HWA and HWA.getSpell then
-        local result, state = HWA.getSpell(aura_env, aura_env.spell)
+        local result, state = HWA.getSpell(aura_env, config)
         if result and state then
             if state.show then
                 states[key] = {

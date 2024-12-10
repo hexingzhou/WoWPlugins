@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_UPDATE_CHARGES, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_USABLE, HWA_UPDATE
+- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_UPDATE_CHARGES, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_USABLE, PLAYER_TOTEM_UPDATE, UNIT_AURA, HWA_UPDATE
 
 - Conditions:
 {
@@ -53,7 +53,7 @@
     },
 }
 --]]
-function(states, event, ...)
+function trigger(states, event, ...)
     aura_env.cache = aura_env.cache or {}
     aura_env.result = aura_env.result or {}
 
@@ -75,6 +75,72 @@ function(states, event, ...)
             else
                 aura_env.cache[key] = {}
             end
+        end
+    elseif "UNIT_HEALTH" == event then
+        local unitTarget = ...
+        if unitTarget == "target" then
+            local targetList = aura_env.cache[key] and aura_env.cache[key].targetList
+            if not targetList then
+                return false
+            end
+            checkList = checkList or {}
+            for _, id in ipairs(targetList) do
+                checkList[id] = nil
+            end
+        else
+            return false
+        end
+    elseif "UNIT_TARGET" == event then
+        local unitTarget = ...
+        if unitTarget == "player" then
+            local targetList = aura_env.cache[key] and aura_env.cache[key].targetList
+            if not targetList then
+                return false
+            end
+            checkList = checkList or {}
+            for _, id in ipairs(targetList) do
+                checkList[id] = nil
+            end
+        else
+            return false
+        end
+    elseif "PLAYER_TOTEM_UPDATE" == event then
+        local totemSlot = ...
+        if totemSlot then
+            local totemSlots = { totemSlot }
+            local totemList = aura_env.cache[key] and aura_env.cache[key].totemList
+            if not totemList then
+                return false
+            end
+            local param = {
+                totemSlots = totemSlots,
+            }
+            checkList = checkList or {}
+            for _, id in ipairs(auraList) do
+                checkList[id] = param
+            end
+        else
+            return false
+        end
+    elseif "UNIT_AURA" == event then
+        local unitTarget, updateInfo = ...
+        if unitTarget and updateInfo and not updateInfo.isFullUpdate then
+            local unitTargets = { unitTarget }
+            local auraList = aura_env.cache[key]
+                and aura_env.cache[key].auraList
+                and aura_env.cache[key].auraList[unitTarget]
+            if not auraList then
+                return false
+            end
+            local param = {
+                unitTargets = unitTargets,
+            }
+            checkList = checkList or {}
+            for _, id in ipairs(auraList) do
+                checkList[id] = param
+            end
+        else
+            return false
         end
     end
 

@@ -21,6 +21,8 @@ function(states, event, ...)
         local totemSlot = ...
         if totemSlot then
             totemSlots = { totemSlot }
+        else
+            return false
         end
     end
 

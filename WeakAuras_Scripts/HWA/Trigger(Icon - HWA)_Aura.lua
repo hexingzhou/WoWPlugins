@@ -16,6 +16,8 @@ function(event, ...)
         local unitTarget, updateInfo = ...
         if unitTarget and updateInfo and not updateInfo.isFullUpdate then
             unitTargets = { unitTarget }
+        else
+            return false
         end
     end
 
