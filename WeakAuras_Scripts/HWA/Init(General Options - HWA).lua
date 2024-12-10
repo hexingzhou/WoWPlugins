@@ -1182,8 +1182,9 @@ function H.getSpell(env, config, id)
         then
             duration = spellCooldownInfo.duration
             expirationTime = spellCooldownInfo.startTime + spellCooldownInfo.duration
-            charges = 0
         end
+        stacks = C_Spell.GetSpellCastCount(spell)
+        charges = stacks
     end
 
     if target then
@@ -1232,7 +1233,7 @@ function H.getTotem(env, cache, config, totemSlot)
             if name == totemName then
                 for i, totem in ipairs(totems) do
                     if totem.totemSlot == totemSlot then
-                        totem.strategy = c.strategy or 0
+                        totem.id = c.id or 0
                         totem.name = name
                         totem.duration = duration
                         totem.expirationTime = startTime + duration
@@ -1248,7 +1249,7 @@ function H.getTotem(env, cache, config, totemSlot)
             if name == totemName then
                 for i, totem in ipairs(totems) do
                     if totem.totemSlot == totemSlot then
-                        totem.strategy = c.strategy or 0
+                        totem.id = c.id or 0
                         totem.name = name
                         totem.duration = duration
                         totem.expirationTime = startTime + duration
@@ -1261,7 +1262,7 @@ function H.getTotem(env, cache, config, totemSlot)
         end
         if not inCache then
             local totem = {
-                strategy = c.strategy or 0,
+                id = c.id or 0,
                 totemSlot = totemSlot,
                 name = name,
                 duration = duration,
@@ -1287,7 +1288,7 @@ function H.getTotem(env, cache, config, totemSlot)
     for i, totem in ipairs(totems) do
         local state = {
             progressType = "timed",
-            strategy = totem.strategy,
+            id = totem.id,
             totemSlot = totem.totemSlot,
             name = totem.name,
             duration = totem.duration,
@@ -1328,7 +1329,7 @@ function H.getAura(env, cache, config, unitTarget)
             local info = C_UnitAuras.GetAuraDataByAuraInstanceID(unitTarget, id)
             if info and tcontains(sourceUnits, info.sourceUnit) then
                 table.insert(currentAuras, {
-                    strategy = c.strategy or 0,
+                    id = c.id or 0,
                     unitTarget = unitTarget,
                     auraInstanceID = auraData.auraInstanceID,
                     charges = auraData.charges,
@@ -1362,7 +1363,7 @@ function H.getAura(env, cache, config, unitTarget)
         for i, aura in ipairs(unitTargetAuras) do
             local state = {
                 progressType = "timed",
-                strategy = aura.strategy,
+                id = aura.id,
                 unitTarget = aura.unitTarget,
                 auraInstanceID = aura.auraInstanceID,
                 charges = aura.charges,
@@ -1444,7 +1445,77 @@ function H.getPower(env, config, type)
     end
 end
 
-function H.getTotemState(env, cache, config, strategy, totemSlots)
+function H.getStrategyFunc(env, strategy)
+    if strategy then
+        if strategy.func then
+            return strategy.func
+        end
+        if strategy.func_string then
+            return H.loadFunction(strategy.func_string)
+        end
+    end
+end
+
+function H.getDefaultTotemStrategyState(env, states)
+    local states = states or {}
+
+    if not next(states) then
+        return true, {
+            show = false,
+        }
+    end
+
+    table.sort(states, function(a, b)
+        return a.expirationTime < b.expirationTime
+    end)
+    local s = states[1]
+    local stacks = #states
+    if stacks == 1 then
+        stacks = 0
+    end
+    return true,
+        {
+            show = true,
+            progressType = s.progressType,
+            duration = s.duration,
+            expirationTime = s.expirationTime,
+            icon = s.icon,
+            stacks = stacks,
+            glow = 1,
+        }
+end
+
+function H.getTotemStrategyState(env, strategy, states)
+    local strategy = strategy or {}
+    local states = states or {}
+
+    for _, s in ipairs(strategy) do
+        local match = true
+        for _, id in ipairs(s.match and s.match.totem or {}) do
+            local find = false
+            for _, state in ipairs(states) do
+                if id == state.id then
+                    find = true
+                    break
+                end
+            end
+            if not find then
+                match = false
+                break
+            end
+        end
+        if match then
+            local func = H.getStrategyFunc(env, s)
+            if func then
+                return func(env, states)
+            end
+        end
+    end
+
+    return H.getDefaultTotemStrategyState(env, states)
+end
+
+function H.getTotemStates(env, cache, config, totemSlots)
     local totemSlots = totemSlots or {}
     if #totemSlots == 0 then
         for i = 1, MAX_TOTEMS do
@@ -1459,26 +1530,14 @@ function H.getTotemState(env, cache, config, strategy, totemSlots)
             state = s
         end
     end
+    return result, state
+end
+
+function H.getTotemState(env, cache, config, strategy, totemSlots)
+    local result, state = H.getTotemStates(env, cache, config, totemSlots)
     if result and state then
         if state.show then
-            local states = state.states
-            table.sort(states, function(a, b)
-                return a.expirationTime < b.expirationTime
-            end)
-            local s = states[1]
-            local stacks = #states
-            if stacks == 1 then
-                stacks = 0
-            end
-            return true,
-                {
-                    show = true,
-                    progressType = s.progressType,
-                    duration = s.duration,
-                    expirationTime = s.expirationTime,
-                    icon = s.icon,
-                    stacks = stacks,
-                }
+            return H.getTotemStrategyState(env, strategy, state.states)
         else
             return true, {
                 show = false,
@@ -1488,7 +1547,74 @@ function H.getTotemState(env, cache, config, strategy, totemSlots)
     return false
 end
 
-function H.getAuraState(env, cache, config, strategy, unitTargets)
+function H.getDefaultAuraStrategyState(env, states)
+    local states = states or {}
+
+    if not next(states) then
+        return true, {
+            show = false,
+        }
+    end
+
+    table.sort(states, function(a, b)
+        return a.expirationTime < b.expirationTime
+    end)
+    local s = states[1]
+    local stacks = 0
+    if s.maxCharges > 1 then
+        stacks = s.charges
+    end
+    return true,
+        {
+            show = true,
+            progressType = s.progressType,
+            duration = s.duration,
+            expirationTime = s.expirationTime,
+            icon = s.icon,
+            stacks = stacks,
+            glow = 1,
+        }
+end
+
+function H.getNoticeAuraStrategyState(env, states)
+    local result, state = H.getDefaultAuraStrategyState(env, states)
+    if result and state and state.show then
+        state.glow = 3
+    end
+    return result, state
+end
+
+function H.getAuraStrategyState(env, strategy, states)
+    local strategy = strategy or {}
+    local states = states or {}
+
+    for _, s in ipairs(strategy) do
+        local match = true
+        for _, id in ipairs(s.match and s.match.aura or {}) do
+            local find = false
+            for _, state in ipairs(states) do
+                if id == state.id then
+                    find = true
+                    break
+                end
+            end
+            if not find then
+                match = false
+                break
+            end
+        end
+        if match then
+            local func = H.getStrategyFunc(env, s)
+            if func then
+                return func(env, states)
+            end
+        end
+    end
+
+    return H.getDefaultAuraStrategyState(env, states)
+end
+
+function H.getAuraStates(env, cache, config, unitTargets)
     local unitTargets = unitTargets or {}
     if #unitTargets == 0 then
         local units = {}
@@ -1509,26 +1635,14 @@ function H.getAuraState(env, cache, config, strategy, unitTargets)
             state = s
         end
     end
+    return result, state
+end
+
+function H.getAuraState(env, cache, config, strategy, unitTargets)
+    local result, state = H.getAuraStates(env, cache, config, unitTargets)
     if result and state then
         if state.show then
-            local states = state.states
-            table.sort(states, function(a, b)
-                return a.expirationTime < b.expirationTime
-            end)
-            local s = states[1]
-            local stacks = 0
-            if s.maxCharges > 1 then
-                stacks = s.charges
-            end
-            return true,
-                {
-                    show = true,
-                    progressType = s.progressType,
-                    duration = s.duration,
-                    expirationTime = s.expirationTime,
-                    icon = s.icon,
-                    stacks = stacks,
-                }
+            return H.getAuraStrategyState(env, strategy, state.states)
         else
             return true, {
                 show = false,
@@ -1542,12 +1656,61 @@ function H.initCoreStates(env, config)
     local config = config or {}
     local cache = {}
     for i, c in pairs(config) do
-        if c and c.id then
-            cache[c.id] = c
-            cache[c.id].index = i
+        local id = c.spell and c.spell.id or 0
+        if id ~= 0 then
+            cache[id] = c
+            cache[id].index = i
         end
     end
     return cache
+end
+
+function H.getCoreStrategyState(env, strategy, totems, auras)
+    local strategy = strategy or {}
+    local totems = totems or {}
+    local auras = auras or {}
+
+    for _, s in ipairs(strategy) do
+        local match = true
+        for _, id in ipairs(s.match and s.match.totem or {}) do
+            local find = false
+            for _, state in ipairs(totems) do
+                if id == state.id then
+                    find = true
+                    break
+                end
+            end
+            if not find then
+                match = false
+                break
+            end
+        end
+        for _, id in ipairs(s.match and s.match.aura or {}) do
+            local find = false
+            for _, state in ipairs(auras) do
+                if id == state.id then
+                    find = true
+                    break
+                end
+            end
+            if not find then
+                match = false
+                break
+            end
+        end
+        if match then
+            local func = H.getStrategyFunc(env, s)
+            if func then
+                return func(env, totems, auras)
+            end
+        end
+    end
+
+    local result, state = H.getDefaultTotemStrategyState(env, totems)
+    if result and state and state.show then
+        return result, state
+    end
+    return H.getDefaultAuraStrategyState(env, auras)
 end
 
 function H.getCoreState(env, cache, config, id, param)
@@ -1555,19 +1718,39 @@ function H.getCoreState(env, cache, config, id, param)
         return false
     end
 
+    local cache = cache or {}
     local config = config or {}
 
-    return H.getSpell(env, config.spell, id)
+    local result, state = H.getSpell(env, config.spell, id)
+    if result and state and state.show then
+        local param = param or {}
+        local totemResult, totemState = H.getTotemStates(env, cache, config.totem, param.totemSlots)
+        local auraResult, auraState = H.getAuraStates(env, cache, config.aura, param.unitTargets)
+        local r, s = H.getCoreStrategyState(
+            env,
+            config.strategy,
+            totemState and totemState.states,
+            auraState and auraState.states
+        )
+        if r and s and s.show then
+            state.subDuration = s.duration
+            state.subExpirationTime = s.expirationTime
+            state.subStacks = s.stacks
+            state.glow = s.glow
+        else
+            state.subDuration = 0
+            state.subExpirationTime = 0
+            state.subStacks = 0
+            state.glow = 0
+        end
+    end
+    return result, state
 end
 
 function H.getCoreStates(env, cache, config, checkList)
     local cache = cache or {}
     local config = config or {}
     local checkList = checkList or {}
-
-    if not next(cache) then
-        cache = H.initCoreStates(env, config)
-    end
 
     local states = {}
 
@@ -1581,8 +1764,8 @@ function H.getCoreStates(env, cache, config, checkList)
             end
         end
     else
-        for id, params in pairs(checkList) do
-            local result, state = H.getCoreState(env, cache[id], cache[id], id, params)
+        for id, param in pairs(checkList) do
+            local result, state = H.getCoreState(env, cache[id], cache[id], id, param)
             if result and state and state.show then
                 states[id] = state
                 states[id].index = cache[id] and cache[id].index or 0
@@ -1693,11 +1876,18 @@ function H.baseGrow(
     end
 end
 
-function H.baseSort(a, priorityA, b, priorityB)
-    if priorityA == priorityB then
-        return a.dataIndex < b.dataIndex
+function H.baseSort(a, b)
+    local priorityA = a.region and a.region.state and a.region.state.priority or 0
+    local priorityB = b.region and b.region.state and b.region.state.priority or 0
+    if priorityA ~= priorityB then
+        return priorityA < priorityB
     end
-    return priorityA < priorityB
+    local indexA = a.region and a.region.state and a.region.state.index or 0
+    local indexB = b.region and b.region.state and b.region.state.index or 0
+    if indexA ~= indexB then
+        return indexA < indexB
+    end
+    return a.dataIndex < b.dataIndex
 end
 
 function H.coreGrow(newPositions, activeRegions, class)
@@ -1759,9 +1949,7 @@ function H.coreGrow(newPositions, activeRegions, class)
 end
 
 function H.coreSort(a, b)
-    local priorityA = a.region and a.region.state and a.region.state.priority or 0
-    local priorityB = b.region and b.region.state and b.region.state.priority or 0
-    return H.baseSort(a, priorityA, b, priorityB)
+    return H.baseSort(a, b)
 end
 
 function H.resourceGrow(newPositions, activeRegions, class)
@@ -1823,7 +2011,7 @@ function H.dynamicEffectsGrow(newPositions, activeRegions, class)
 end
 
 function H.dynamicEffectsSort(a, b)
-    return H.baseSort(a, 0, b, 0)
+    return H.baseSort(a, b)
 end
 
 function H.maintenanceGrow(newPositions, activeRegions, class)
@@ -1858,7 +2046,7 @@ function H.maintenanceGrow(newPositions, activeRegions, class)
 end
 
 function H.maintenanceSort(a, b)
-    return H.baseSort(a, 0, b, 0)
+    return H.baseSort(a, b)
 end
 ---------------- Region ------------------
 

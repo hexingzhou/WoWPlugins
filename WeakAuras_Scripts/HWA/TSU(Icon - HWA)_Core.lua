@@ -30,6 +30,27 @@
         display = "法术可用",
         type = "bool",
     },
+    gcd = {
+        display = "法术存在公共冷却",
+        type = "bool",
+    },
+    subDuration = {
+        display = "监控持续时间",
+        type = "number",
+    },
+    subExpirationTime = {
+        display = "监控超时时间",
+        type = "number",
+    },
+    subStacks = {
+        display = "监控层数",
+        type = "number",
+    },
+    -- 0: no glow, 1: pixel glow, 2: autocast shine, 3: action buttom glow
+    glow = {
+        display = "发光类型",
+        type = "number",
+    },
 }
 --]]
 function(states, event, ...)
@@ -41,11 +62,19 @@ function(states, event, ...)
     local checkList = nil
 
     if "OPTIONS" == event then
-        aura_env.cache[key] = {}
+        if HWA and HWA.initCoreStates then
+            aura_env.cache[key] = HWA.initCoreStates(env, aura_env.core)
+        else
+            aura_env.cache[key] = {}
+        end
     elseif "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then
-            aura_env.cache[key] = {}
+            if HWA and HWA.initCoreStates then
+                aura_env.cache[key] = HWA.initCoreStates(env, aura_env.core)
+            else
+                aura_env.cache[key] = {}
+            end
         end
     end
 

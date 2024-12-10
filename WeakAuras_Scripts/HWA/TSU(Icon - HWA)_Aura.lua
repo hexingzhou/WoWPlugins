@@ -5,7 +5,12 @@
 {
     duration = true,
     expirationTime = true,
-    stacks = true
+    stacks = true,
+    -- 0: no glow, 1: pixel glow, 2: autocast shine, 3: action buttom glow
+    glow = {
+        display = "发光类型",
+        type = "number",
+    },
 }
 --]]
 function(states, event, ...)

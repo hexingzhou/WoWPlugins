@@ -1,7 +1,7 @@
 --[[
 - Events: PLAYER_ENTERING_WORLD, PLAYER_SPECIALIZATION_CHANGED, TRAIT_CONFIG_UPDATED, GROUP_JOINED, GROUP_LEFT, UPDATE_SHAPESHIFT_FORM, HWA_OPTIONS, HWA_INIT
 --]]
-function(event, ...)
+function(states, event, ...)
     if not HWA then
         return
     end
