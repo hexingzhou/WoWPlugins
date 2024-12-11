@@ -1114,6 +1114,21 @@ end
 ---------------- Base ------------------
 
 ---------------- Trigger ------------------
+function H.initSpell(env, config, id)
+    local spellID = id or 0
+    if spellID == 0 then
+        spellID = config.id or 0
+        if spellID == 0 then
+            local value, _ = env.id:gsub(".+ %- ", "")
+            spellID = tonumber(value) or 0
+        end
+    end
+    if spellID ~= 0 then
+        WeakAuras.WatchSpellCooldown(spellID)
+    end
+    return spellID
+end
+
 -- Get spell info.
 function H.getSpell(env, config, id)
     local config = config or {}
@@ -1361,7 +1376,7 @@ function H.getAura(env, cache, config, unitTarget)
     local states = {}
     for _, unitTargetAuras in pairs(auras) do
         for i, aura in ipairs(unitTargetAuras) do
-            local state = {
+            table.insert(states, {
                 progressType = "timed",
                 id = aura.id,
                 unitTarget = aura.unitTarget,
@@ -1374,7 +1389,7 @@ function H.getAura(env, cache, config, unitTarget)
                 points = aura.points,
                 sourceUnit = aura.sourceUnit,
                 spellID = aura.spellId,
-            }
+            })
         end
     end
 
@@ -1663,6 +1678,8 @@ function H.initCoreStates(env, config)
     for i, c in pairs(config) do
         local id = c.spell and c.spell.id or 0
         if id ~= 0 then
+            WeakAuras.WatchSpellCooldown(id)
+
             cache[id] = c
             cache[id].index = i
 

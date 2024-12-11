@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_UPDATE_CHARGES, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_USABLE, PLAYER_TOTEM_UPDATE, UNIT_AURA, HWA_UPDATE
+- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_COOLDOWN_CHANGED, PLAYER_TOTEM_UPDATE, UNIT_AURA, HWA_UPDATE
 
 - Conditions:
 {
@@ -53,7 +53,7 @@
     },
 }
 --]]
-function trigger(states, event, ...)
+function(states, event, ...)
     aura_env.cache = aura_env.cache or {}
     aura_env.result = aura_env.result or {}
 
@@ -93,14 +93,33 @@ function trigger(states, event, ...)
     elseif "UNIT_TARGET" == event then
         local unitTarget = ...
         if unitTarget == "player" then
+            local unitTargets = { "target" }
             local targetList = aura_env.cache[key] and aura_env.cache[key].targetList
-            if not targetList then
+            local auraList = aura_env.cache[key]
+                and aura_env.cache[key].auraList
+                and aura_env.cache[key].auraList["target"]
+            if not targetList and not auraList then
                 return false
             end
+            local param = {
+                unitTargets = unitTargets,
+            }
             checkList = checkList or {}
-            for _, id in ipairs(targetList) do
-                checkList[id] = nil
+            for _, id in ipairs(targetList or {}) do
+                checkList[id] = param
             end
+            for _, id in ipairs(auraList or {}) do
+                checkList[id] = param
+            end
+        else
+            return false
+        end
+    elseif "SPELL_COOLDOWN_CHANGED" == event then
+        local id = ...
+        local cache = aura_env.cache[key] or {}
+        if cache[id] then
+            checkList = checkList or {}
+            checkList[id] = nil
         else
             return false
         end

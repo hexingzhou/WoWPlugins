@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_UPDATE_CHARGES, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_USABLE, HWA_UPDATE
+- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_COOLDOWN_CHANGED, HWA_UPDATE
 
 - Conditions:
 {
@@ -37,11 +37,28 @@
 }
 --]]
 function(states, event)
+    aura_env.cache = aura_env.cache or {}
+
     local key = "SPELL"
 
     local config = aura_env.spell
 
-    if "UNIT_HEALTH" == event then
+    if "OPTIONS" == event then
+        if HWA and HWA.initSpell then
+            aura_env.cache[key] = HWA.initSpell(aura_env, config)
+        else
+            aura_env.cache[key] = 0
+        end
+    elseif "HWA_UPDATE" == event then
+        local type = ...
+        if type == "init" then
+            if HWA and HWA.initSpell then
+                aura_env.cache[key] = HWA.initSpell(aura_env, config)
+            else
+                aura_env.cache[key] = 0
+            end
+        end
+    elseif "UNIT_HEALTH" == event then
         local unitTarget = ...
         if unitTarget == "target" then
             if config and config.target then
@@ -63,10 +80,18 @@ function(states, event)
         else
             return false
         end
+    elseif "SPELL_COOLDOWN_CHANGED" == event then
+        local id = ...
+        local spellID = aura_env.cache[key] or 0
+        if id ~= spellID then
+            return false
+        end
     end
 
     if HWA and HWA.getSpell then
-        local result, state = HWA.getSpell(aura_env, config)
+        aura_env.cache[key] = aura_env.cache[key] or {}
+
+        local result, state = HWA.getSpell(aura_env, config, aura_env.cache[key])
         if result and state then
             if state.show then
                 states[key] = {
