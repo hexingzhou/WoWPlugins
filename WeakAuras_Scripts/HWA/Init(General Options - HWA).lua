@@ -1199,8 +1199,18 @@ function H.initCurrentAuras()
     H.scanCurrentAuras("target", "HARMFUL")
 end
 
-function H.getCurrentAuras()
-    return _currentAuras
+-- id: precise spellID
+function H.getCurrentAuras(unitTarget, filter, id)
+    if unitTarget and filter and id then
+        if
+            _currentAuras[unitTarget]
+            and _currentAuras[unitTarget][filter]
+            and _currentAuras[unitTarget][filter].spells
+        then
+            return _currentAuras[unitTarget][filter].spells[id]
+        end
+    end
+    return {}
 end
 ---------------- Aura ------------------
 
@@ -1425,34 +1435,41 @@ function H.getAura(env, cache, config, unitTarget)
     local config = config or {}
     local auras = cache and cache.auras or {}
 
-    local currentAuras = {}
+    local matchedAuras = {}
 
     -- Find current auras.
     for id, c in pairs(config) do
+        local filter
+        if c.type == 1 then
+            filter = "HELPFUL"
+        else
+            filter = "HARMFUL"
+        end
         local unitTargets = c.unit_targets
         local sourceUnits = c.source_units
         if tcontains(unitTargets, unitTarget) then
-            local info = C_UnitAuras.GetAuraDataByAuraInstanceID(unitTarget, id)
-            if info and tcontains(sourceUnits, info.sourceUnit) then
-                table.insert(currentAuras, {
-                    id = c.id or 0,
-                    unitTarget = unitTarget,
-                    auraInstanceID = auraData.auraInstanceID,
-                    charges = auraData.charges,
-                    duration = auraData.duration,
-                    expirationTime = auraData.expirationTime,
-                    icon = auraData.icon,
-                    maxCharges = auraData.maxCharges,
-                    points = auraData.points,
-                    sourceUnit = auraData.sourceUnit,
-                    spellID = auraData.spellId,
-                })
+            for _, info in pairs(H.getCurrentAuras(unitTarget, filter, id)) do
+                if info and tcontains(sourceUnits, info.sourceUnit) then
+                    table.insert(matchedAuras, {
+                        id = c.id or 0,
+                        unitTarget = unitTarget,
+                        auraInstanceID = auraData.auraInstanceID,
+                        charges = auraData.charges,
+                        duration = auraData.duration,
+                        expirationTime = auraData.expirationTime,
+                        icon = auraData.icon,
+                        maxCharges = auraData.maxCharges,
+                        points = auraData.points,
+                        sourceUnit = auraData.sourceUnit,
+                        spellID = auraData.spellId,
+                    })
+                end
             end
         end
     end
 
     -- Update auras cache.
-    auras[unitTarget] = currentAuras
+    auras[unitTarget] = matchedAuras
 
     if cache then
         cache.auras = auras

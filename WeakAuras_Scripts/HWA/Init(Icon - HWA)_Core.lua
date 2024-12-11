@@ -49,8 +49,9 @@ aura_env.core = {
             },
         },
         aura = {
-            [0] = { -- auraInstanceID
+            [0] = { -- precise spellID
                 id = 0,
+                type = 0, -- 0 for harmful, 1 for helpful
                 unit_targets = {},
                 source_units = {},
             },
