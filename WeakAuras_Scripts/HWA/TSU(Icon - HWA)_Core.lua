@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_HEALTH, PLAYER_TARGET_CHANGED, SPELL_COOLDOWN_CHANGED, PLAYER_TOTEM_UPDATE, UNIT_AURA, HWA_UPDATE
+- Events: UNIT_HEALTH, PLAYER_TARGET_CHANGED, SPELL_COOLDOWN_CHANGED, PLAYER_TOTEM_UPDATE, HWA_UNIT_AURA, HWA_UPDATE
 
 - Conditions:
 {
@@ -93,8 +93,7 @@ function(states, event, ...)
     elseif "PLAYER_TARGET_CHANGED" == event then
         local unitTargets = { "target" }
         local targetList = aura_env.cache[key] and aura_env.cache[key].targetList
-        local auraList = aura_env.cache[key] and aura_env.cache[key].auraList and aura_env.cache[key].auraList["target"]
-        if not targetList and not auraList then
+        if not targetList then
             return false
         end
         local param = {
@@ -102,9 +101,6 @@ function(states, event, ...)
         }
         checkList = checkList or {}
         for _, id in ipairs(targetList or {}) do
-            checkList[id] = param
-        end
-        for _, id in ipairs(auraList or {}) do
             checkList[id] = param
         end
     elseif "SPELL_COOLDOWN_CHANGED" == event then
@@ -134,9 +130,9 @@ function(states, event, ...)
         else
             return false
         end
-    elseif "UNIT_AURA" == event then
-        local unitTarget, updateInfo = ...
-        if unitTarget and updateInfo and not updateInfo.isFullUpdate then
+    elseif "HWA_UNIT_AURA" == event then
+        local unitTarget = ...
+        if unitTarget then
             local unitTargets = { unitTarget }
             local auraList = aura_env.cache[key]
                 and aura_env.cache[key].auraList

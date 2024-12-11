@@ -1113,6 +1113,97 @@ function H.getConfig(key, class)
 end
 ---------------- Base ------------------
 
+---------------- Aura ------------------
+local _currentAuras = {}
+local _unitTarget, _filter
+
+function H.handleCurrentAura(aura)
+    if aura and _unitTarget and _filter then
+        _currentAuras[_unitTarget] = _currentAuras[_unitTarget] or {}
+        _currentAuras[_unitTarget][_filter] = _currentAuras[_unitTarget][_filter] or {}
+
+        local cache = _currentAuras[_unitTarget][_filter]
+
+        cache.auras = cache.auras or {}
+        cache.auras[aura.auraInstanceID] = aura
+
+        cache.spells = cache.spells or {}
+        cache.spells[aura.spellId] = cache.spells[aura.spellId] or {}
+        cache.spells[aura.spellId][aura.auraInstanceID] = aura
+    end
+end
+
+function H.clearCurrentAuras(unitTarget, filter)
+    _currentAuras[_unitTarget] = _currentAuras[_unitTarget] or {}
+    _currentAuras[_unitTarget][_filter] = nil
+end
+
+function H.scanCurrentAuras(unitTarget, filter, updateInfo)
+    if UnitExists(unitTarget) and filter then
+        _unitTarget = unitTarget
+        _filter = filter
+        if updateInfo and not updateInfo.isFullUpdate then
+            if updateInfo.addedAuras then
+                for _, aura in ipairs(updateInfo.addedAuras) do
+                    if (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL") then
+                        H.handleCurrentAura(aura)
+                    end
+                end
+            end
+            if updateInfo.updatedAuraInstanceIDs then
+                for _, auraInstanceID in ipairs(updateInfo.updatedAuraInstanceIDs) do
+                    local aura = C_UnitAuras.GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
+                    if (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL") then
+                        H.handleCurrentAura(aura)
+                    end
+                end
+            end
+            if updateInfo.removedAuraInstanceIDs then
+                for _, auraInstanceID in ipairs(updateInfo.removedAuraInstanceIDs) do
+                    if
+                        _currentAuras[unitTarget]
+                        and _currentAuras[unitTarget][filter]
+                        and _currentAuras[unitTarget][filter].auras
+                    then
+                        local aura = _currentAuras[unitTarget][filter].auras[auraInstanceID]
+                        if aura then
+                            if
+                                _currentAuras[unitTarget][filter]
+                                and _currentAuras[unitTarget][filter].spells
+                                and _currentAuras[unitTarget][filter].spells[aura.spellId]
+                            then
+                                _currentAuras[unitTarget][filter].spells[aura.spellId][auraInstanceID] = nil
+                            end
+                        end
+                        _currentAuras[unitTarget][filter].auras[auraInstanceID] = nil
+                    end
+                end
+            end
+        else
+            H.clearCurrentAuras(unitTarget, filter)
+            AuraUtil.ForEachAura(unitTarget, filter, nil, H.handleCurrentAura, true)
+        end
+    else
+        H.clearCurrentAuras(unitTarget, filter)
+    end
+
+    if unitTarget then
+        WeakAuras.ScanEvents("HWA_UNIT_AURA", unitTarget)
+    end
+end
+
+function H.initCurrentAuras()
+    H.scanCurrentAuras("player", "HELPFUL")
+    H.scanCurrentAuras("player", "HARMFUL")
+    H.scanCurrentAuras("target", "HELPFUL")
+    H.scanCurrentAuras("target", "HARMFUL")
+end
+
+function H.getCurrentAuras()
+    return _currentAuras
+end
+---------------- Aura ------------------
+
 ---------------- Trigger ------------------
 function H.initSpell(env, config, id)
     local spellID = id or 0

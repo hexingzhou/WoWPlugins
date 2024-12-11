@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_AURA
+- Events: HWA_UNIT_AURA
 
 - Conditions:
 {
@@ -22,9 +22,9 @@ function(states, event, ...)
 
     if "OPTIONS" == event then
         aura_env.cache[key] = {}
-    elseif "UNIT_AURA" == event then
-        local unitTarget, updateInfo = ...
-        if unitTarget and updateInfo and not updateInfo.isFullUpdate then
+    elseif "HWA_UNIT_AURA" == event then
+        local unitTarget = ...
+        if unitTarget then
             unitTargets = { unitTarget }
         else
             return false
