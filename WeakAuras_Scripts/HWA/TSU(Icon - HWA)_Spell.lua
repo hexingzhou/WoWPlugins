@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_HEALTH, UNIT_TARGET, SPELL_COOLDOWN_CHANGED, HWA_UPDATE
+- Events: UNIT_HEALTH, PLAYER_TARGET_CHANGED, SPELL_COOLDOWN_CHANGED, HWA_UPDATE
 
 - Conditions:
 {
@@ -69,14 +69,9 @@ function(states, event)
         else
             return false
         end
-    elseif "UNIT_TARGET" == event then
-        local unitTarget = ...
-        if unitTarget == "player" then
-            if config and config.target then
-                -- Continue.
-            else
-                return false
-            end
+    elseif "PLAYER_TARGET_CHANGED" == event then
+        if config and config.target then
+            -- Continue.
         else
             return false
         end
