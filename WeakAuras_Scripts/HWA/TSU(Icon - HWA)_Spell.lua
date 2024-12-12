@@ -41,23 +41,23 @@ function(states, event)
 
     local key = "SPELL"
 
-    local config = aura_env.spell
+    local id = nil
 
     if "OPTIONS" == event or "STATUS" == event then
         return false
     elseif "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then
-            if HWA and HWA.initSpell then
-                aura_env.cache[key] = HWA.initSpell(aura_env, config)
+            if HWA and HWA.initSpellState then
+                aura_env.cache[key] = HWA.initSpellState(aura_env, aura_env.info)
             else
-                aura_env.cache[key] = 0
+                aura_env.cache[key] = {}
             end
         end
     elseif "UNIT_HEALTH" == event then
         local unitTarget = ...
         if unitTarget == "target" then
-            if config and config.target then
+            if aura_env.cache[key] and aura_env.cache[key].target then
                 -- Continue.
             else
                 return false
@@ -66,23 +66,22 @@ function(states, event)
             return false
         end
     elseif "PLAYER_TARGET_CHANGED" == event then
-        if config and config.target then
+        if aura_env.cache[key] and aura_env.cache[key].target then
             -- Continue.
         else
             return false
         end
     elseif "SPELL_COOLDOWN_CHANGED" == event then
-        local id = ...
-        local spellID = aura_env.cache[key] or 0
-        if id ~= spellID then
+        id = ...
+        if id ~= (aura_env.cache[key] and aura_env.cache[key].id or 0) then
             return false
         end
     end
 
-    if HWA and HWA.getSpell then
+    if HWA and HWA.getSpellState then
         aura_env.cache[key] = aura_env.cache[key] or {}
 
-        local result, state = HWA.getSpell(aura_env, config, aura_env.cache[key])
+        local result, state = HWA.getSpellState(aura_env, aura_env.spell, id)
         if result and state then
             if state.show then
                 states[key] = {

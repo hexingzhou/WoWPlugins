@@ -1,4 +1,4 @@
-aura_env.dynamic_effects = {
+aura_env.info = {
     {
         totem = {
             [""] = { -- totemName
@@ -21,6 +21,42 @@ aura_env.dynamic_effects = {
                 },
                 func = nil, -- function() end
                 func_string = nil, -- ""
+            },
+        },
+        show = {
+            value = 0, -- 1 for show, -1 for hide, 0 for default
+            form = {
+                [0] = {
+                    value = 0,
+                },
+            },
+            spec = {
+                [0] = {
+                    value = 0,
+                    form = {
+                        [0] = {
+                            value = 0,
+                        },
+                    },
+                },
+            },
+        },
+        priority = {
+            value = 0,
+            form = {
+                [0] = {
+                    value = 0,
+                },
+            },
+            spec = {
+                [0] = {
+                    value = 0,
+                    form = {
+                        [0] = {
+                            value = 0,
+                        },
+                    },
+                },
             },
         },
     },

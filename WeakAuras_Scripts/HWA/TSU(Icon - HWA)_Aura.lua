@@ -42,7 +42,7 @@ function(states, event, ...)
         aura_env.cache[key] = aura_env.cache[key] or {}
 
         local result, state =
-            HWA.getAuraState(aura_env, aura_env.cache[key], aura_env.aura, aura_env.strategy, unitTargets)
+            HWA.getAuraState(aura_env, aura_env.cache[key], aura_env.info, unitTargets)
         if result and state then
             if state.show then
                 states[key] = {
@@ -53,6 +53,8 @@ function(states, event, ...)
                     duration = state.duration,
                     expirationTime = state.expirationTime,
                     stacks = state.stacks,
+                    priority = state.priority,
+                    init = state.init,
                 }
             else
                 states[key] = {

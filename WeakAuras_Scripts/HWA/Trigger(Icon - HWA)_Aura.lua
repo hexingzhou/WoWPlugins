@@ -32,7 +32,7 @@ function(event, ...)
         aura_env.cache[key] = aura_env.cache[key] or {}
 
         local result, state =
-            HWA.getAuraState(aura_env, aura_env.cache[key], aura_env.aura, aura_env.strategy, unitTargets)
+            HWA.getAuraState(aura_env, aura_env.cache[key], aura_env.info, unitTargets)
         if result and state then
             records = state
             if state.show then

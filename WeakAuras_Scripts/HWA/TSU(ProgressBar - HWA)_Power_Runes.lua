@@ -21,8 +21,8 @@ function(states, event, ...)
         end
     end
 
-    if HWA and HWA.getPower then
-        local result, state = HWA.getPower(aura_env, aura_env.power)
+    if HWA and HWA.getPowerStates then
+        local result, state = HWA.getPowerStates(aura_env, aura_env.info)
         if result and state then
             local records = aura_env.result[key] or {}
             local size = records.size or 0

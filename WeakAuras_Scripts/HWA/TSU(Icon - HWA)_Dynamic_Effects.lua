@@ -27,7 +27,7 @@ function(states, event, ...)
         local type = ...
         if type == "init" then
             if HWA and HWA.initDynamicEffectStates then
-                aura_env.cache[key] = HWA.initDynamicEffectStates(env, aura_env.dynamic_effects)
+                aura_env.cache[key] = HWA.initDynamicEffectStates(env, aura_env.info)
             else
                 aura_env.cache[key] = {}
             end
@@ -77,7 +77,7 @@ function(states, event, ...)
     if HWA and HWA.getDynamicEffectStates then
         aura_env.cache[key] = aura_env.cache[key] or {}
 
-        local result, state = HWA.getDynamicEffectStates(aura_env, aura_env.cache[key], aura_env.dynamic_effects, checkList)
+        local result, state = HWA.getDynamicEffectStates(aura_env, aura_env.cache[key], aura_env.info, checkList)
         if result and state then
             local records = aura_env.result[key] or {}
             local checks = checkList or {}
@@ -107,6 +107,8 @@ function(states, event, ...)
                             stacks = s.stacks,
                             glow = s.glow,
                             index = s.index,
+                            priority = s.priority,
+                            init = s.init,
                         }
                         records[id] = s
                     else

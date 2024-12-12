@@ -67,7 +67,7 @@ function(states, event, ...)
         local type = ...
         if type == "init" then
             if HWA and HWA.initCoreStates then
-                aura_env.cache[key] = HWA.initCoreStates(env, aura_env.core)
+                aura_env.cache[key] = HWA.initCoreStates(env, aura_env.info)
             else
                 aura_env.cache[key] = {}
             end
@@ -151,7 +151,7 @@ function(states, event, ...)
     if HWA and HWA.getCoreStates then
         aura_env.cache[key] = aura_env.cache[key] or {}
 
-        local result, state = HWA.getCoreStates(aura_env, aura_env.cache[key], aura_env.core, checkList)
+        local result, state = HWA.getCoreStates(aura_env, aura_env.cache[key], aura_env.info, checkList)
         if result and state then
             local records = aura_env.result[key] or {}
             local checks = checkList or {}

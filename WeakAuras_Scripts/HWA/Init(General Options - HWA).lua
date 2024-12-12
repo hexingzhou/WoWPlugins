@@ -907,7 +907,7 @@ H.bit = {
     end,
 }
 
-function H.loadFunction(str)
+local function loadFunction(str)
     return function_cache_custom:load(str)
 end
 
@@ -916,7 +916,7 @@ end
 -- 20: mythic raid
 -- 30: normal raid
 -- 40: outdoor raid
-function H.getLocalGroupID()
+local function getLocalGroupID()
     local inInstance, instanceType = IsInInstance()
 
     if instanceType == "pvp" then
@@ -950,7 +950,7 @@ function H.getLocalGroupID()
     end
 end
 
-function H.getStateShow(config)
+local function getStateShow(config)
     if not config then
         return true
     end
@@ -990,12 +990,12 @@ function H.getStateShow(config)
 end
 
 -- The init value is used to trigger group grow.
-function H.getStateInit()
+local function getStateInit()
     return (env.specID or 0) * 10000 + (env.groupID or 0) * 100 + (env.formID or 0)
 end
 
 -- The priority value is used to trigger group sort.
-function H.getStatePriority(config)
+local function getStatePriority(config)
     if not config then
         return 0
     end
@@ -1042,7 +1042,7 @@ local function updateEnv()
         env.specID = specID
         update = true
     end
-    local groupID = H.getLocalGroupID() or 0
+    local groupID = getLocalGroupID() or 0
     if env.groupID ~= groupID then
         env.groupID = groupID
         update = true
@@ -1213,7 +1213,7 @@ end
 ---------------- Aura ------------------
 
 ---------------- Trigger ------------------
-function H.initSpell(env, config, id)
+local function initSpell(env, config, id)
     local spellID = id or 0
     if spellID == 0 then
         spellID = config.id or 0
@@ -1225,17 +1225,16 @@ function H.initSpell(env, config, id)
     if spellID ~= 0 then
         WeakAuras.WatchSpellCooldown(spellID)
     end
-    return spellID
+
+    return {
+        id = spellID,
+        target = config.target or false,
+    }
 end
 
 -- Get spell info.
-function H.getSpell(env, config, id)
+local function getSpell(env, config, id)
     local config = config or {}
-    if not H.getStateShow(config.show) then
-        return true, {
-            show = false,
-        }
-    end
 
     local spellID = id or 0
     if spellID == 0 then
@@ -1325,13 +1324,11 @@ function H.getSpell(env, config, id)
             hasTarget = hasTarget,
             healthPercent = healthPercent,
             gcd = config.gcd or false,
-            priority = H.getStatePriority(config.priority) or 0,
-            init = H.getStateInit() or 0,
         }
 end
 
 -- Get totem info.
-function H.getTotem(env, cache, config, totemSlot)
+local function getTotem(env, cache, config, totemSlot)
     if not totemSlot then
         return false
     end
@@ -1425,7 +1422,7 @@ function H.getTotem(env, cache, config, totemSlot)
 end
 
 -- Get aura info.
-function H.getAura(env, cache, config, unitTarget)
+local function getAura(env, cache, config, unitTarget)
     if not unitTarget then
         return false
     end
@@ -1511,14 +1508,8 @@ function H.getAura(env, cache, config, unitTarget)
     end
 end
 
-function H.getPower(env, config, type)
+local function getPower(env, config, type)
     local config = config or {}
-    if not H.getStateShow(config.show) then
-        return true, {
-            show = false,
-        }
-    end
-
     local type = type or -1
     if type < 0 then
         type = config.type or -1
@@ -1549,7 +1540,6 @@ function H.getPower(env, config, type)
             progressType = "static",
             total = total,
             value = current - per * (i - 1),
-            init = H.getStateInit(),
         }
         table.insert(states, state)
     end
@@ -1572,9 +1562,48 @@ local function getStrategyFunc(env, strategy)
             return strategy.func
         end
         if strategy.func_string then
-            return H.loadFunction(strategy.func_string)
+            return loadFunction(strategy.func_string)
         end
     end
+end
+
+function H.initSpellState(env, config, id)
+    return initSpell(env, config and config.spell, id)
+end
+
+function H.getSpellState(env, config, id)
+    local config = config or {}
+    if not getStateShow(config.show) then
+        return true, {
+            show = false,
+        }
+    end
+
+    local result, state = getSpell(env, config.spell, id)
+    if result and state and state.show then
+        state.priority = getStatePriority(config.priority) or 0
+        state.init = getStateInit() or 0
+    end
+
+    return result, state
+end
+
+function H.getPowerStates(env, config, type)
+    local config = config or {}
+    if not getStateShow(config.show) then
+        return true, {
+            show = false,
+        }
+    end
+
+    local result, state = getPower(env, config.power, type)
+    if result and state and state.show then
+        for _, s in ipairs(state.states or {}) do
+            s.init = getStateInit()
+        end
+    end
+
+    return result, state
 end
 
 function H.getDefaultTotemStrategyState(env, stateGroup, glow)
@@ -1654,14 +1683,14 @@ end
 
 local function getTotemStates(env, cache, config, totemSlots)
     local totemSlots = totemSlots or {}
-    if #totemSlots == 0 then
+    if not next(totemSlots) then
         for i = 1, MAX_TOTEMS do
             table.insert(totemSlots, i)
         end
     end
     local result, state = nil, nil
     for _, totemSlot in ipairs(totemSlots) do
-        local r, s = H.getTotem(env, cache, config, totemSlot)
+        local r, s = getTotem(env, cache, config, totemSlot)
         if r and s then
             result = r
             state = s
@@ -1670,15 +1699,20 @@ local function getTotemStates(env, cache, config, totemSlots)
     return result, state
 end
 
-function H.getTotemState(env, cache, config, strategy, totemSlots)
-    local result, state = getTotemStates(env, cache, config, totemSlots)
-    if result and state then
-        if state.show then
-            return getTotemStrategyState(env, strategy, state.states)
-        else
-            return true, {
-                show = false,
-            }
+function H.getTotemState(env, cache, config, totemSlots)
+    local config = config or {}
+    if not getStateShow(config.show) then
+        return true, {
+            show = false,
+        }
+    end
+
+    local result, state = getTotemStates(env, cache, config.totem, totemSlots)
+    if result and state and state.show then
+        result, state = getTotemStrategyState(env, config.strategy, state.states)
+        if result and state and state.show then
+            state.priority = getStatePriority(config.priority) or 0
+            state.init = getStateInit() or 0
         end
     end
     return false
@@ -1761,7 +1795,7 @@ end
 
 local function getAuraStates(env, cache, config, unitTargets)
     local unitTargets = unitTargets or {}
-    if #unitTargets == 0 then
+    if not next(unitTargets) then
         local units = {}
         for _, c in pairs(config or {}) do
             for _, unit in ipairs(c.unit_targets or {}) do
@@ -1772,9 +1806,9 @@ local function getAuraStates(env, cache, config, unitTargets)
             table.insert(unitTargets, unitTarget)
         end
     end
-    local result, state = nil, nil
+    local result, state
     for _, unitTarget in ipairs(unitTargets) do
-        local r, s = H.getAura(env, cache, config, unitTarget)
+        local r, s = getAura(env, cache, config, unitTarget)
         if r and s then
             result = r
             state = s
@@ -1783,15 +1817,20 @@ local function getAuraStates(env, cache, config, unitTargets)
     return result, state
 end
 
-function H.getAuraState(env, cache, config, strategy, unitTargets)
-    local result, state = getAuraStates(env, cache, config, unitTargets)
-    if result and state then
-        if state.show then
-            return getAuraStrategyState(env, strategy, state.states)
-        else
-            return true, {
-                show = false,
-            }
+function H.getAuraState(env, cache, config, unitTargets)
+    local config = config or {}
+    if not getStateShow(config.show) then
+        return true, {
+            show = false,
+        }
+    end
+
+    local result, state = getAuraStates(env, cache, config.aura, unitTargets)
+    if result and state and state.show then
+        result, state = getAuraStrategyState(env, config.strategy, state.states)
+        if result and state and state.show then
+            state.priority = getStatePriority(config.priority) or 0
+            state.init = getStateInit() or 0
         end
     end
     return false
@@ -1826,10 +1865,9 @@ function H.initCoreStates(env, config)
     local auraList = {}
 
     for i, c in pairs(config) do
-        local id = c.spell and c.spell.id or 0
+        local info = initSpell(env, c.spell)
+        local id = info and info.id or 0
         if id ~= 0 then
-            WeakAuras.WatchSpellCooldown(id)
-
             cache[id] = c
             cache[id].index = i
 
@@ -1913,8 +1951,17 @@ local function getCoreState(env, cache, config, id, param)
     local cache = cache or {}
     local config = config or {}
 
-    local result, state = H.getSpell(env, config.spell, id)
+    if not getStateShow(config.show) then
+        return true, {
+            show = false,
+        }
+    end
+
+    local result, state = getSpell(env, config.spell, id)
     if result and state and state.show then
+        state.priority = getStatePriority(config.priority) or 0
+        state.init = getStateInit() or 0
+
         local param = param or {}
         local totemResult, totemState
         if config.totem then
@@ -2081,6 +2128,12 @@ local function getDynamicEffectState(env, cache, config, param)
     local cache = cache or {}
     local config = config or {}
 
+    if not getStateShow(config.show) then
+        return true, {
+            show = false,
+        }
+    end
+
     local totemResult, totemState
     if config.totem then
         totemResult, totemState = getTotemStates(env, cache, config.totem, param.totemSlots)
@@ -2090,12 +2143,19 @@ local function getDynamicEffectState(env, cache, config, param)
         auraResult, auraState = getAuraStates(env, cache, config.aura, param.unitTargets)
     end
 
-    return getDynamicEffectStrategyState(
+    local result, state = getDynamicEffectStrategyState(
         env,
         config.strategy,
         totemState and totemState.states,
         auraState and auraState.states
     )
+
+    if result and state and state.show then
+        state.priority = getStatePriority(config.priority) or 0
+        state.init = getStateInit() or 0
+    end
+
+    return result, state
 end
 
 function H.getDynamicEffectStates(env, cache, config, checkList)
