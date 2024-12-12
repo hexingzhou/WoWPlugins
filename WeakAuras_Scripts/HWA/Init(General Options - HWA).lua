@@ -1822,8 +1822,8 @@ function H.initCoreStates(env, config)
     local cache = {}
 
     local targetList = {}
-    local auraList = {}
     local totemList = {}
+    local auraList = {}
 
     for i, c in pairs(config) do
         local id = c.spell and c.spell.id or 0
@@ -1849,8 +1849,8 @@ function H.initCoreStates(env, config)
     end
 
     cache.targetList = targetList
-    cache.auraList = auraList
     cache.totemList = totemList
+    cache.auraList = auraList
 
     return cache
 end
@@ -1899,7 +1899,7 @@ local function getCoreStrategyState(env, strategy, totems, auras)
         end
     end
 
-    return H.getDefaultCoreStrategyState(env, {
+    return H.getNormalCoreStrategyState(env, {
         totems = totems,
         auras = auras,
     })
@@ -1916,11 +1916,11 @@ local function getCoreState(env, cache, config, id, param)
     local result, state = H.getSpell(env, config.spell, id)
     if result and state and state.show then
         local param = param or {}
-        local totemResult, totemState = nil, nil
+        local totemResult, totemState
         if config.totem then
             totemResult, totemState = getTotemStates(env, cache, config.totem, param.totemSlots)
         end
-        local auraResult, auraState = nil, nil
+        local auraResult, auraState
         if config.aura then
             auraResult, auraState = getAuraStates(env, cache, config.aura, param.unitTargets)
         end
@@ -1950,7 +1950,7 @@ function H.getCoreStates(env, cache, config, checkList)
 
     if not next(checkList) then
         -- Check all in config.
-        for id, c in pairs(cache) do
+        for id, c in ipairs(cache) do
             local result, state = getCoreState(env, cache[id], c, id, nil)
             if result and state and state.show then
                 states[id] = state
@@ -1958,8 +1958,165 @@ function H.getCoreStates(env, cache, config, checkList)
             end
         end
     else
-        for id, param in pairs(checkList) do
+        for id, param in ipairs(checkList) do
             local result, state = getCoreState(env, cache[id], cache[id], id, param)
+            if result and state and state.show then
+                states[id] = state
+                states[id].index = cache[id] and cache[id].index or 0
+            end
+        end
+    end
+
+    if not next(states) then
+        return true, {
+            show = false,
+        }
+    else
+        return true, {
+            show = true,
+            states = states,
+        }
+    end
+end
+
+function H.getDefaultDynamicEffectStrategyState(env, stateGroup, glow)
+    local result, state = H.getDefaultTotemStrategyState(env, stateGroup, glow)
+    if result and state and state.show then
+        return result, state
+    end
+    return H.getDefaultAuraStrategyState(env, stateGroup, glow)
+end
+
+function H.getNormalCoreStrategyState(env, stateGroup)
+    return H.getDefaultDynamicEffectStrategyState(env, stateGroup, 1)
+end
+
+function H.getNoticeCoreStrategyState(env, stateGroup)
+    return H.getDefaultDynamicEffectStrategyState(env, stateGroup, 2)
+end
+
+function H.getImportantCoreStrategyState(env, stateGroup)
+    return H.getDefaultDynamicEffectStrategyState(env, stateGroup, 3)
+end
+
+function H.initDynamicEffectStates(env, config)
+    local config = config or {}
+    local cache = {}
+
+    local totemList = {}
+    local auraList = {}
+
+    for i, c in pairs(config) do
+        cache[i] = c
+        cache[i].index = i
+
+        if c.totem then
+            table.insert(totemList, i)
+        end
+        for _, aura in pairs(c.aura or {}) do
+            for _, unit in ipairs(aura.unit_targets or {}) do
+                auraList[unit] = auraList[unit] or {}
+                table.insert(auraList[unit], i)
+            end
+        end
+    end
+
+    cache.totemList = totemList
+    cache.auraList = auraList
+
+    return cache
+end
+
+local function getDynamicEffectStrategyState(env, strategy, totems, auras)
+    local strategy = strategy or {}
+    local totems = totems or {}
+    local auras = auras or {}
+
+    for _, s in ipairs(strategy) do
+        local match = true
+        for _, id in ipairs(s.match and s.match.totem or {}) do
+            local find = false
+            for _, state in ipairs(totems) do
+                if id == state.id then
+                    find = true
+                    break
+                end
+            end
+            if not find then
+                match = false
+                break
+            end
+        end
+        for _, id in ipairs(s.match and s.match.aura or {}) do
+            local find = false
+            for _, state in ipairs(auras) do
+                if id == state.id then
+                    find = true
+                    break
+                end
+            end
+            if not find then
+                match = false
+                break
+            end
+        end
+        if match then
+            local func = getStrategyFunc(env, s)
+            if func then
+                return func(env, {
+                    totems = totems,
+                    auras = auras,
+                })
+            end
+        end
+    end
+
+    return H.getDefaultDynamicEffectStrategyState(env, {
+        totems = totems,
+        auras = auras,
+    })
+end
+
+local function getDynamicEffectState(env, cache, config, param)
+    local cache = cache or {}
+    local config = config or {}
+
+    local totemResult, totemState
+    if config.totem then
+        totemResult, totemState = getTotemStates(env, cache, config.totem, param.totemSlots)
+    end
+    local auraResult, auraState
+    if config.aura then
+        auraResult, auraState = getAuraStates(env, cache, config.aura, param.unitTargets)
+    end
+
+    return getDynamicEffectStrategyState(
+        env,
+        config.strategy,
+        totemState and totemState.states,
+        auraState and auraState.states
+    )
+end
+
+function H.getDynamicEffectStates(env, cache, config, checkList)
+    local cache = cache or {}
+    local config = config or {}
+    local checkList = checkList or {}
+
+    local states = {}
+
+    if not next(checkList) then
+        -- Check all in config.
+        for id, c in ipairs(cache) do
+            local result, state = getDynamicEffectState(env, cache[id], c, nil)
+            if result and state and state.show then
+                states[id] = state
+                states[id].index = cache[id] and cache[id].index or 0
+            end
+        end
+    else
+        for id, param in ipairs(checkList) do
+            local result, state = getDynamicEffectState(env, cache[id], cache[id], param)
             if result and state and state.show then
                 states[id] = state
                 states[id].index = cache[id] and cache[id].index or 0

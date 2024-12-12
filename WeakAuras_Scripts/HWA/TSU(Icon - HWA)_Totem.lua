@@ -1,5 +1,5 @@
 --[[
-- Events: PLAYER_TOTEM_UPDATE
+- Events: PLAYER_TOTEM_UPDATE, HWA_UPDATE
 
 - Conditions:
 {
@@ -15,8 +15,15 @@ function(states, event, ...)
 
     local totemSlots = nil
 
-    if "OPTIONS" == event then
-        aura_env.cache[key] = {}
+    if "OPTIONS" == event or "STATUS" == event then
+        return false
+    elseif "HWA_UPDATE" == event then
+        local type = ...
+        if type == "init" then
+            aura_env.cache[key] = {}
+        else
+            return false
+        end
     elseif "PLAYER_TOTEM_UPDATE" == event then
         local totemSlot = ...
         if totemSlot then

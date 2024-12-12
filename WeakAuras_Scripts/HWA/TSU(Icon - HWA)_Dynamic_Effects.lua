@@ -1,51 +1,11 @@
 --[[
-- Events: UNIT_HEALTH, PLAYER_TARGET_CHANGED, SPELL_COOLDOWN_CHANGED, PLAYER_TOTEM_UPDATE, HWA_UNIT_AURA, HWA_UPDATE
+- Events: PLAYER_TOTEM_UPDATE, HWA_UNIT_AURA, HWA_UPDATE
 
 - Conditions:
 {
     duration = true,
     expirationTime = true,
     stacks = true,
-    charges = {
-        display = "充能",
-        type = "number",
-    },
-    healthPercent = {
-        display = "生命百分比",
-        type = "number",
-    },
-    isSpellInRange = {
-        display = "在法术可用范围内",
-        type = "bool",
-    },
-    hasTarget = {
-        display = "目标存在",
-        type = "bool",
-    },
-    noResource = {
-        display = "资源不足",
-        type = "bool",
-    },
-    isUsable = {
-        display = "法术可用",
-        type = "bool",
-    },
-    gcd = {
-        display = "法术存在公共冷却",
-        type = "bool",
-    },
-    subDuration = {
-        display = "监控持续时间",
-        type = "number",
-    },
-    subExpirationTime = {
-        display = "监控超时时间",
-        type = "number",
-    },
-    subStacks = {
-        display = "监控层数",
-        type = "number",
-    },
     -- 0: no glow, 1: pixel glow, 2: autocast shine, 3: action buttom glow
     glow = {
         display = "发光类型",
@@ -57,7 +17,7 @@ function(states, event, ...)
     aura_env.cache = aura_env.cache or {}
     aura_env.result = aura_env.result or {}
 
-    local key = "CORE"
+    local key = "DYNAMIC_EFFECTS"
 
     local checkList = nil
 
@@ -66,45 +26,11 @@ function(states, event, ...)
     elseif "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then
-            if HWA and HWA.initCoreStates then
-                aura_env.cache[key] = HWA.initCoreStates(env, aura_env.core)
+            if HWA and HWA.initDynamicEffectStates then
+                aura_env.cache[key] = HWA.initDynamicEffectStates(env, aura_env.dynamic_effects)
             else
                 aura_env.cache[key] = {}
             end
-        end
-    elseif "UNIT_HEALTH" == event then
-        local unitTarget = ...
-        if unitTarget == "target" then
-            local targetList = aura_env.cache[key] and aura_env.cache[key].targetList
-            if not targetList then
-                return false
-            end
-            checkList = checkList or {}
-            for _, id in ipairs(targetList) do
-                checkList[id] = nil
-            end
-        else
-            return false
-        end
-    elseif "PLAYER_TARGET_CHANGED" == event then
-        local unitTargets = { "target" }
-        local targetList = aura_env.cache[key] and aura_env.cache[key].targetList
-        if not targetList then
-            return false
-        end
-        local param = {
-            unitTargets = unitTargets,
-        }
-        checkList = checkList or {}
-        for _, id in ipairs(targetList or {}) do
-            checkList[id] = param
-        end
-    elseif "SPELL_COOLDOWN_CHANGED" == event then
-        local id = ...
-        local cache = aura_env.cache[key] or {}
-        if cache[id] then
-            checkList = checkList or {}
-            checkList[id] = nil
         else
             return false
         end
@@ -148,10 +74,10 @@ function(states, event, ...)
         end
     end
 
-    if HWA and HWA.getCoreStates then
+    if HWA and HWA.getDynamicEffectStates then
         aura_env.cache[key] = aura_env.cache[key] or {}
 
-        local result, state = HWA.getCoreStates(aura_env, aura_env.cache[key], aura_env.core, checkList)
+        local result, state = HWA.getDynamicEffectStates(aura_env, aura_env.cache[key], aura_env.dynamic_effects, checkList)
         if result and state then
             local records = aura_env.result[key] or {}
             local checks = checkList or {}
@@ -179,17 +105,6 @@ function(states, event, ...)
                             expirationTime = s.expirationTime,
                             icon = s.icon,
                             stacks = s.stacks,
-                            charges = s.charges,
-                            isUsable = s.isUsable,
-                            noResource = s.noResource,
-                            isSpellInRange = s.isSpellInRange,
-                            hasTarget = s.hasTarget,
-                            healthPercent = s.healthPercent,
-                            priority = s.priority,
-                            init = s.init,
-                            subDuration = s.subDuration,
-                            subExpirationTime = s.subExpirationTime,
-                            subStacks = s.subStacks,
                             glow = s.glow,
                             index = s.index,
                         }

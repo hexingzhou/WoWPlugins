@@ -1,12 +1,12 @@
 --[[
-- Events: PLAYER_ENTERING_WORLD, PLAYER_SPECIALIZATION_CHANGED, TRAIT_CONFIG_UPDATED, GROUP_JOINED, GROUP_LEFT, UPDATE_SHAPESHIFT_FORM, HWA_OPTIONS, HWA_INIT
+- Events: PLAYER_ENTERING_WORLD, PLAYER_SPECIALIZATION_CHANGED, TRAIT_CONFIG_UPDATED, GROUP_JOINED, GROUP_LEFT, UPDATE_SHAPESHIFT_FORM, HWA_INIT
 --]]
 function(states, event, ...)
     if not HWA then
         return
     end
 
-    if "OPTIONS" == event or "STATUS" == event or "HWA_OPTIONS" == event then
+    if "STATUS" == event then
         -- Reset config first.
         HWA.getConfig()
         -- Then, delay init.

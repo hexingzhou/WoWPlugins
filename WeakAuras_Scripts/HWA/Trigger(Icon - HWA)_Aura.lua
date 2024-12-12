@@ -1,5 +1,5 @@
 --[[
-- Events: HWA_UNIT_AURA
+- Events: HWA_UNIT_AURA, HWA_UPDATE
 --]]
 -- Trigger
 function(event, ...)
@@ -10,8 +10,15 @@ function(event, ...)
 
     local unitTargets = nil
 
-    if "OPTIONS" == event then
-        aura_env.cache[key] = {}
+    if "OPTIONS" == event or "STATUS" == event then
+        return false
+    elseif "HWA_UPDATE" == event then
+        local type = ...
+        if type == "init" then
+            aura_env.cache[key] = {}
+        else
+            return false
+        end
     elseif "HWA_UNIT_AURA" == event then
         local unitTarget = ...
         if unitTarget then

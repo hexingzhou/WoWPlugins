@@ -43,12 +43,8 @@ function(states, event)
 
     local config = aura_env.spell
 
-    if "OPTIONS" == event then
-        if HWA and HWA.initSpell then
-            aura_env.cache[key] = HWA.initSpell(aura_env, config)
-        else
-            aura_env.cache[key] = 0
-        end
+    if "OPTIONS" == event or "STATUS" == event then
+        return false
     elseif "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then

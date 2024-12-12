@@ -35,7 +35,6 @@ aura_env.core = {
     {
         spell = {
             id = 0, -- spellID
-            name = "",
             precise = false,
             gcd = false,
             target = false,
