@@ -1,3 +1,36 @@
+--[[
+- Demo:
+strategy = {
+    {
+        func = function(env, stateGroup)
+            if HWA and HWA.getDefaultCoreStrategyState then
+                return HWA.getDefaultCoreStrategyState(env, stateGroup)
+            end
+        end,
+    },
+    {
+        func = function(env, stateGroup)
+            if HWA and HWA.getNormalCoreStrategyState then
+                return HWA.getNormalCoreStrategyState(env, stateGroup)
+            end
+        end,
+    },
+    {
+        func = function(env, stateGroup)
+            if HWA and HWA.getNoticeCoreStrategyState then
+                return HWA.getNoticeCoreStrategyState(env, stateGroup)
+            end
+        end,
+    },
+    {
+        func = function(env, stateGroup)
+            if HWA and HWA.getImportantCoreStrategyState then
+                return HWA.getImportantCoreStrategyState(env, stateGroup)
+            end
+        end,
+    },
+}
+--]]
 aura_env.core = {
     {
         spell = {

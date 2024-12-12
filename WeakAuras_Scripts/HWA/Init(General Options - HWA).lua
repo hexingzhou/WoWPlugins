@@ -1031,7 +1031,7 @@ function H.getStatePriority(config)
     return value
 end
 
-function H.updateEnv()
+local function updateEnv()
     local update = false
     local specID = 0
     local spec = GetSpecialization()
@@ -1566,7 +1566,7 @@ function H.getPower(env, config, type)
     end
 end
 
-function H.getStrategyFunc(env, strategy)
+local function getStrategyFunc(env, strategy)
     if strategy then
         if strategy.func then
             return strategy.func
@@ -1577,8 +1577,8 @@ function H.getStrategyFunc(env, strategy)
     end
 end
 
-function H.getDefaultTotemStrategyState(env, states)
-    local states = states or {}
+function H.getDefaultTotemStrategyState(env, stateGroup, glow)
+    local states = stateGroup and stateGroup.totems or {}
 
     if not next(states) then
         return true, {
@@ -1602,11 +1602,23 @@ function H.getDefaultTotemStrategyState(env, states)
             expirationTime = s.expirationTime,
             icon = s.icon,
             stacks = stacks,
-            glow = 1,
+            glow = glow or 0,
         }
 end
 
-function H.getTotemStrategyState(env, strategy, states)
+function H.getNormalTotemStrategyState(env, stateGroup)
+    return H.getDefaultTotemStrategyState(env, stateGroup, 1)
+end
+
+function H.getNoticeTotemStrategyState(env, stateGroup)
+    return H.getDefaultTotemStrategyState(env, stateGroup, 2)
+end
+
+function H.getImportantTotemStrategyState(env, stateGroup)
+    return H.getDefaultTotemStrategyState(env, stateGroup, 3)
+end
+
+local function getTotemStrategyState(env, strategy, states)
     local strategy = strategy or {}
     local states = states or {}
 
@@ -1626,17 +1638,21 @@ function H.getTotemStrategyState(env, strategy, states)
             end
         end
         if match then
-            local func = H.getStrategyFunc(env, s)
+            local func = getStrategyFunc(env, s)
             if func then
-                return func(env, states)
+                return func(env, {
+                    totems = states,
+                })
             end
         end
     end
 
-    return H.getDefaultTotemStrategyState(env, states)
+    return H.getDefaultTotemStrategyState(env, {
+        totems = states,
+    })
 end
 
-function H.getTotemStates(env, cache, config, totemSlots)
+local function getTotemStates(env, cache, config, totemSlots)
     local totemSlots = totemSlots or {}
     if #totemSlots == 0 then
         for i = 1, MAX_TOTEMS do
@@ -1655,10 +1671,10 @@ function H.getTotemStates(env, cache, config, totemSlots)
 end
 
 function H.getTotemState(env, cache, config, strategy, totemSlots)
-    local result, state = H.getTotemStates(env, cache, config, totemSlots)
+    local result, state = getTotemStates(env, cache, config, totemSlots)
     if result and state then
         if state.show then
-            return H.getTotemStrategyState(env, strategy, state.states)
+            return getTotemStrategyState(env, strategy, state.states)
         else
             return true, {
                 show = false,
@@ -1668,8 +1684,8 @@ function H.getTotemState(env, cache, config, strategy, totemSlots)
     return false
 end
 
-function H.getDefaultAuraStrategyState(env, states)
-    local states = states or {}
+function H.getDefaultAuraStrategyState(env, stateGroup, glow)
+    local states = stateGroup and stateGroup.auras or {}
 
     if not next(states) then
         return true, {
@@ -1683,7 +1699,7 @@ function H.getDefaultAuraStrategyState(env, states)
     local s = states[1]
     local stacks = 0
     if s.maxCharges and s.maxCharges > 1 then
-        stacks = s.charges
+        stacks = s.charges or 0
     end
     return true,
         {
@@ -1693,19 +1709,23 @@ function H.getDefaultAuraStrategyState(env, states)
             expirationTime = s.expirationTime,
             icon = s.icon,
             stacks = stacks,
-            glow = 1,
+            glow = glow or 0,
         }
 end
 
-function H.getNoticeAuraStrategyState(env, states)
-    local result, state = H.getDefaultAuraStrategyState(env, states)
-    if result and state and state.show then
-        state.glow = 3
-    end
-    return result, state
+function H.getNormalAuraStrategyState(env, stateGroup)
+    return H.getDefaultAuraStrategyState(env, stateGroup, 1)
 end
 
-function H.getAuraStrategyState(env, strategy, states)
+function H.getNoticeAuraStrategyState(env, stateGroup)
+    return H.getDefaultAuraStrategyState(env, stateGroup, 2)
+end
+
+function H.getImportantAuraStrategyState(env, stateGroup)
+    return H.getDefaultAuraStrategyState(env, stateGroup, 3)
+end
+
+local function getAuraStrategyState(env, strategy, states)
     local strategy = strategy or {}
     local states = states or {}
 
@@ -1725,17 +1745,21 @@ function H.getAuraStrategyState(env, strategy, states)
             end
         end
         if match then
-            local func = H.getStrategyFunc(env, s)
+            local func = getStrategyFunc(env, s)
             if func then
-                return func(env, states)
+                return func(env, {
+                    auras = states,
+                })
             end
         end
     end
 
-    return H.getDefaultAuraStrategyState(env, states)
+    return H.getDefaultAuraStrategyState(env, {
+        auras = states,
+    })
 end
 
-function H.getAuraStates(env, cache, config, unitTargets)
+local function getAuraStates(env, cache, config, unitTargets)
     local unitTargets = unitTargets or {}
     if #unitTargets == 0 then
         local units = {}
@@ -1760,10 +1784,10 @@ function H.getAuraStates(env, cache, config, unitTargets)
 end
 
 function H.getAuraState(env, cache, config, strategy, unitTargets)
-    local result, state = H.getAuraStates(env, cache, config, unitTargets)
+    local result, state = getAuraStates(env, cache, config, unitTargets)
     if result and state then
         if state.show then
-            return H.getAuraStrategyState(env, strategy, state.states)
+            return getAuraStrategyState(env, strategy, state.states)
         else
             return true, {
                 show = false,
@@ -1771,6 +1795,26 @@ function H.getAuraState(env, cache, config, strategy, unitTargets)
         end
     end
     return false
+end
+
+function H.getDefaultCoreStrategyState(env, stateGroup, glow)
+    local result, state = H.getDefaultTotemStrategyState(env, stateGroup, glow)
+    if result and state and state.show then
+        return result, state
+    end
+    return H.getDefaultAuraStrategyState(env, stateGroup, glow)
+end
+
+function H.getNormalCoreStrategyState(env, stateGroup)
+    return H.getDefaultCoreStrategyState(env, stateGroup, 1)
+end
+
+function H.getNoticeCoreStrategyState(env, stateGroup)
+    return H.getDefaultCoreStrategyState(env, stateGroup, 2)
+end
+
+function H.getImportantCoreStrategyState(env, stateGroup)
+    return H.getDefaultCoreStrategyState(env, stateGroup, 3)
 end
 
 function H.initCoreStates(env, config)
@@ -1811,23 +1855,7 @@ function H.initCoreStates(env, config)
     return cache
 end
 
-function H.getDefaultCoreStrategyState(env, totems, auras)
-    local result, state = H.getDefaultTotemStrategyState(env, totems)
-    if result and state and state.show then
-        return result, state
-    end
-    return H.getDefaultAuraStrategyState(env, auras)
-end
-
-function H.getNoticeCoreStrategyState(env, totems, auras)
-    local result, state = H.getDefaultCoreStrategyState(env, totems, auras)
-    if result and state and state.show then
-        state.glow = 3
-    end
-    return result, state
-end
-
-function H.getCoreStrategyState(env, strategy, totems, auras)
+local function getCoreStrategyState(env, strategy, totems, auras)
     local strategy = strategy or {}
     local totems = totems or {}
     local auras = auras or {}
@@ -1861,21 +1889,23 @@ function H.getCoreStrategyState(env, strategy, totems, auras)
             end
         end
         if match then
-            local func = H.getStrategyFunc(env, s)
+            local func = getStrategyFunc(env, s)
             if func then
-                return func(env, totems, auras)
+                return func(env, {
+                    totems = totems,
+                    auras = auras,
+                })
             end
         end
     end
 
-    local result, state = H.getDefaultTotemStrategyState(env, totems)
-    if result and state and state.show then
-        return result, state
-    end
-    return H.getDefaultAuraStrategyState(env, auras)
+    return H.getDefaultCoreStrategyState(env, {
+        totems = totems,
+        auras = auras,
+    })
 end
 
-function H.getCoreState(env, cache, config, id, param)
+local function getCoreState(env, cache, config, id, param)
     if not id then
         return false
     end
@@ -1888,18 +1918,14 @@ function H.getCoreState(env, cache, config, id, param)
         local param = param or {}
         local totemResult, totemState = nil, nil
         if config.totem then
-            totemResult, totemState = H.getTotemStates(env, cache, config.totem, param.totemSlots)
+            totemResult, totemState = getTotemStates(env, cache, config.totem, param.totemSlots)
         end
         local auraResult, auraState = nil, nil
         if config.aura then
-            auraResult, auraState = H.getAuraStates(env, cache, config.aura, param.unitTargets)
+            auraResult, auraState = getAuraStates(env, cache, config.aura, param.unitTargets)
         end
-        local r, s = H.getCoreStrategyState(
-            env,
-            config.strategy,
-            totemState and totemState.states,
-            auraState and auraState.states
-        )
+        local r, s =
+            getCoreStrategyState(env, config.strategy, totemState and totemState.states, auraState and auraState.states)
         if r and s and s.show then
             state.subDuration = s.duration
             state.subExpirationTime = s.expirationTime
@@ -1925,7 +1951,7 @@ function H.getCoreStates(env, cache, config, checkList)
     if not next(checkList) then
         -- Check all in config.
         for id, c in pairs(cache) do
-            local result, state = H.getCoreState(env, cache[id], c, id, nil)
+            local result, state = getCoreState(env, cache[id], c, id, nil)
             if result and state and state.show then
                 states[id] = state
                 states[id].index = cache[id] and cache[id].index or 0
@@ -1933,7 +1959,7 @@ function H.getCoreStates(env, cache, config, checkList)
         end
     else
         for id, param in pairs(checkList) do
-            local result, state = H.getCoreState(env, cache[id], cache[id], id, param)
+            local result, state = getCoreState(env, cache[id], cache[id], id, param)
             if result and state and state.show then
                 states[id] = state
                 states[id].index = cache[id] and cache[id].index or 0
@@ -1955,12 +1981,12 @@ end
 ---------------- Trigger ------------------
 
 ---------------- Region ------------------
-function H.setRegionSize(r, w, h)
+local function setRegionSize(r, w, h)
     r:SetRegionWidth(w)
     r:SetRegionHeight(h)
 end
 
-function H.baseGrow(
+local function baseGrow(
     newPositions,
     activeRegions,
     width,
@@ -2022,7 +2048,7 @@ function H.baseGrow(
     local y = yOffset
     for i, regionData in ipairs(activeRegions) do
         if i > currentMin then
-            H.setRegionSize(regionData.region, width, height)
+            setRegionSize(regionData.region, width, height)
             newPositions[i] = { (i - currentMin - currentMid) * (width + hSpacing) * grow + xOffset, y }
             if i == currentMax then
                 lineCount = lineCount - 1
@@ -2044,7 +2070,7 @@ function H.baseGrow(
     end
 end
 
-function H.baseSort(a, b)
+local function baseSort(a, b)
     local priorityA = a.region and a.region.state and a.region.state.priority or 0
     local priorityB = b.region and b.region.state and b.region.state.priority or 0
     if priorityA ~= priorityB then
@@ -2082,7 +2108,7 @@ function H.coreGrow(newPositions, activeRegions, class)
 
     local mid = (maxSize + 1) / 2
     for i, regionData in ipairs(activeRegions) do
-        H.setRegionSize(regionData.region, width, height)
+        setRegionSize(regionData.region, width, height)
         newPositions[i] = { (i - mid) * (width + hSpacing) + xOffset, yOffset }
         if i == maxSize then
             break
@@ -2098,7 +2124,7 @@ function H.coreGrow(newPositions, activeRegions, class)
         local maxCount = config.max_sub_icon_size_pl
         local minCount = config.min_sub_icon_size_pl
 
-        H.baseGrow(
+        baseGrow(
             newPositions,
             activeRegions,
             subWidth,
@@ -2117,7 +2143,7 @@ function H.coreGrow(newPositions, activeRegions, class)
 end
 
 function H.coreSort(a, b)
-    return H.baseSort(a, b)
+    return baseSort(a, b)
 end
 
 function H.resourceGrow(newPositions, activeRegions, class)
@@ -2133,7 +2159,7 @@ function H.resourceGrow(newPositions, activeRegions, class)
     local mid = (count + 1) / 2
 
     for i, regionData in ipairs(activeRegions) do
-        H.setRegionSize(regionData.region, width, height)
+        setRegionSize(regionData.region, width, height)
         newPositions[i] = { (i - mid) * (width + hSpacing) + xOffset, yOffset }
     end
 end
@@ -2161,7 +2187,7 @@ function H.dynamicEffectsGrow(newPositions, activeRegions, class)
     if growType ~= 2 then
         x0 = x0 + ((width - 1) / 2 + 1) * grow
     end
-    H.baseGrow(
+    baseGrow(
         newPositions,
         activeRegions,
         width,
@@ -2179,7 +2205,7 @@ function H.dynamicEffectsGrow(newPositions, activeRegions, class)
 end
 
 function H.dynamicEffectsSort(a, b)
-    return H.baseSort(a, b)
+    return baseSort(a, b)
 end
 
 function H.maintenanceGrow(newPositions, activeRegions, class)
@@ -2196,7 +2222,7 @@ function H.maintenanceGrow(newPositions, activeRegions, class)
     end
     local maxSize = config.max_icon_size_pl
 
-    H.baseGrow(
+    baseGrow(
         newPositions,
         activeRegions,
         width,
@@ -2214,7 +2240,7 @@ function H.maintenanceGrow(newPositions, activeRegions, class)
 end
 
 function H.maintenanceSort(a, b)
-    return H.baseSort(a, b)
+    return baseSort(a, b)
 end
 ---------------- Region ------------------
 
@@ -2261,7 +2287,7 @@ function H.init()
 
     initThrottledLastRunTime = time()
 
-    H.updateEnv()
+    updateEnv()
 
     if initThrottledHandler then
         initThrottledHandler:Cancel()
