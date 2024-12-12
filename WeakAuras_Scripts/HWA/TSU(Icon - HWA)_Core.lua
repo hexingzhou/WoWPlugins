@@ -191,6 +191,10 @@ function(states, event, ...)
                             healthPercent = s.healthPercent,
                             priority = s.priority,
                             init = s.init,
+                            subDuration = s.subDuration,
+                            subExpirationTime = s.subExpirationTime,
+                            subStacks = s.subStacks,
+                            glow = s.glow,
                             index = s.index,
                         }
                         records[id] = s

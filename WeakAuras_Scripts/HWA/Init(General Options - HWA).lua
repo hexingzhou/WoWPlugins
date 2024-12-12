@@ -1134,8 +1134,20 @@ function H.handleCurrentAura(aura)
 end
 
 function H.clearCurrentAuras(unitTarget, filter)
-    _currentAuras[_unitTarget] = _currentAuras[_unitTarget] or {}
-    _currentAuras[_unitTarget][_filter] = nil
+    _currentAuras[unitTarget] = _currentAuras[unitTarget] or {}
+    _currentAuras[unitTarget][filter] = nil
+end
+
+function H.removeCurrentAura(unitTarget, filter, auraInstanceID)
+    if _currentAuras[unitTarget] and _currentAuras[unitTarget][filter] and _currentAuras[unitTarget][filter].auras then
+        local aura = _currentAuras[unitTarget][filter].auras[auraInstanceID]
+        if aura then
+            if _currentAuras[unitTarget][filter].spells and _currentAuras[unitTarget][filter].spells[aura.spellId] then
+                _currentAuras[unitTarget][filter].spells[aura.spellId][auraInstanceID] = nil
+            end
+        end
+        _currentAuras[unitTarget][filter].auras[auraInstanceID] = nil
+    end
 end
 
 function H.scanCurrentAuras(unitTarget, filter, updateInfo)
@@ -1153,30 +1165,16 @@ function H.scanCurrentAuras(unitTarget, filter, updateInfo)
             if updateInfo.updatedAuraInstanceIDs then
                 for _, auraInstanceID in ipairs(updateInfo.updatedAuraInstanceIDs) do
                     local aura = C_UnitAuras.GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
-                    if (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL") then
+                    if
+                        aura and (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL")
+                    then
                         H.handleCurrentAura(aura)
                     end
                 end
             end
             if updateInfo.removedAuraInstanceIDs then
                 for _, auraInstanceID in ipairs(updateInfo.removedAuraInstanceIDs) do
-                    if
-                        _currentAuras[unitTarget]
-                        and _currentAuras[unitTarget][filter]
-                        and _currentAuras[unitTarget][filter].auras
-                    then
-                        local aura = _currentAuras[unitTarget][filter].auras[auraInstanceID]
-                        if aura then
-                            if
-                                _currentAuras[unitTarget][filter]
-                                and _currentAuras[unitTarget][filter].spells
-                                and _currentAuras[unitTarget][filter].spells[aura.spellId]
-                            then
-                                _currentAuras[unitTarget][filter].spells[aura.spellId][auraInstanceID] = nil
-                            end
-                        end
-                        _currentAuras[unitTarget][filter].auras[auraInstanceID] = nil
-                    end
+                    H.removeCurrentAura(unitTarget, filter, auraInstanceID)
                 end
             end
         else
@@ -1207,7 +1205,7 @@ function H.getCurrentAuras(unitTarget, filter, id)
             and _currentAuras[unitTarget][filter]
             and _currentAuras[unitTarget][filter].spells
         then
-            return _currentAuras[unitTarget][filter].spells[id]
+            return _currentAuras[unitTarget][filter].spells[id] or {}
         end
     end
     return {}
@@ -1298,9 +1296,9 @@ function H.getSpell(env, config, id)
         then
             duration = spellCooldownInfo.duration
             expirationTime = spellCooldownInfo.startTime + spellCooldownInfo.duration
+            charges = 0
         end
         stacks = C_Spell.GetSpellCastCount(spell)
-        charges = stacks
     end
 
     if target then
@@ -1453,15 +1451,15 @@ function H.getAura(env, cache, config, unitTarget)
                     table.insert(matchedAuras, {
                         id = c.id or 0,
                         unitTarget = unitTarget,
-                        auraInstanceID = auraData.auraInstanceID,
-                        charges = auraData.charges,
-                        duration = auraData.duration,
-                        expirationTime = auraData.expirationTime,
-                        icon = auraData.icon,
-                        maxCharges = auraData.maxCharges,
-                        points = auraData.points,
-                        sourceUnit = auraData.sourceUnit,
-                        spellID = auraData.spellId,
+                        auraInstanceID = info.auraInstanceID,
+                        charges = info.charges,
+                        duration = info.duration,
+                        expirationTime = info.expirationTime,
+                        icon = info.icon,
+                        maxCharges = info.maxCharges,
+                        points = info.points,
+                        sourceUnit = info.sourceUnit,
+                        spellID = info.spellId,
                     })
                 end
             end
@@ -1684,7 +1682,7 @@ function H.getDefaultAuraStrategyState(env, states)
     end)
     local s = states[1]
     local stacks = 0
-    if s.maxCharges > 1 then
+    if s.maxCharges and s.maxCharges > 1 then
         stacks = s.charges
     end
     return true,
@@ -1811,6 +1809,22 @@ function H.initCoreStates(env, config)
     cache.totemList = totemList
 
     return cache
+end
+
+function H.getDefaultCoreStrategyState(env, totems, auras)
+    local result, state = H.getDefaultTotemStrategyState(env, totems)
+    if result and state and state.show then
+        return result, state
+    end
+    return H.getDefaultAuraStrategyState(env, auras)
+end
+
+function H.getNoticeCoreStrategyState(env, totems, auras)
+    local result, state = H.getDefaultCoreStrategyState(env, totems, auras)
+    if result and state and state.show then
+        state.glow = 3
+    end
+    return result, state
 end
 
 function H.getCoreStrategyState(env, strategy, totems, auras)

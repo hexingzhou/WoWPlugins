@@ -2,11 +2,7 @@
 - Events: PLAYER_TARGET_CHANGED, UNIT_AURA, HWA_UPDATE
 --]]
 function(states, event, ...)
-    if "OPTIONS" == event then
-        if HWA and HWA.initCurrentAuras then
-            HWA.initCurrentAuras()
-        end
-    elseif "HWA_UPDATE" == event then
+    if "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then
             if HWA and HWA.initCurrentAuras then

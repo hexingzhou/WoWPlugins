@@ -6,7 +6,7 @@ function(states, event, ...)
         return
     end
 
-    if "OPTIONS" == event or "HWA_OPTIONS" == event then
+    if "OPTIONS" == event or "STATUS" == event or "HWA_OPTIONS" == event then
         -- Reset config first.
         HWA.getConfig()
         -- Then, delay init.
