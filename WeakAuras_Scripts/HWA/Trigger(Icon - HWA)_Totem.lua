@@ -10,9 +10,7 @@ function(event, ...)
 
     local totemSlots = nil
 
-    if "OPTIONS" == event or "STATUS" == event then
-        return false
-    elseif "HWA_UPDATE" == event then
+    if "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then
             aura_env.cache[key] = {}

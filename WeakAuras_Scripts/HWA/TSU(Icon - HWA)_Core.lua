@@ -59,15 +59,13 @@ function(states, event, ...)
 
     local key = "CORE"
 
-    local checkList = nil
+    local checkList = {}
 
-    if "OPTIONS" == event or "STATUS" == event then
-        return false
-    elseif "HWA_UPDATE" == event then
+    if "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then
             if HWA and HWA.initCoreStates then
-                aura_env.cache[key] = HWA.initCoreStates(env, aura_env.info)
+                aura_env.cache[key] = HWA.initCoreStates(aura_env, aura_env.info)
             else
                 aura_env.cache[key] = {}
             end
@@ -79,9 +77,8 @@ function(states, event, ...)
             if not targetList then
                 return false
             end
-            checkList = checkList or {}
             for _, id in ipairs(targetList) do
-                checkList[id] = nil
+                checkList[id] = {}
             end
         else
             return false
@@ -95,16 +92,14 @@ function(states, event, ...)
         local param = {
             unitTargets = unitTargets,
         }
-        checkList = checkList or {}
         for _, id in ipairs(targetList or {}) do
             checkList[id] = param
         end
     elseif "SPELL_COOLDOWN_CHANGED" == event then
         local id = ...
-        local cache = aura_env.cache[key] or {}
-        if cache[id] then
-            checkList = checkList or {}
-            checkList[id] = nil
+        local ids = aura_env.cache[key] and aura_env.cache[key].ids or {}
+        if ids[id] then
+            checkList[id] = {}
         else
             return false
         end
@@ -119,7 +114,6 @@ function(states, event, ...)
             local param = {
                 totemSlots = totemSlots,
             }
-            checkList = checkList or {}
             for _, id in ipairs(auraList) do
                 checkList[id] = param
             end
@@ -139,7 +133,6 @@ function(states, event, ...)
             local param = {
                 unitTargets = unitTargets,
             }
-            checkList = checkList or {}
             for _, id in ipairs(auraList) do
                 checkList[id] = param
             end
@@ -156,7 +149,7 @@ function(states, event, ...)
             local records = aura_env.result[key] or {}
             local checks = checkList or {}
             if not next(checks) then
-                checks = aura_env.cache[key]
+                checks = aura_env.cache[key] and aura_env.cache[key].ids or {}
                 for id, record in pairs(records) do
                     if not checks[id] and record then
                         states[id] = {
@@ -185,6 +178,7 @@ function(states, event, ...)
                             isSpellInRange = s.isSpellInRange,
                             hasTarget = s.hasTarget,
                             healthPercent = s.healthPercent,
+                            gcd = s.gcd,
                             priority = s.priority,
                             init = s.init,
                             subDuration = s.subDuration,

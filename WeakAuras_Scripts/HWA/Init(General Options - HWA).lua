@@ -1214,6 +1214,8 @@ end
 
 ---------------- Trigger ------------------
 local function initSpell(env, config, id)
+    local config = config or {}
+
     local spellID = id or 0
     if spellID == 0 then
         spellID = config.id or 0
@@ -1860,16 +1862,17 @@ function H.initCoreStates(env, config)
     local config = config or {}
     local cache = {}
 
+    local ids = {}
     local targetList = {}
     local totemList = {}
     local auraList = {}
 
-    for i, c in pairs(config) do
+    for i, c in ipairs(config) do
         local info = initSpell(env, c.spell)
         local id = info and info.id or 0
         if id ~= 0 then
-            cache[id] = c
-            cache[id].index = i
+            ids[id] = c
+            ids[id].index = i
 
             if c.spell and c.spell.target then
                 table.insert(targetList, id)
@@ -1886,6 +1889,7 @@ function H.initCoreStates(env, config)
         end
     end
 
+    cache.ids = ids
     cache.targetList = targetList
     cache.totemList = totemList
     cache.auraList = auraList
@@ -1995,21 +1999,22 @@ function H.getCoreStates(env, cache, config, checkList)
 
     local states = {}
 
+    local ids = cache.ids or {}
     if not next(checkList) then
         -- Check all in config.
-        for id, c in ipairs(cache) do
-            local result, state = getCoreState(env, cache[id], c, id, nil)
+        for id, c in pairs(ids) do
+            local result, state = getCoreState(env, ids[id], c, id, nil)
             if result and state and state.show then
                 states[id] = state
-                states[id].index = cache[id] and cache[id].index or 0
+                states[id].index = ids[id] and ids[id].index or 0
             end
         end
     else
-        for id, param in ipairs(checkList) do
-            local result, state = getCoreState(env, cache[id], cache[id], id, param)
+        for id, param in pairs(checkList) do
+            local result, state = getCoreState(env, ids[id], ids[id], id, param)
             if result and state and state.show then
                 states[id] = state
-                states[id].index = cache[id] and cache[id].index or 0
+                states[id].index = ids[id] and ids[id].index or 0
             end
         end
     end
@@ -2034,15 +2039,15 @@ function H.getDefaultDynamicEffectStrategyState(env, stateGroup, glow)
     return H.getDefaultAuraStrategyState(env, stateGroup, glow)
 end
 
-function H.getNormalCoreStrategyState(env, stateGroup)
+function H.getNormalDynamicEffectStrategyState(env, stateGroup)
     return H.getDefaultDynamicEffectStrategyState(env, stateGroup, 1)
 end
 
-function H.getNoticeCoreStrategyState(env, stateGroup)
+function H.getNoticeDynamicEffectStrategyState(env, stateGroup)
     return H.getDefaultDynamicEffectStrategyState(env, stateGroup, 2)
 end
 
-function H.getImportantCoreStrategyState(env, stateGroup)
+function H.getImportantDynamicEffectStrategyState(env, stateGroup)
     return H.getDefaultDynamicEffectStrategyState(env, stateGroup, 3)
 end
 

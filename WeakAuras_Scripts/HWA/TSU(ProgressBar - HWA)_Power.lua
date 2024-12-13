@@ -12,9 +12,7 @@ function(states, event, ...)
 
     local key = "POWER"
 
-    if "OPTIONS" == event or "STATUS" == event then
-        return false
-    elseif "UNIT_POWER_FREQUENT" == event then
+    if "UNIT_POWER_FREQUENT" == event then
         local unitTarget = ...
         if unitTarget ~= "player" then
             return false

@@ -21,13 +21,11 @@ function(states, event, ...)
 
     local checkList = nil
 
-    if "OPTIONS" == event or "STATUS" == event then
-        return false
-    elseif "HWA_UPDATE" == event then
+    if "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then
             if HWA and HWA.initDynamicEffectStates then
-                aura_env.cache[key] = HWA.initDynamicEffectStates(env, aura_env.info)
+                aura_env.cache[key] = HWA.initDynamicEffectStates(aura_env, aura_env.info)
             else
                 aura_env.cache[key] = {}
             end
