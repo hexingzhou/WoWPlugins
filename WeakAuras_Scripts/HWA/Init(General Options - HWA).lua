@@ -624,9 +624,6 @@ local default = {
 ---------------- Global ------------------
 HWA = HWA or {}
 
--- Start GCD watching. This is used for GCD check in getSpell function.
-WeakAuras.WatchGCD()
-
 local function tcontains(t, v)
     if not t then
         return false
@@ -1113,6 +1110,14 @@ function H.getConfig(key, class)
 end
 ---------------- Base ------------------
 
+---------------- Totem ------------------
+local _currentTotems = {}
+
+local function getCurrentTotems(...)
+    -- body
+end
+---------------- Totem ------------------
+
 ---------------- Aura ------------------
 local _currentAuras = {}
 local _unitTarget, _filter
@@ -1159,7 +1164,9 @@ function H.scanCurrentAuras(unitTarget, filter, updateInfo)
         if updateInfo and not updateInfo.isFullUpdate then
             if updateInfo.addedAuras then
                 for _, aura in ipairs(updateInfo.addedAuras) do
-                    if (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL") then
+                    if
+                        aura and (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL")
+                    then
                         handleCurrentAura(aura)
                     end
                 end
@@ -1218,45 +1225,33 @@ end
 ---------------- Trigger ------------------
 local function initSpell(env, config, id)
     local config = config or {}
-
-    local spellID = id or 0
-    if spellID == 0 then
-        spellID = config.id or 0
-        if spellID == 0 then
+    local id = id or 0
+    if id == 0 then
+        id = config.id or 0
+        if id == 0 then
             local value, _ = env.id:gsub(".+ %- ", "")
-            spellID = tonumber(value) or 0
+            id = tonumber(value) or 0
         end
     end
-    if spellID ~= 0 then
-        WeakAuras.WatchSpellCooldown(spellID)
+    if id ~= 0 then
+        WeakAuras.WatchSpellCooldown(id)
     end
 
-    return {
-        id = spellID,
-        target = config.target or false,
-    }
+    return id
 end
 
 -- Get spell info.
-local function getSpell(env, config, id)
-    local config = config or {}
-
-    local spellID = id or 0
-    if spellID == 0 then
-        spellID = config.id or 0
-        if spellID == 0 then
-            local value, _ = env.id:gsub(".+ %- ", "")
-            spellID = tonumber(value) or 0
-        end
-    end
-    if spellID == 0 then
+local function getSpell(env, cache, config, id)
+    if not id or id == 0 then
         return false
     end
 
-    local spell = spellID
+    local config = config or {}
+
+    local spell = id
     local spellInfo = C_Spell.GetSpellInfo(spell)
     if spellInfo then
-        if not config.precise then
+        if not config.precise and spellInfo.name then
             spell = spellInfo.name
             spellInfo = C_Spell.GetSpellInfo(spell)
         end
@@ -1292,17 +1287,15 @@ local function getSpell(env, config, id)
         charges = chargeInfo.currentCharges
     else
         local spellCooldownInfo = C_Spell.GetSpellCooldown(spell)
-        if
-            spellCooldownInfo
-            and spellCooldownInfo.isEnabled
-            and spellCooldownInfo.duration > 0
-            and spellCooldownInfo.duration ~= WeakAuras.gcdDuration()
-        then
-            duration = spellCooldownInfo.duration
-            expirationTime = spellCooldownInfo.startTime + spellCooldownInfo.duration
-            charges = 0
+        if spellCooldownInfo and spellCooldownInfo.isEnabled and spellCooldownInfo.duration > 0 then
+            local gcdCooldownInfo = C_Spell.GetSpellCooldown(61304)
+            if not gcdCooldownInfo or gcdCooldownInfo.duration ~= spellCooldownInfo.duration then
+                duration = spellCooldownInfo.duration
+                expirationTime = spellCooldownInfo.startTime + spellCooldownInfo.duration
+            end
         end
         stacks = C_Spell.GetSpellCastCount(spell)
+        charges = 0
     end
 
     if target then
@@ -1572,11 +1565,23 @@ local function getStrategyFunc(env, strategy)
     end
 end
 
-function H.initSpellState(env, config, id)
-    return initSpell(env, config and config.spell, id)
+function H.initSpellState(env, config)
+    local config = config or {}
+    local cache = {}
+
+    local id = initSpell(env, config)
+    if id ~= 0 then
+        cache.id = id
+        cache.info = config
+        if config.spell and config.spell.target then
+            cache.matchedTarget = true
+        end
+    end
+
+    return cache
 end
 
-function H.getSpellState(env, config, id)
+function H.getSpellState(env, cache, config, id)
     local config = config or {}
     if not getStateShow(config.show) then
         return true, {
@@ -1584,7 +1589,14 @@ function H.getSpellState(env, config, id)
         }
     end
 
-    local result, state = getSpell(env, config.spell, id)
+    local cache = cache or {}
+
+    local id = id or 0
+    if id == 0 then
+        id = cache.id
+    end
+
+    local result, state = getSpell(env, cache, config.spell, id)
     if result and state and state.show then
         state.priority = getStatePriority(config.priority) or 0
         state.init = getStateInit() or 0
@@ -1865,37 +1877,37 @@ function H.initCoreStates(env, config)
     local config = config or {}
     local cache = {}
 
-    local ids = {}
-    local targetList = {}
-    local totemList = {}
-    local auraList = {}
+    local data = {}
+    local matchedTarget = {}
+    local matchedTotem = {}
+    local matchedAura = {}
 
     for i, c in ipairs(config) do
-        local info = initSpell(env, c.spell)
-        local id = info and info.id or 0
+        local id = initSpell(env, c.spell)
         if id ~= 0 then
-            ids[id] = c
-            ids[id].index = i
-
+            data[id] = {}
+            data[id].id = id
+            data[id].info = c
+            data[id].index = i
             if c.spell and c.spell.target then
-                table.insert(targetList, id)
+                table.insert(matchedTarget, id)
             end
             if c.totem then
-                table.insert(totemList, id)
+                table.insert(matchedTotem, id)
             end
             for _, aura in pairs(c.aura or {}) do
                 for _, unit in ipairs(aura.unit_targets or {}) do
-                    auraList[unit] = auraList[unit] or {}
-                    table.insert(auraList[unit], id)
+                    matchedAura[unit] = matchedAura[unit] or {}
+                    table.insert(matchedAura[unit], id)
                 end
             end
         end
     end
 
-    cache.ids = ids
-    cache.targetList = targetList
-    cache.totemList = totemList
-    cache.auraList = auraList
+    cache.data = data
+    cache.matchedTarget = matchedTarget
+    cache.matchedTotem = matchedTotem
+    cache.matchedAura = matchedAura
 
     return cache
 end
@@ -1955,16 +1967,16 @@ local function getCoreState(env, cache, config, id, param)
         return false
     end
 
-    local cache = cache or {}
     local config = config or {}
-
     if not getStateShow(config.show) then
         return true, {
             show = false,
         }
     end
 
-    local result, state = getSpell(env, config.spell, id)
+    local cache = cache or {}
+
+    local result, state = getSpell(env, cache, config.spell, id)
     if result and state and state.show then
         state.priority = getStatePriority(config.priority) or 0
         state.init = getStateInit() or 0
@@ -2002,22 +2014,23 @@ function H.getCoreStates(env, cache, config, checkList)
 
     local states = {}
 
-    local ids = cache.ids or {}
+    local data = cache.data or {}
     if not next(checkList) then
         -- Check all in config.
-        for id, c in pairs(ids) do
-            local result, state = getCoreState(env, ids[id], c, id, nil)
+        for id, c in pairs(data) do
+            local result, state = getCoreState(env, c, c.info, id, nil)
             if result and state and state.show then
                 states[id] = state
-                states[id].index = ids[id] and ids[id].index or 0
+                states[id].index = c.index or 0
             end
         end
     else
         for id, param in pairs(checkList) do
-            local result, state = getCoreState(env, ids[id], ids[id], id, param)
+            local c = data[id] or {}
+            local result, state = getCoreState(env, c, c.info, id, param)
             if result and state and state.show then
                 states[id] = state
-                states[id].index = ids[id] and ids[id].index or 0
+                states[id].index = c.index or 0
             end
         end
     end
@@ -2058,26 +2071,29 @@ function H.initDynamicEffectStates(env, config)
     local config = config or {}
     local cache = {}
 
-    local totemList = {}
-    local auraList = {}
+    local data = {}
+    local matchedTotem = {}
+    local matchedAura = {}
 
     for i, c in pairs(config) do
-        cache[i] = c
-        cache[i].index = i
+        data[i] = {}
+        data[i].info = c
+        data[i].index = i
 
         if c.totem then
-            table.insert(totemList, i)
+            table.insert(matchedTotem, i)
         end
         for _, aura in pairs(c.aura or {}) do
             for _, unit in ipairs(aura.unit_targets or {}) do
-                auraList[unit] = auraList[unit] or {}
-                table.insert(auraList[unit], i)
+                matchedAura[unit] = matchedAura[unit] or {}
+                table.insert(matchedAura[unit], i)
             end
         end
     end
 
-    cache.totemList = totemList
-    cache.auraList = auraList
+    cache.data = data
+    cache.matchedTotem = matchedTotem
+    cache.matchedAura = matchedAura
 
     return cache
 end
@@ -2133,22 +2149,22 @@ local function getDynamicEffectStrategyState(env, strategy, totems, auras)
 end
 
 local function getDynamicEffectState(env, cache, config, param)
-    local cache = cache or {}
     local config = config or {}
-
     if not getStateShow(config.show) then
         return true, {
             show = false,
         }
     end
 
+    local cache = cache or {}
+
     local totemResult, totemState
     if config.totem then
-        totemResult, totemState = getTotemStates(env, cache, config.totem, param.totemSlots)
+        totemResult, totemState = getTotemStates(env, cache, config.totem, param and param.totemSlots)
     end
     local auraResult, auraState
     if config.aura then
-        auraResult, auraState = getAuraStates(env, cache, config.aura, param.unitTargets)
+        auraResult, auraState = getAuraStates(env, cache, config.aura, param and param.unitTargets)
     end
 
     local result, state = getDynamicEffectStrategyState(
@@ -2173,21 +2189,23 @@ function H.getDynamicEffectStates(env, cache, config, checkList)
 
     local states = {}
 
+    local data = cache.data or {}
     if not next(checkList) then
         -- Check all in config.
-        for id, c in ipairs(cache) do
-            local result, state = getDynamicEffectState(env, cache[id], c, nil)
+        for id, c in pairs(data) do
+            local result, state = getDynamicEffectState(env, c, c.info, nil)
             if result and state and state.show then
                 states[id] = state
-                states[id].index = cache[id] and cache[id].index or 0
+                states[id].index = c.index or 0
             end
         end
     else
-        for id, param in ipairs(checkList) do
-            local result, state = getDynamicEffectState(env, cache[id], cache[id], param)
+        for id, param in pairs(checkList) do
+            local c = data[id] or {}
+            local result, state = getDynamicEffectState(env, c, c.info, param)
             if result and state and state.show then
                 states[id] = state
-                states[id].index = cache[id] and cache[id].index or 0
+                states[id].index = c.index or 0
             end
         end
     end

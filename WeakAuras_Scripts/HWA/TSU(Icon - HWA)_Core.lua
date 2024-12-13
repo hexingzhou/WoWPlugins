@@ -73,32 +73,31 @@ function(states, event, ...)
     elseif "UNIT_HEALTH" == event then
         local unitTarget = ...
         if unitTarget == "target" then
-            local targetList = aura_env.cache[key] and aura_env.cache[key].targetList
-            if not targetList then
+            local matchedTarget = aura_env.cache[key] and aura_env.cache[key].matchedTarget or {}
+            if not next(matchedTarget) then
                 return false
             end
-            for _, id in ipairs(targetList) do
+            for _, id in ipairs(matchedTarget) do
                 checkList[id] = {}
             end
         else
             return false
         end
     elseif "PLAYER_TARGET_CHANGED" == event then
-        local unitTargets = { "target" }
-        local targetList = aura_env.cache[key] and aura_env.cache[key].targetList
-        if not targetList then
+        local matchedTarget = aura_env.cache[key] and aura_env.cache[key].matchedTarget or {}
+        if not next(matchedTarget) then
             return false
         end
         local param = {
-            unitTargets = unitTargets,
+            unitTargets = { "target" },
         }
-        for _, id in ipairs(targetList or {}) do
+        for _, id in ipairs(matchedTarget) do
             checkList[id] = param
         end
     elseif "SPELL_COOLDOWN_CHANGED" == event then
         local id = ...
-        local ids = aura_env.cache[key] and aura_env.cache[key].ids or {}
-        if ids[id] then
+        local data = aura_env.cache[key] and aura_env.cache[key].data or {}
+        if data[id] then
             checkList[id] = {}
         else
             return false
@@ -106,15 +105,14 @@ function(states, event, ...)
     elseif "PLAYER_TOTEM_UPDATE" == event then
         local totemSlot = ...
         if totemSlot then
-            local totemSlots = { totemSlot }
-            local totemList = aura_env.cache[key] and aura_env.cache[key].totemList
-            if not totemList then
+            local matchedTotem = aura_env.cache[key] and aura_env.cache[key].matchedTotem or {}
+            if not next(matchedTotem) then
                 return false
             end
             local param = {
-                totemSlots = totemSlots,
+                totemSlots = { totemSlot },
             }
-            for _, id in ipairs(auraList) do
+            for _, id in ipairs(matchedTotem) do
                 checkList[id] = param
             end
         else
@@ -123,17 +121,17 @@ function(states, event, ...)
     elseif "HWA_UNIT_AURA" == event then
         local unitTarget = ...
         if unitTarget then
-            local unitTargets = { unitTarget }
-            local auraList = aura_env.cache[key]
-                and aura_env.cache[key].auraList
-                and aura_env.cache[key].auraList[unitTarget]
-            if not auraList then
+            local matchedAura = aura_env.cache[key]
+                    and aura_env.cache[key].matchedAura
+                    and aura_env.cache[key].matchedAura[unitTarget]
+                or {}
+            if not next(matchedAura) then
                 return false
             end
             local param = {
-                unitTargets = unitTargets,
+                unitTargets = { unitTarget },
             }
-            for _, id in ipairs(auraList) do
+            for _, id in ipairs(matchedAura) do
                 checkList[id] = param
             end
         else
@@ -141,15 +139,15 @@ function(states, event, ...)
         end
     end
 
-    if HWA and HWA.getCoreStates then
-        aura_env.cache[key] = aura_env.cache[key] or {}
+    aura_env.cache[key] = aura_env.cache[key] or {}
 
+    if HWA and HWA.getCoreStates then
         local result, state = HWA.getCoreStates(aura_env, aura_env.cache[key], aura_env.info, checkList)
         if result and state then
             local records = aura_env.result[key] or {}
             local checks = checkList or {}
             if not next(checks) then
-                checks = aura_env.cache[key] and aura_env.cache[key].ids or {}
+                checks = aura_env.cache[key] and aura_env.cache[key].data or {}
                 for id, record in pairs(records) do
                     if not checks[id] and record then
                         states[id] = {

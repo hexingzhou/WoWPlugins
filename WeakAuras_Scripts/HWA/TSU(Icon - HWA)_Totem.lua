@@ -31,9 +31,9 @@ function(states, event, ...)
         end
     end
 
-    if HWA and HWA.getTotemState then
-        aura_env.cache[key] = aura_env.cache[key] or {}
+    aura_env.cache[key] = aura_env.cache[key] or {}
 
+    if HWA and HWA.getTotemState then
         local result, state =
             HWA.getTotemState(aura_env, aura_env.cache[key], aura_env.info, totemSlots)
         if result and state then

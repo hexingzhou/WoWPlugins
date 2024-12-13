@@ -26,9 +26,9 @@ function(event, ...)
         end
     end
 
-    if HWA and HWA.getAuraState then
-        aura_env.cache[key] = aura_env.cache[key] or {}
+    aura_env.cache[key] = aura_env.cache[key] or {}
 
+    if HWA and HWA.getAuraState then
         local result, state =
             HWA.getAuraState(aura_env, aura_env.cache[key], aura_env.info, unitTargets)
         if result and state then

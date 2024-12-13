@@ -19,7 +19,7 @@ function(states, event, ...)
 
     local key = "DYNAMIC_EFFECTS"
 
-    local checkList = nil
+    local checkList = {}
 
     if "HWA_UPDATE" == event then
         local type = ...
@@ -29,22 +29,18 @@ function(states, event, ...)
             else
                 aura_env.cache[key] = {}
             end
-        else
-            return false
         end
     elseif "PLAYER_TOTEM_UPDATE" == event then
         local totemSlot = ...
         if totemSlot then
-            local totemSlots = { totemSlot }
-            local totemList = aura_env.cache[key] and aura_env.cache[key].totemList
-            if not totemList then
+            local matchedTotem = aura_env.cache[key] and aura_env.cache[key].matchedTotem or {}
+            if not next(matchedTotem) then
                 return false
             end
             local param = {
-                totemSlots = totemSlots,
+                totemSlots = { totemSlot },
             }
-            checkList = checkList or {}
-            for _, id in ipairs(auraList) do
+            for _, id in ipairs(matchedTotem) do
                 checkList[id] = param
             end
         else
@@ -53,18 +49,17 @@ function(states, event, ...)
     elseif "HWA_UNIT_AURA" == event then
         local unitTarget = ...
         if unitTarget then
-            local unitTargets = { unitTarget }
-            local auraList = aura_env.cache[key]
-                and aura_env.cache[key].auraList
-                and aura_env.cache[key].auraList[unitTarget]
-            if not auraList then
+            local matchedAura = aura_env.cache[key]
+                    and aura_env.cache[key].matchedAura
+                    and aura_env.cache[key].matchedAura[unitTarget]
+                or {}
+            if not matchedAura then
                 return false
             end
             local param = {
-                unitTargets = unitTargets,
+                unitTargets = { unitTarget },
             }
-            checkList = checkList or {}
-            for _, id in ipairs(auraList) do
+            for _, id in ipairs(matchedAura) do
                 checkList[id] = param
             end
         else
@@ -72,9 +67,9 @@ function(states, event, ...)
         end
     end
 
-    if HWA and HWA.getDynamicEffectStates then
-        aura_env.cache[key] = aura_env.cache[key] or {}
+    aura_env.cache[key] = aura_env.cache[key] or {}
 
+    if HWA and HWA.getDynamicEffectStates then
         local result, state = HWA.getDynamicEffectStates(aura_env, aura_env.cache[key], aura_env.info, checkList)
         if result and state then
             local records = aura_env.result[key] or {}
