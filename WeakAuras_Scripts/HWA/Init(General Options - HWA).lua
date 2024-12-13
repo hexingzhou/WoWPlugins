@@ -1117,7 +1117,21 @@ end
 local _currentAuras = {}
 local _unitTarget, _filter
 
-function H.handleCurrentAura(aura)
+-- id: precise spellID
+local function getCurrentAuras(unitTarget, filter, id)
+    if unitTarget and filter and id then
+        if
+            _currentAuras[unitTarget]
+            and _currentAuras[unitTarget][filter]
+            and _currentAuras[unitTarget][filter].spells
+        then
+            return _currentAuras[unitTarget][filter].spells[id] or {}
+        end
+    end
+    return {}
+end
+
+local function handleCurrentAura(aura)
     if aura and _unitTarget and _filter then
         _currentAuras[_unitTarget] = _currentAuras[_unitTarget] or {}
         _currentAuras[_unitTarget][_filter] = _currentAuras[_unitTarget][_filter] or {}
@@ -1133,21 +1147,9 @@ function H.handleCurrentAura(aura)
     end
 end
 
-function H.clearCurrentAuras(unitTarget, filter)
+local function clearCurrentAuras(unitTarget, filter)
     _currentAuras[unitTarget] = _currentAuras[unitTarget] or {}
     _currentAuras[unitTarget][filter] = nil
-end
-
-function H.removeCurrentAura(unitTarget, filter, auraInstanceID)
-    if _currentAuras[unitTarget] and _currentAuras[unitTarget][filter] and _currentAuras[unitTarget][filter].auras then
-        local aura = _currentAuras[unitTarget][filter].auras[auraInstanceID]
-        if aura then
-            if _currentAuras[unitTarget][filter].spells and _currentAuras[unitTarget][filter].spells[aura.spellId] then
-                _currentAuras[unitTarget][filter].spells[aura.spellId][auraInstanceID] = nil
-            end
-        end
-        _currentAuras[unitTarget][filter].auras[auraInstanceID] = nil
-    end
 end
 
 function H.scanCurrentAuras(unitTarget, filter, updateInfo)
@@ -1158,7 +1160,7 @@ function H.scanCurrentAuras(unitTarget, filter, updateInfo)
             if updateInfo.addedAuras then
                 for _, aura in ipairs(updateInfo.addedAuras) do
                     if (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL") then
-                        H.handleCurrentAura(aura)
+                        handleCurrentAura(aura)
                     end
                 end
             end
@@ -1168,21 +1170,36 @@ function H.scanCurrentAuras(unitTarget, filter, updateInfo)
                     if
                         aura and (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL")
                     then
-                        H.handleCurrentAura(aura)
+                        handleCurrentAura(aura)
                     end
                 end
             end
             if updateInfo.removedAuraInstanceIDs then
                 for _, auraInstanceID in ipairs(updateInfo.removedAuraInstanceIDs) do
-                    H.removeCurrentAura(unitTarget, filter, auraInstanceID)
+                    if
+                        _currentAuras[unitTarget]
+                        and _currentAuras[unitTarget][filter]
+                        and _currentAuras[unitTarget][filter].auras
+                    then
+                        local aura = _currentAuras[unitTarget][filter].auras[auraInstanceID]
+                        if aura then
+                            if
+                                _currentAuras[unitTarget][filter].spells
+                                and _currentAuras[unitTarget][filter].spells[aura.spellId]
+                            then
+                                _currentAuras[unitTarget][filter].spells[aura.spellId][auraInstanceID] = nil
+                            end
+                        end
+                        _currentAuras[unitTarget][filter].auras[auraInstanceID] = nil
+                    end
                 end
             end
         else
-            H.clearCurrentAuras(unitTarget, filter)
-            AuraUtil.ForEachAura(unitTarget, filter, nil, H.handleCurrentAura, true)
+            clearCurrentAuras(unitTarget, filter)
+            AuraUtil.ForEachAura(unitTarget, filter, nil, handleCurrentAura, true)
         end
     else
-        H.clearCurrentAuras(unitTarget, filter)
+        clearCurrentAuras(unitTarget, filter)
     end
 
     if unitTarget then
@@ -1195,20 +1212,6 @@ function H.initCurrentAuras()
     H.scanCurrentAuras("player", "HARMFUL")
     H.scanCurrentAuras("target", "HELPFUL")
     H.scanCurrentAuras("target", "HARMFUL")
-end
-
--- id: precise spellID
-function H.getCurrentAuras(unitTarget, filter, id)
-    if unitTarget and filter and id then
-        if
-            _currentAuras[unitTarget]
-            and _currentAuras[unitTarget][filter]
-            and _currentAuras[unitTarget][filter].spells
-        then
-            return _currentAuras[unitTarget][filter].spells[id] or {}
-        end
-    end
-    return {}
 end
 ---------------- Aura ------------------
 
@@ -1445,7 +1448,7 @@ local function getAura(env, cache, config, unitTarget)
         local unitTargets = c.unit_targets
         local sourceUnits = c.source_units
         if tcontains(unitTargets, unitTarget) then
-            for _, info in pairs(H.getCurrentAuras(unitTarget, filter, id)) do
+            for _, info in pairs(getCurrentAuras(unitTarget, filter, id)) do
                 if info and tcontains(sourceUnits, info.sourceUnit) then
                     table.insert(matchedAuras, {
                         id = c.id or 0,
