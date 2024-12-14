@@ -75,7 +75,7 @@ function(states, event, ...)
             local records = aura_env.result[key] or {}
             local checks = checkList or {}
             if not next(checks) then
-                checks = aura_env.cache[key]
+                checks = aura_env.cache[key] and aura_env.cache[key].data or {}
                 for id, record in pairs(records) do
                     if not checks[id] and record then
                         states[id] = {

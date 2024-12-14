@@ -241,10 +241,10 @@ local default = {
                         },
                         [5] = {
                             core = {
-                                y_offset = 73,
+                                y_offset = 83,
                             },
                             dynamic_effects = {
-                                y_offset = 149,
+                                y_offset = 159,
                             },
                         },
                     },
@@ -271,10 +271,10 @@ local default = {
                         },
                         [5] = {
                             core = {
-                                y_offset = 73,
+                                y_offset = 83,
                             },
                             dynamic_effects = {
-                                y_offset = 149,
+                                y_offset = 159,
                             },
                         },
                     },
@@ -301,10 +301,10 @@ local default = {
                         },
                         [5] = {
                             core = {
-                                y_offset = 73,
+                                y_offset = 83,
                             },
                             dynamic_effects = {
-                                y_offset = 149,
+                                y_offset = 159,
                             },
                         },
                     },
@@ -1157,6 +1157,18 @@ local function clearCurrentAuras(unitTarget, filter)
     _currentAuras[unitTarget][filter] = nil
 end
 
+local function removeCurrentAura(unitTarget, filter, auraInstanceID)
+    if _currentAuras[unitTarget] and _currentAuras[unitTarget][filter] and _currentAuras[unitTarget][filter].auras then
+        local aura = _currentAuras[unitTarget][filter].auras[auraInstanceID]
+        if aura then
+            if _currentAuras[unitTarget][filter].spells and _currentAuras[unitTarget][filter].spells[aura.spellId] then
+                _currentAuras[unitTarget][filter].spells[aura.spellId][auraInstanceID] = nil
+            end
+        end
+        _currentAuras[unitTarget][filter].auras[auraInstanceID] = nil
+    end
+end
+
 function H.scanCurrentAuras(unitTarget, filter, updateInfo)
     if UnitExists(unitTarget) and filter then
         _unitTarget = unitTarget
@@ -1164,9 +1176,7 @@ function H.scanCurrentAuras(unitTarget, filter, updateInfo)
         if updateInfo and not updateInfo.isFullUpdate then
             if updateInfo.addedAuras then
                 for _, aura in ipairs(updateInfo.addedAuras) do
-                    if
-                        aura and (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL")
-                    then
+                    if (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL") then
                         handleCurrentAura(aura)
                     end
                 end
@@ -1174,31 +1184,18 @@ function H.scanCurrentAuras(unitTarget, filter, updateInfo)
             if updateInfo.updatedAuraInstanceIDs then
                 for _, auraInstanceID in ipairs(updateInfo.updatedAuraInstanceIDs) do
                     local aura = C_UnitAuras.GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
-                    if
-                        aura and (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL")
-                    then
-                        handleCurrentAura(aura)
+                    if aura then
+                        if (aura.isHelpful and filter == "HELPFUL") or (aura.isHarmful and filter == "HARMFUL") then
+                            handleCurrentAura(aura)
+                        end
+                    else
+                        removeCurrentAura(unitTarget, filter, auraInstanceID)
                     end
                 end
             end
             if updateInfo.removedAuraInstanceIDs then
                 for _, auraInstanceID in ipairs(updateInfo.removedAuraInstanceIDs) do
-                    if
-                        _currentAuras[unitTarget]
-                        and _currentAuras[unitTarget][filter]
-                        and _currentAuras[unitTarget][filter].auras
-                    then
-                        local aura = _currentAuras[unitTarget][filter].auras[auraInstanceID]
-                        if aura then
-                            if
-                                _currentAuras[unitTarget][filter].spells
-                                and _currentAuras[unitTarget][filter].spells[aura.spellId]
-                            then
-                                _currentAuras[unitTarget][filter].spells[aura.spellId][auraInstanceID] = nil
-                            end
-                        end
-                        _currentAuras[unitTarget][filter].auras[auraInstanceID] = nil
-                    end
+                    removeCurrentAura(unitTarget, filter, auraInstanceID)
                 end
             end
         else
@@ -1446,6 +1443,7 @@ local function getAura(env, cache, config, unitTarget)
                     table.insert(matchedAuras, {
                         id = c.id or 0,
                         unitTarget = unitTarget,
+                        applications = info.applications,
                         auraInstanceID = info.auraInstanceID,
                         charges = info.charges,
                         duration = info.duration,
@@ -1481,6 +1479,7 @@ local function getAura(env, cache, config, unitTarget)
                 progressType = "timed",
                 id = aura.id,
                 unitTarget = aura.unitTarget,
+                applications = aura.applications,
                 auraInstanceID = aura.auraInstanceID,
                 charges = aura.charges,
                 duration = aura.duration,
@@ -1749,8 +1748,8 @@ function H.getDefaultAuraStrategyState(env, stateGroup, glow)
     end)
     local s = states[1]
     local stacks = 0
-    if s.maxCharges and s.maxCharges > 1 then
-        stacks = s.charges or 0
+    if s.applications and s.applications > 1 then
+        stacks = s.applications
     end
     return true,
         {
