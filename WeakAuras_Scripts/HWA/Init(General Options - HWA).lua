@@ -1547,16 +1547,7 @@ local function getPower(env, config, type)
         table.insert(states, state)
     end
 
-    if not next(states) then
-        return true, {
-            show = false,
-        }
-    else
-        return true, {
-            show = true,
-            states = states,
-        }
-    end
+    return true, states
 end
 
 local function getStrategyFunc(env, strategy)
@@ -1589,9 +1580,7 @@ end
 function H.getSpellState(env, cache, config, id)
     local config = config or {}
     if not getStateShow(config.show) then
-        return true, {
-            show = false,
-        }
+        return true, nil
     end
 
     local cache = cache or {}
@@ -1613,19 +1602,17 @@ end
 function H.getPowerStates(env, config, type)
     local config = config or {}
     if not getStateShow(config.show) then
-        return true, {
-            show = false,
-        }
+        return true, nil
     end
 
-    local result, state = getPower(env, config.power, type)
-    if result and state and state.show then
-        for _, s in ipairs(state.states or {}) do
-            s.init = getStateInit()
+    local result, states = getPower(env, config.power, type)
+    if result and states then
+        for _, state in ipairs(states) do
+            state.init = getStateInit()
         end
     end
 
-    return result, state
+    return result, states
 end
 
 function H.getDefaultTotemStrategyState(env, stateGroup, glow)
@@ -2023,8 +2010,9 @@ function H.getCoreStates(env, cache, config, checkList)
         for id, c in pairs(data) do
             local result, state = getCoreState(env, c, c.info, id, nil)
             if result and state then
+                state.id = id
+                state.index = c.index or 0
                 states[id] = state
-                states[id].index = c.index or 0
             end
         end
     else
@@ -2032,8 +2020,9 @@ function H.getCoreStates(env, cache, config, checkList)
             local c = data[id] or {}
             local result, state = getCoreState(env, c, c.info, id, param)
             if result and state then
+                state.id = id
+                state.index = c.index or 0
                 states[id] = state
-                states[id].index = c.index or 0
             end
         end
     end

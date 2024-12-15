@@ -160,32 +160,32 @@ function(states, event, ...)
             end
             for id, _ in pairs(checks) do
                 if datas then
-                    local s = datas[id]
-                    if s then
+                    local data = datas[id]
+                    if data then
                         states[id] = {
                             show = true,
                             changed = true,
-                            progressType = s.progressType,
-                            duration = s.duration,
-                            expirationTime = s.expirationTime,
-                            icon = s.icon,
-                            stacks = s.stacks,
-                            charges = s.charges,
-                            isUsable = s.isUsable,
-                            noResource = s.noResource,
-                            isSpellInRange = s.isSpellInRange,
-                            hasTarget = s.hasTarget,
-                            healthPercent = s.healthPercent,
-                            gcd = s.gcd,
-                            priority = s.priority,
-                            init = s.init,
-                            subDuration = s.subDuration,
-                            subExpirationTime = s.subExpirationTime,
-                            subStacks = s.subStacks,
-                            glow = s.glow,
-                            index = s.index,
+                            progressType = data.progressType,
+                            duration = data.duration,
+                            expirationTime = data.expirationTime,
+                            icon = data.icon,
+                            stacks = data.stacks,
+                            charges = data.charges,
+                            isUsable = data.isUsable,
+                            noResource = data.noResource,
+                            isSpellInRange = data.isSpellInRange,
+                            hasTarget = data.hasTarget,
+                            healthPercent = data.healthPercent,
+                            gcd = data.gcd,
+                            priority = data.priority,
+                            init = data.init,
+                            subDuration = data.subDuration,
+                            subExpirationTime = data.subExpirationTime,
+                            subStacks = data.subStacks,
+                            glow = data.glow,
+                            index = data.index,
                         }
-                        records[id] = s
+                        records[id] = data
                     else
                         states[id] = {
                             show = false,

@@ -20,22 +20,22 @@ function(states, event, ...)
     end
 
     if HWA and HWA.getPowerStates then
-        local result, state = HWA.getPowerStates(aura_env, aura_env.info)
-        if result and state then
+        local result, datas = HWA.getPowerStates(aura_env, aura_env.info)
+        if result then
             local records = aura_env.result[key] or {}
             local size = records.size or 0
-            if state.show then
-                size = max(size, #state.states)
+            if datas then
+                size = max(size, #datas)
                 for i = 1, size do
-                    local s = state.states[i]
-                    if s then
+                    local data = datas[i]
+                    if data then
                         states[i] = {
                             show = true,
                             changed = true,
-                            progressType = s.progressType,
-                            total = s.total,
-                            value = s.value,
-                            init = s.init,
+                            progressType = data.progressType,
+                            total = data.total,
+                            value = data.value,
+                            init = data.init,
                         }
                     else
                         states[i] = {
@@ -44,7 +44,7 @@ function(states, event, ...)
                         }
                     end
                 end
-                size = #state.states
+                size = #datas
             else
                 for i = 1, size do
                     states[i] = {
