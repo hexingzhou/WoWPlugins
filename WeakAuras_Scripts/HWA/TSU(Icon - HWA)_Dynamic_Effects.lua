@@ -70,8 +70,8 @@ function(states, event, ...)
     aura_env.cache[key] = aura_env.cache[key] or {}
 
     if HWA and HWA.getDynamicEffectStates then
-        local result, state = HWA.getDynamicEffectStates(aura_env, aura_env.cache[key], aura_env.info, checkList)
-        if result and state then
+        local result, datas = HWA.getDynamicEffectStates(aura_env, aura_env.cache[key], aura_env.info, checkList)
+        if result then
             local records = aura_env.result[key] or {}
             local checks = checkList or {}
             if not next(checks) then
@@ -87,23 +87,23 @@ function(states, event, ...)
                 end
             end
             for id, _ in pairs(checks) do
-                if state.show then
-                    local s = state.states[id]
-                    if s then
+                if datas then
+                    local data = datas[id]
+                    if data then
                         states[id] = {
                             show = true,
                             changed = true,
-                            progressType = s.progressType,
-                            duration = s.duration,
-                            expirationTime = s.expirationTime,
-                            icon = s.icon,
-                            stacks = s.stacks,
-                            glow = s.glow,
-                            index = s.index,
-                            priority = s.priority,
-                            init = s.init,
+                            progressType = data.progressType,
+                            duration = data.duration,
+                            expirationTime = data.expirationTime,
+                            icon = data.icon,
+                            stacks = data.stacks,
+                            glow = data.glow,
+                            index = data.index,
+                            priority = data.priority,
+                            init = data.init,
                         }
-                        records[id] = s
+                        records[id] = data
                     else
                         states[id] = {
                             show = false,

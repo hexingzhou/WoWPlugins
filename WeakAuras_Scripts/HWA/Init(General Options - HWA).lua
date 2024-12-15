@@ -1410,16 +1410,7 @@ local function getTotem(env, cache, config, totemSlot)
         table.insert(states, state)
     end
 
-    if not next(states) then
-        return true, {
-            show = false,
-        }
-    else
-        return true, {
-            show = true,
-            states = states,
-        }
-    end
+    return true, states
 end
 
 -- Get aura info.
@@ -1473,12 +1464,11 @@ local function getAura(env, cache, config, unitTarget)
     end
 
     if not next(auras) then
-        return true, {
-            show = false,
-        }
+        return true, nil
     end
 
     local states = {}
+
     for _, unitTargetAuras in pairs(auras) do
         for i, aura in ipairs(unitTargetAuras) do
             table.insert(states, {
@@ -1499,16 +1489,7 @@ local function getAura(env, cache, config, unitTarget)
         end
     end
 
-    if not next(states) then
-        return true, {
-            show = false,
-        }
-    else
-        return true, {
-            show = true,
-            states = states,
-        }
-    end
+    return true, states
 end
 
 local function getPower(env, config, type)
@@ -1619,9 +1600,7 @@ function H.getDefaultTotemStrategyState(env, stateGroup, glow)
     local states = stateGroup and stateGroup.totems or {}
 
     if not next(states) then
-        return true, {
-            show = false,
-        }
+        return true, nil
     end
 
     table.sort(states, function(a, b)
@@ -1634,7 +1613,6 @@ function H.getDefaultTotemStrategyState(env, stateGroup, glow)
     end
     return true,
         {
-            show = true,
             progressType = s.progressType,
             duration = s.duration,
             expirationTime = s.expirationTime,
@@ -1697,43 +1675,35 @@ local function getTotemStates(env, cache, config, totemSlots)
             table.insert(totemSlots, i)
         end
     end
-    local result, state = nil, nil
+    local result, states
     for _, totemSlot in ipairs(totemSlots) do
-        local r, s = getTotem(env, cache, config, totemSlot)
-        if r and s then
-            result = r
-            state = s
-        end
+        result, states = getTotem(env, cache, config, totemSlot)
     end
-    return result, state
+    return result, states
 end
 
 function H.getTotemState(env, cache, config, totemSlots)
     local config = config or {}
     if not getStateShow(config.show) then
-        return true, {
-            show = false,
-        }
+        return true, nil
     end
 
-    local result, state = getTotemStates(env, cache, config.totem, totemSlots)
-    if result and state and state.show then
-        result, state = getTotemStrategyState(env, config.strategy, state.states)
-        if result and state and state.show then
-            state.priority = getStatePriority(config.priority) or 0
-            state.init = getStateInit() or 0
+    local result, states = getTotemStates(env, cache, config.totem, totemSlots)
+    if result then
+        local r, s = getTotemStrategyState(env, config.strategy, states)
+        if r and s then
+            s.priority = getStatePriority(config.priority) or 0
+            s.init = getStateInit() or 0
         end
+        return r, s
     end
     return false
 end
 
 function H.getDefaultAuraStrategyState(env, stateGroup, glow)
     local states = stateGroup and stateGroup.auras or {}
-
     if not next(states) then
-        return true, {
-            show = false,
-        }
+        return true, nil
     end
 
     table.sort(states, function(a, b)
@@ -1746,7 +1716,6 @@ function H.getDefaultAuraStrategyState(env, stateGroup, glow)
     end
     return true,
         {
-            show = true,
             progressType = s.progressType,
             duration = s.duration,
             expirationTime = s.expirationTime,
@@ -1815,39 +1784,34 @@ local function getAuraStates(env, cache, config, unitTargets)
             table.insert(unitTargets, unitTarget)
         end
     end
-    local result, state
+    local result, states
     for _, unitTarget in ipairs(unitTargets) do
-        local r, s = getAura(env, cache, config, unitTarget)
-        if r and s then
-            result = r
-            state = s
-        end
+        result, states = getAura(env, cache, config, unitTarget)
     end
-    return result, state
+    return result, states
 end
 
 function H.getAuraState(env, cache, config, unitTargets)
     local config = config or {}
     if not getStateShow(config.show) then
-        return true, {
-            show = false,
-        }
+        return true, nil
     end
 
-    local result, state = getAuraStates(env, cache, config.aura, unitTargets)
-    if result and state and state.show then
-        result, state = getAuraStrategyState(env, config.strategy, state.states)
-        if result and state and state.show then
-            state.priority = getStatePriority(config.priority) or 0
-            state.init = getStateInit() or 0
+    local result, states = getAuraStates(env, cache, config.aura, unitTargets)
+    if result then
+        local r, s = getAuraStrategyState(env, config.strategy, states)
+        if r and s then
+            s.priority = getStatePriority(config.priority) or 0
+            s.init = getStateInit() or 0
         end
+        return r, s
     end
     return false
 end
 
 function H.getDefaultCoreStrategyState(env, stateGroup, glow)
     local result, state = H.getDefaultTotemStrategyState(env, stateGroup, glow)
-    if result and state and state.show then
+    if result and state then
         return result, state
     end
     return H.getDefaultAuraStrategyState(env, stateGroup, glow)
@@ -1972,17 +1936,16 @@ local function getCoreState(env, cache, config, id, param)
         state.init = getStateInit() or 0
 
         local param = param or {}
-        local totemResult, totemState
+        local totemStates
         if config.totem then
-            totemResult, totemState = getTotemStates(env, cache, config.totem, param.totemSlots)
+            _, totemStates = getTotemStates(env, cache, config.totem, param.totemSlots)
         end
-        local auraResult, auraState
+        local auraStates
         if config.aura then
-            auraResult, auraState = getAuraStates(env, cache, config.aura, param.unitTargets)
+            _, auraStates = getAuraStates(env, cache, config.aura, param.unitTargets)
         end
-        local r, s =
-            getCoreStrategyState(env, config.strategy, totemState and totemState.states, auraState and auraState.states)
-        if r and s and s.show then
+        local r, s = getCoreStrategyState(env, config.strategy, totemStates, auraStates)
+        if r and s then
             state.subDuration = s.duration
             state.subExpirationTime = s.expirationTime
             state.subStacks = s.stacks
@@ -2032,7 +1995,7 @@ end
 
 function H.getDefaultDynamicEffectStrategyState(env, stateGroup, glow)
     local result, state = H.getDefaultTotemStrategyState(env, stateGroup, glow)
-    if result and state and state.show then
+    if result and state then
         return result, state
     end
     return H.getDefaultAuraStrategyState(env, stateGroup, glow)
@@ -2134,30 +2097,21 @@ end
 local function getDynamicEffectState(env, cache, config, param)
     local config = config or {}
     if not getStateShow(config.show) then
-        return true, {
-            show = false,
-        }
+        return true, nil
     end
 
     local cache = cache or {}
 
-    local totemResult, totemState
+    local totemStates
     if config.totem then
-        totemResult, totemState = getTotemStates(env, cache, config.totem, param and param.totemSlots)
+        _, totemStates = getTotemStates(env, cache, config.totem, param and param.totemSlots)
     end
-    local auraResult, auraState
+    local auraStates
     if config.aura then
-        auraResult, auraState = getAuraStates(env, cache, config.aura, param and param.unitTargets)
+        _, auraStates = getAuraStates(env, cache, config.aura, param and param.unitTargets)
     end
-
-    local result, state = getDynamicEffectStrategyState(
-        env,
-        config.strategy,
-        totemState and totemState.states,
-        auraState and auraState.states
-    )
-
-    if result and state and state.show then
+    local result, state = getDynamicEffectStrategyState(env, config.strategy, totemStates, auraStates)
+    if result and state then
         state.priority = getStatePriority(config.priority) or 0
         state.init = getStateInit() or 0
     end
@@ -2177,32 +2131,25 @@ function H.getDynamicEffectStates(env, cache, config, checkList)
         -- Check all in config.
         for id, c in pairs(data) do
             local result, state = getDynamicEffectState(env, c, c.info, nil)
-            if result and state and state.show then
+            if result and state then
+                state.id = id
+                state.index = c.index or 0
                 states[id] = state
-                states[id].index = c.index or 0
             end
         end
     else
         for id, param in pairs(checkList) do
             local c = data[id] or {}
             local result, state = getDynamicEffectState(env, c, c.info, param)
-            if result and state and state.show then
+            if result and state then
+                state.id = id
+                state.index = c.index or 0
                 states[id] = state
-                states[id].index = c.index or 0
             end
         end
     end
 
-    if not next(states) then
-        return true, {
-            show = false,
-        }
-    else
-        return true, {
-            show = true,
-            states = states,
-        }
-    end
+    return true, states
 end
 ---------------- Trigger ------------------
 

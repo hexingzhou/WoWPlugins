@@ -39,20 +39,20 @@ function(states, event, ...)
     aura_env.cache[key] = aura_env.cache[key] or {}
 
     if HWA and HWA.getAuraState then
-        local result, state =
+        local result, data =
             HWA.getAuraState(aura_env, aura_env.cache[key], aura_env.info, unitTargets)
-        if result and state then
-            if state.show then
+        if result then
+            if data then
                 states[key] = {
                     show = true,
                     changed = true,
                     autoHide = true,
-                    progressType = state.progressType,
-                    duration = state.duration,
-                    expirationTime = state.expirationTime,
-                    stacks = state.stacks,
-                    priority = state.priority,
-                    init = state.init,
+                    progressType = data.progressType,
+                    duration = data.duration,
+                    expirationTime = data.expirationTime,
+                    stacks = data.stacks,
+                    priority = data.priority,
+                    init = data.init,
                 }
             else
                 states[key] = {

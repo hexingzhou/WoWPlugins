@@ -29,11 +29,11 @@ function(event, ...)
     aura_env.cache[key] = aura_env.cache[key] or {}
 
     if HWA and HWA.getTotemState then
-        local result, state =
+        local result, data =
             HWA.getTotemState(aura_env, aura_env.cache[key], aura_env.info, totemSlots)
-        if result and state then
-            if state.show then
-                aura_env.result[key] = state
+        if result then
+            if data then
+                aura_env.result[key] = data
                 return true
             else
                 aura_env.result[key] = nil
@@ -47,8 +47,8 @@ end
 -- Untrigger
 function(event, ...)
     local key = "TOTEM"
-    local state = aura_env.result and aura_env.result[key]
-    if state then
+    local data = aura_env.result and aura_env.result[key]
+    if data then
         return true
     end
     return false
@@ -57,9 +57,9 @@ end
 -- Duration Info
 function()
     local key = "TOTEM"
-    local state = aura_env.result and aura_env.result[key]
-    if state then
-        return state.duration, state.expirationTime
+    local data = aura_env.result and aura_env.result[key]
+    if data then
+        return data.duration, data.expirationTime
     end
     return 0, 0
 end
@@ -67,9 +67,9 @@ end
 -- Stack Info
 function()
     local key = "TOTEM"
-    local state = aura_env.result and aura_env.result[key]
-    if state then
-        return state.stacks
+    local data = aura_env.result and aura_env.result[key]
+    if data then
+        return data.stacks
     end
     return 0
 end
