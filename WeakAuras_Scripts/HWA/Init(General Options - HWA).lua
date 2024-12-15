@@ -1239,7 +1239,8 @@ end
 
 -- Get spell info.
 local function getSpell(env, cache, config, id)
-    if not id or id == 0 then
+    local id = id or 0
+    if id == 0 then
         return false
     end
 
@@ -1255,9 +1256,10 @@ local function getSpell(env, cache, config, id)
     end
 
     if not spellInfo then
-        return true, {
-            show = false,
-        }
+        if cache then
+            cache.spell = nil
+        end
+        return true, nil
     end
 
     local target = config.target or false
@@ -1304,22 +1306,26 @@ local function getSpell(env, cache, config, id)
         end
     end
 
-    return true,
-        {
-            show = true,
-            progressType = "timed",
-            duration = duration,
-            expirationTime = expirationTime,
-            icon = icon,
-            stacks = stacks,
-            charges = charges,
-            isUsable = isUsable,
-            noResource = noResource,
-            isSpellInRange = isSpellInRange,
-            hasTarget = hasTarget,
-            healthPercent = healthPercent,
-            gcd = config.gcd or false,
-        }
+    local state = {
+        progressType = "timed",
+        duration = duration,
+        expirationTime = expirationTime,
+        icon = icon,
+        stacks = stacks,
+        charges = charges,
+        isUsable = isUsable,
+        noResource = noResource,
+        isSpellInRange = isSpellInRange,
+        hasTarget = hasTarget,
+        healthPercent = healthPercent,
+        gcd = config.gcd or false,
+    }
+
+    if cache then
+        cache.spell = state
+    end
+
+    return true, state
 end
 
 -- Get totem info.
@@ -1596,7 +1602,7 @@ function H.getSpellState(env, cache, config, id)
     end
 
     local result, state = getSpell(env, cache, config.spell, id)
-    if result and state and state.show then
+    if result and state then
         state.priority = getStatePriority(config.priority) or 0
         state.init = getStateInit() or 0
     end
@@ -1968,15 +1974,13 @@ local function getCoreState(env, cache, config, id, param)
 
     local config = config or {}
     if not getStateShow(config.show) then
-        return true, {
-            show = false,
-        }
+        return true, nil
     end
 
     local cache = cache or {}
 
     local result, state = getSpell(env, cache, config.spell, id)
-    if result and state and state.show then
+    if result and state then
         state.priority = getStatePriority(config.priority) or 0
         state.init = getStateInit() or 0
 
@@ -2018,7 +2022,7 @@ function H.getCoreStates(env, cache, config, checkList)
         -- Check all in config.
         for id, c in pairs(data) do
             local result, state = getCoreState(env, c, c.info, id, nil)
-            if result and state and state.show then
+            if result and state then
                 states[id] = state
                 states[id].index = c.index or 0
             end
@@ -2027,23 +2031,14 @@ function H.getCoreStates(env, cache, config, checkList)
         for id, param in pairs(checkList) do
             local c = data[id] or {}
             local result, state = getCoreState(env, c, c.info, id, param)
-            if result and state and state.show then
+            if result and state then
                 states[id] = state
                 states[id].index = c.index or 0
             end
         end
     end
 
-    if not next(states) then
-        return true, {
-            show = false,
-        }
-    else
-        return true, {
-            show = true,
-            states = states,
-        }
-    end
+    return true, states
 end
 
 function H.getDefaultDynamicEffectStrategyState(env, stateGroup, glow)

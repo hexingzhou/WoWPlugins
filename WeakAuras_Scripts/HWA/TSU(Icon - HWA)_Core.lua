@@ -142,8 +142,8 @@ function(states, event, ...)
     aura_env.cache[key] = aura_env.cache[key] or {}
 
     if HWA and HWA.getCoreStates then
-        local result, state = HWA.getCoreStates(aura_env, aura_env.cache[key], aura_env.info, checkList)
-        if result and state then
+        local result, datas = HWA.getCoreStates(aura_env, aura_env.cache[key], aura_env.info, checkList)
+        if result then
             local records = aura_env.result[key] or {}
             local checks = checkList or {}
             if not next(checks) then
@@ -159,8 +159,8 @@ function(states, event, ...)
                 end
             end
             for id, _ in pairs(checks) do
-                if state.show then
-                    local s = state.states[id]
+                if datas then
+                    local s = datas[id]
                     if s then
                         states[id] = {
                             show = true,

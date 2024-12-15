@@ -81,25 +81,25 @@ function(states, event, ...)
     aura_env.cache[key] = aura_env.cache[key] or {}
 
     if HWA and HWA.getSpellState then
-        local result, state = HWA.getSpellState(aura_env, aura_env.cache[key], aura_env.info, check)
-        if result and state then
-            if state.show then
+        local result, data = HWA.getSpellState(aura_env, aura_env.cache[key], aura_env.info, check)
+        if result then
+            if data then
                 states[key] = {
                     show = true,
                     changed = true,
-                    progressType = state.progressType,
-                    duration = state.duration,
-                    expirationTime = state.expirationTime,
-                    icon = state.icon,
-                    stacks = state.stacks,
-                    charges = state.charges,
-                    isUsable = state.isUsable,
-                    noResource = state.noResource,
-                    isSpellInRange = state.isSpellInRange,
-                    hasTarget = state.hasTarget,
-                    healthPercent = state.healthPercent,
-                    priority = state.priority,
-                    init = state.init,
+                    progressType = data.progressType,
+                    duration = data.duration,
+                    expirationTime = data.expirationTime,
+                    icon = data.icon,
+                    stacks = data.stacks,
+                    charges = data.charges,
+                    isUsable = data.isUsable,
+                    noResource = data.noResource,
+                    isSpellInRange = data.isSpellInRange,
+                    hasTarget = data.hasTarget,
+                    healthPercent = data.healthPercent,
+                    priority = data.priority,
+                    init = data.init,
                 }
             else
                 states[key] = {
