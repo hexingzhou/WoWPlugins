@@ -3,7 +3,8 @@ aura_env.info = {
         id = 0, -- spellID
         precise = false,
         gcd = false,
-        target = false,
+        range = false,
+        health = false,
     },
     show = {
         value = 0, -- 1 for show, -1 for hide, 0 for default

@@ -37,7 +37,8 @@ aura_env.info = {
             id = 0, -- spellID
             precise = false,
             gcd = false,
-            target = false,
+            range = false,
+            health = false,
         },
         totem = {
             [""] = { -- totemName

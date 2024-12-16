@@ -1,5 +1,5 @@
 --[[
-- Events: PLAYER_TOTEM_UPDATE, HWA_UPDATE
+- Events: HWA_UPDATE_TOTEM, HWA_UPDATE
 --]]
 -- Trigger
 function(event, ...)
@@ -8,20 +8,20 @@ function(event, ...)
 
     local key = "TOTEM"
 
-    local totemSlots = nil
-
     if "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then
-            aura_env.cache[key] = {}
+            if HWA and HWA.initTotemState then
+                aura_env.cache[key] = HWA.initTotemState(aura_env, aura_env.info)
+            else
+                aura_env.cache[key] = {}
+            end
         else
             return false
         end
-    elseif "PLAYER_TOTEM_UPDATE" == event then
-        local totemSlot = ...
-        if totemSlot then
-            totemSlots = { totemSlot }
-        else
+    elseif "HWA_UPDATE_TOTEM" == event then
+        local matchedTotem = aura_env.cache[key] and aura_env.cache[key].matchedTotem or {}
+        if not next(matchedTotem) then
             return false
         end
     end
@@ -29,8 +29,7 @@ function(event, ...)
     aura_env.cache[key] = aura_env.cache[key] or {}
 
     if HWA and HWA.getTotemState then
-        local result, data =
-            HWA.getTotemState(aura_env, aura_env.cache[key], aura_env.info, totemSlots)
+        local result, data = HWA.getTotemState(aura_env, aura_env.cache[key], aura_env.info)
         if result then
             if data then
                 aura_env.result[key] = data

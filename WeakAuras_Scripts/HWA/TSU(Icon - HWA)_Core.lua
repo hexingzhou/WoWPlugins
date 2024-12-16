@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_HEALTH, PLAYER_TARGET_CHANGED, SPELL_COOLDOWN_CHANGED, SPELL_UPDATE_USABLE, PLAYER_TOTEM_UPDATE, HWA_UNIT_AURA, HWA_UPDATE
+- Events: UNIT_HEALTH, PLAYER_TARGET_CHANGED, SPELL_COOLDOWN_CHANGED, SPELL_UPDATE_USABLE, HWA_UPDATE_TOTEM, HWA_UNIT_AURA, HWA_UPDATE
 
 - Conditions:
 {
@@ -96,27 +96,22 @@ function(states, event, ...)
         end
     elseif "SPELL_COOLDOWN_CHANGED" == event then
         local id = ...
-        local data = aura_env.cache[key] and aura_env.cache[key].data or {}
-        if data[id] then
+        if id then
+            local data = aura_env.cache[key] and aura_env.cache[key].data or {}
+            if not data[id] then
+                return false
+            end
             checkList[id] = {}
         else
             return false
         end
-    elseif "PLAYER_TOTEM_UPDATE" == event then
-        local totemSlot = ...
-        if totemSlot then
-            local matchedTotem = aura_env.cache[key] and aura_env.cache[key].matchedTotem or {}
-            if not next(matchedTotem) then
-                return false
-            end
-            local param = {
-                totemSlots = { totemSlot },
-            }
-            for _, id in ipairs(matchedTotem) do
-                checkList[id] = param
-            end
-        else
+    elseif "HWA_UPDATE_TOTEM" == event then
+        local matchedTotem = aura_env.cache[key] and aura_env.cache[key].matchedTotem or {}
+        if not next(matchedTotem) then
             return false
+        end
+        for _, id in ipairs(matchedTotem) do
+            checkList[id] = {}
         end
     elseif "HWA_UNIT_AURA" == event then
         local unitTarget = ...
@@ -128,11 +123,8 @@ function(states, event, ...)
             if not next(matchedAura) then
                 return false
             end
-            local param = {
-                unitTargets = { unitTarget },
-            }
             for _, id in ipairs(matchedAura) do
-                checkList[id] = param
+                checkList[id] = {}
             end
         else
             return false
