@@ -4,7 +4,10 @@ aura_env.info = {
         precise = false,
         gcd = false,
         range = false,
-        health = false,
+        health = {
+            func = nil,
+            func_string = nil,
+        },
     },
     show = {
         value = 0, -- 1 for show, -1 for hide, 0 for default

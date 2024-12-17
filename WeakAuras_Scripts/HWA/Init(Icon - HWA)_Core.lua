@@ -38,7 +38,10 @@ aura_env.info = {
             precise = false,
             gcd = false,
             range = false,
-            health = false,
+            health = {
+                func = nil,
+                func_string = nil,
+            },
         },
         totem = {
             [""] = { -- totemName

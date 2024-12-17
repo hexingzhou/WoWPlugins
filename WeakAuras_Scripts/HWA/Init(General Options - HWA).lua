@@ -1110,6 +1110,88 @@ function H.getConfig(key, class)
 end
 ---------------- Base ------------------
 
+---------------- Range ------------------
+local _currentRanges = {}
+
+local function watchSpellRange(id, precise, unitTargets)
+    _currentRanges[id] = {}
+    _currentRanges[id].precise = precise
+    _currentRanges[id].unitTargets = unitTargets
+end
+
+local function getCurrentRange(id)
+    if _currentRanges[id] then
+        return _currentRanges[id].range or {}
+    end
+    return {}
+end
+
+local function handleCurrentRange(range, unitTarget, id)
+    if _currentRanges[id] then
+        _currentRanges[id].range = _currentRanges[id].range or {}
+
+        local r = _currentRanges[id].range[unitTarget] or true
+
+        _currentRanges[id].range[unitTarget] = range
+
+        if r ~= range then
+            return true
+        end
+    end
+    return false
+end
+
+local function scanCurrentRange(unitTarget, id)
+    local cache = _currentRanges[id]
+    if not cache then
+        return true
+    end
+
+    local spell = id
+    local spellInfo = C_Spell.GetSpellInfo(spell)
+    if spellInfo then
+        if not cache.precise and spellInfo.name then
+            spell = spellInfo.name
+            spellInfo = C_Spell.GetSpellInfo(spell)
+        end
+    end
+
+    if not spellInfo then
+        return true
+    end
+
+    local inRange = C_Spell.IsSpellInRange(spell, unitTarget)
+    if inRange then
+        return inRange == 1
+    end
+
+    return true
+end
+
+function H.scanCurrentRanges()
+    local changed = {}
+    for id, config in pairs(_currentRanges) do
+        for _, unitTarget in ipairs(config.unitTargets or {}) do
+            if handleCurrentRange(scanCurrentRange(unitTarget, id), unitTarget, id) then
+                -- Changed.
+                changed[id] = config.range or {}
+            end
+        end
+    end
+    if next(changed) then
+        WeakAuras.ScanEvents("HWA_SPELL_IN_RANGE_UPDATE", changed)
+    end
+end
+---------------- Range ------------------
+
+---------------- Health ------------------
+local _currentHealthes = {}
+
+local function watchSpellHealth(id, func)
+    -- body
+end
+---------------- Health ------------------
+
 ---------------- Totem ------------------
 local _currentTotems = {}
 
@@ -1176,6 +1258,10 @@ function H.scanCurrentTotems(totemSlot)
     end
     WeakAuras.ScanEvents("HWA_UPDATE_TOTEM")
 end
+
+function H.initCurrentTotems()
+    H.scanCurrentTotems()
+end
 ---------------- Totem ------------------
 
 ---------------- Aura ------------------
@@ -1231,7 +1317,7 @@ local function removeCurrentAura(unitTarget, filter, auraInstanceID)
     end
 end
 
-function H.scanCurrentAuras(unitTarget, filter, updateInfo)
+local function scanFilterCurrentAuras(unitTarget, filter, updateInfo)
     if UnitExists(unitTarget) and filter then
         _unitTarget = unitTarget
         _filter = filter
@@ -1267,17 +1353,19 @@ function H.scanCurrentAuras(unitTarget, filter, updateInfo)
     else
         clearCurrentAuras(unitTarget, filter)
     end
+end
 
+function H.scanCurrentAuras(unitTarget, updateInfo)
+    scanFilterCurrentAuras(unitTarget, "HELPFUL", updateInfo)
+    scanFilterCurrentAuras(unitTarget, "HARMFUL", updateInfo)
     if unitTarget then
         WeakAuras.ScanEvents("HWA_UNIT_AURA", unitTarget)
     end
 end
 
 function H.initCurrentAuras()
-    H.scanCurrentAuras("player", "HELPFUL")
-    H.scanCurrentAuras("player", "HARMFUL")
-    H.scanCurrentAuras("target", "HELPFUL")
-    H.scanCurrentAuras("target", "HARMFUL")
+    H.scanCurrentAuras("player")
+    H.scanCurrentAuras("target")
 end
 ---------------- Aura ------------------
 
@@ -1294,6 +1382,19 @@ local function initSpell(env, config, id)
     end
     if id ~= 0 then
         WeakAuras.WatchSpellCooldown(id)
+    end
+    if config.range then
+        watchSpellRange(id, config.precise or false, { "target" })
+    end
+    if config.health then
+        local func = config.health.func
+        if not func then
+            local s = config.health.func_string
+            if s then
+                func = loadFunction(s)
+            end
+        end
+        watchSpellHealth(id, func)
     end
 
     return id
@@ -1357,15 +1458,16 @@ local function getSpell(env, cache, config, id)
         charges = 0
     end
 
-    if config.range or config.health then
+    if config.range then
+        local range = getCurrentRange(id) or {}
+        if range["target"] then
+            isSpellInRange = range["target"] or true
+        end
+    end
+
+    if config.health then
         if UnitExists("target") then
             hasTarget = true
-            if config.range then
-                local inRange = C_Spell.IsSpellInRange(spell, "target")
-                if not inRange then
-                    isSpellInRange = inRange == 1
-                end
-            end
             if config.health then
                 healthPercent = UnitHealth("target") / UnitHealthMax("target") * 100
             end
@@ -1518,18 +1620,12 @@ function H.initSpellState(env, config)
     local config = config or {}
     local cache = {}
 
-    local id = initSpell(env, config)
-    if id ~= 0 then
-        cache.id = id
-        if config.spell and (config.spell.range or config.spell.health) then
-            cache.matchedTarget = true
-        end
-    end
+    cache.id = initSpell(env, config)
 
     return cache
 end
 
-function H.getSpellState(env, cache, config, id)
+function H.getSpellState(env, cache, config)
     local config = config or {}
     if not getStateShow(config.show) then
         return true, nil
@@ -1537,12 +1633,7 @@ function H.getSpellState(env, cache, config, id)
 
     local cache = cache or {}
 
-    local id = id or 0
-    if id == 0 then
-        id = cache.id
-    end
-
-    local result, state = getSpell(env, cache, config.spell, id)
+    local result, state = getSpell(env, cache, config.spell, cache.id)
     if result and state then
         state.priority = getStatePriority(config.priority) or 0
         state.init = getStateInit() or 0
@@ -1810,7 +1901,6 @@ function H.initCoreStates(env, config)
     local cache = {}
 
     local data = {}
-    local matchedTarget = {}
     local matchedTotem = {}
     local matchedAura = {}
 
@@ -1821,9 +1911,6 @@ function H.initCoreStates(env, config)
             data[id].id = id
             data[id].info = c
             data[id].index = i
-            if c.spell and (c.spell.range or c.spell.health) then
-                table.insert(matchedTarget, id)
-            end
             if c.totem then
                 table.insert(matchedTotem, id)
             end
@@ -1837,7 +1924,6 @@ function H.initCoreStates(env, config)
     end
 
     cache.data = data
-    cache.matchedTarget = matchedTarget
     cache.matchedTotem = matchedTotem
     cache.matchedAura = matchedAura
 

@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_HEALTH, PLAYER_TARGET_CHANGED, SPELL_COOLDOWN_CHANGED, HWA_UPDATE
+- Events: HWA_UNIT_HEALTH, HWA_SPELL_IN_RANGE_UPDATE, SPELL_COOLDOWN_CHANGED, SPELL_UPDATE_USABLE, HWA_UPDATE
 
 - Conditions:
 {
@@ -42,8 +42,6 @@ function(states, event, ...)
     local key = "SPELL"
     local config = aura_env.info
 
-    local check = nil
-
     if "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then
@@ -53,35 +51,22 @@ function(states, event, ...)
                 aura_env.cache[key] = {}
             end
         end
-    elseif "UNIT_HEALTH" == event then
-        local unitTarget = ...
-        if unitTarget == "target" then
-            if aura_env.cache[key] and aura_env.cache[key].matchedTarget then
-                -- Continue.
-            else
-                return false
-            end
-        else
+    elseif "HWA_SPELL_IN_RANGE_UPDATE" == event then
+        local changed = ...
+        if not changed or not changed[aura_env.cache[key] and aura_env.cache[key].id or 0] then
             return false
         end
-    elseif "PLAYER_TARGET_CHANGED" == event then
-        if aura_env.cache[key] and aura_env.cache[key].matchedTarget then
-            -- Continue.
-        else
-            return false
-        end
-    elseif "SPELL_COOLDOWN_CHANGED" == event then
+    elseif "HWA_UNIT_HEALTH" == event or "SPELL_COOLDOWN_CHANGED" == event then
         local id = ...
         if id ~= (aura_env.cache[key] and aura_env.cache[key].id or 0) then
             return false
         end
-        check = id
     end
 
     aura_env.cache[key] = aura_env.cache[key] or {}
 
     if HWA and HWA.getSpellState then
-        local result, data = HWA.getSpellState(aura_env, aura_env.cache[key], aura_env.info, check)
+        local result, data = HWA.getSpellState(aura_env, aura_env.cache[key], aura_env.info)
         if result then
             if data then
                 states[key] = {

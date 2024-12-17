@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_HEALTH, PLAYER_TARGET_CHANGED, SPELL_COOLDOWN_CHANGED, SPELL_UPDATE_USABLE, HWA_UPDATE_TOTEM, HWA_UNIT_AURA, HWA_UPDATE
+- Events: HWA_UNIT_HEALTH, HWA_SPELL_IN_RANGE_UPDATE, SPELL_COOLDOWN_CHANGED, SPELL_UPDATE_USABLE, HWA_UPDATE_TOTEM, HWA_UNIT_AURA, HWA_UPDATE
 
 - Conditions:
 {
@@ -70,31 +70,16 @@ function(states, event, ...)
                 aura_env.cache[key] = {}
             end
         end
-    elseif "UNIT_HEALTH" == event then
-        local unitTarget = ...
-        if unitTarget == "target" then
-            local matchedTarget = aura_env.cache[key] and aura_env.cache[key].matchedTarget or {}
-            if not next(matchedTarget) then
-                return false
-            end
-            for _, id in ipairs(matchedTarget) do
+    elseif "HWA_SPELL_IN_RANGE_UPDATE" == event then
+        local changed = ...
+        if changed and next(changed) then
+            for id, _ in pairs(changed) do
                 checkList[id] = {}
             end
         else
             return false
         end
-    elseif "PLAYER_TARGET_CHANGED" == event then
-        local matchedTarget = aura_env.cache[key] and aura_env.cache[key].matchedTarget or {}
-        if not next(matchedTarget) then
-            return false
-        end
-        local param = {
-            unitTargets = { "target" },
-        }
-        for _, id in ipairs(matchedTarget) do
-            checkList[id] = param
-        end
-    elseif "SPELL_COOLDOWN_CHANGED" == event then
+    elseif "HWA_UNIT_HEALTH" == event or "SPELL_COOLDOWN_CHANGED" == event then
         local id = ...
         if id then
             local data = aura_env.cache[key] and aura_env.cache[key].data or {}
