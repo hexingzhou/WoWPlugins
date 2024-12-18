@@ -8,7 +8,7 @@
     stacks = true,
     -- 0: no glow, 1: pixel glow, 2: autocast shine, 3: action buttom glow
     glow = {
-        display = "发光类型",
+        display = "发光",
         type = "number",
     },
 }

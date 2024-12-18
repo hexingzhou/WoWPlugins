@@ -45,4 +45,8 @@ aura_env.info = {
             },
         },
     },
+    strategy = {
+        func = nil,
+        func_string = nil,
+    },
 }

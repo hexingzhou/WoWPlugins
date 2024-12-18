@@ -10,16 +10,8 @@
         display = "充能",
         type = "number",
     },
-    healthPercent = {
-        display = "生命百分比",
-        type = "number",
-    },
     isSpellInRange = {
         display = "在法术可用范围内",
-        type = "bool",
-    },
-    hasTarget = {
-        display = "目标存在",
         type = "bool",
     },
     noResource = {
@@ -48,7 +40,7 @@
     },
     -- 0: no glow, 1: pixel glow, 2: autocast shine, 3: action buttom glow
     glow = {
-        display = "发光类型",
+        display = "发光",
         type = "number",
     },
 }
@@ -70,7 +62,7 @@ function(states, event, ...)
                 aura_env.cache[key] = {}
             end
         end
-    elseif "HWA_SPELL_IN_RANGE_UPDATE" == event then
+    elseif "HWA_UNIT_HEALTH" == event or "HWA_SPELL_IN_RANGE_UPDATE" == event then
         local changed = ...
         if changed and next(changed) then
             for id, _ in pairs(changed) do
@@ -79,7 +71,7 @@ function(states, event, ...)
         else
             return false
         end
-    elseif "HWA_UNIT_HEALTH" == event or "SPELL_COOLDOWN_CHANGED" == event then
+    elseif "SPELL_COOLDOWN_CHANGED" == event then
         local id = ...
         if id then
             local data = aura_env.cache[key] and aura_env.cache[key].data or {}
@@ -151,8 +143,6 @@ function(states, event, ...)
                             isUsable = data.isUsable,
                             noResource = data.noResource,
                             isSpellInRange = data.isSpellInRange,
-                            hasTarget = data.hasTarget,
-                            healthPercent = data.healthPercent,
                             gcd = data.gcd,
                             priority = data.priority,
                             init = data.init,

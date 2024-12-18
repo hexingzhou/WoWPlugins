@@ -1,5 +1,5 @@
 --[[
-- Events: PLAYER_TARGET_CHANGED, PLAYER_TOTEM_UPDATE, UNIT_AURA, HWA_UPDATE
+- Events: UNIT_HEALTH, PLAYER_TARGET_CHANGED, PLAYER_TOTEM_UPDATE, UNIT_AURA, HWA_UPDATE
 --]]
 function(states, event, ...)
     if "HWA_UPDATE" == event then
@@ -13,6 +13,11 @@ function(states, event, ...)
                     HWA.initCurrentTotems()
                 end
             end
+        end
+    elseif "UNIT_HEALTH" == event then
+        local unitTarget = ...
+        if unitTarget and HWA and HWA.scanCurrentHealthes then
+            HWA.scanCurrentHealthes(unitTarget)
         end
     elseif "PLAYER_TARGET_CHANGED" == event then
         if HWA and HWA.scanCurrentAuras then

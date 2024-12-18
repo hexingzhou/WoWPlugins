@@ -1113,12 +1113,6 @@ end
 ---------------- Range ------------------
 local _currentRanges = {}
 
-local function watchSpellRange(id, precise, unitTargets)
-    _currentRanges[id] = {}
-    _currentRanges[id].precise = precise
-    _currentRanges[id].unitTargets = unitTargets
-end
-
 local function getCurrentRange(id)
     if _currentRanges[id] then
         return _currentRanges[id].range or {}
@@ -1168,13 +1162,26 @@ local function scanCurrentRange(unitTarget, id)
     return true
 end
 
+local function watchSpellRange(id, precise, unitTargets)
+    if not id then
+        return
+    end
+    _currentRanges[id] = {}
+    _currentRanges[id].precise = precise or false
+    _currentRanges[id].unitTargets = unitTargets or {}
+
+    for _, unitTarget in ipairs(_currentRanges[id].unitTargets) do
+        handleCurrentRange(scanCurrentRange(unitTarget, id), unitTarget, id)
+    end
+end
+
 function H.scanCurrentRanges()
     local changed = {}
-    for id, config in pairs(_currentRanges) do
-        for _, unitTarget in ipairs(config.unitTargets or {}) do
+    for id, cache in pairs(_currentRanges) do
+        for _, unitTarget in ipairs(cache.unitTargets) do
             if handleCurrentRange(scanCurrentRange(unitTarget, id), unitTarget, id) then
                 -- Changed.
-                changed[id] = config.range or {}
+                changed[id] = cache.range or {}
             end
         end
     end
@@ -1187,8 +1194,103 @@ end
 ---------------- Health ------------------
 local _currentHealthes = {}
 
-local function watchSpellHealth(id, func)
-    -- body
+local function getCurrentHealth(id)
+    return _currentHealthes.spells and _currentHealthes.spells[id] and _currentHealthes.spells[id].state or {}
+end
+
+local function handleCurrentHealth(id)
+    if _currentHealthes.spells and _currentHealthes.spells[id] then
+        local func = _currentHealthes.spells[id].func
+        if func then
+            local changed, state = func(_currentHealthes.healthes, _currentHealthes.spells[id].state)
+            if changed then
+                _currentHealthes.spells[id].state = state
+            end
+            return changed
+        end
+    end
+    return false
+end
+
+local function scanCurrentHealth(unitTarget)
+    _currentHealthes.healthes = _currentHealthes.healthes or {}
+    _currentHealthes.healthes[unitTarget] = {}
+    if UnitExists(unitTarget) then
+        _currentHealthes.healthes[unitTarget].hasTarget = true
+        _currentHealthes.healthes[unitTarget].current = UnitHealth(unitTarget)
+        _currentHealthes.healthes[unitTarget].max = UnitHealthMax(unitTarget)
+    else
+        _currentHealthes.healthes[unitTarget].hasTarget = false
+        _currentHealthes.healthes[unitTarget].current = 0
+        _currentHealthes.healthes[unitTarget].max = 0
+    end
+end
+
+local function watchSpellHealth(id, unitTargets, func)
+    if not id then
+        return
+    end
+    _currentHealthes.spells = _currentHealthes.spells or {}
+
+    local units = _currentHealthes.spells[id] and _currentHealthes.spells[id].unitTargets or {}
+
+    _currentHealthes.spells[id] = {}
+    _currentHealthes.spells[id].unitTargets = unitTargets or {}
+    _currentHealthes.spells[id].func = func
+
+    _currentHealthes.units = _currentHealthes.units or {}
+    for _, unit in ipairs(units) do
+        if not tcontains(_currentHealthes.spells[id].unitTargets, unit) then
+            _currentHealthes.units[unit] = _currentHealthes.units[unit] or {}
+            _currentHealthes.units[unit][id] = nil
+        end
+    end
+    for _, unit in ipairs(_currentHealthes.spells[id].unitTargets) do
+        _currentHealthes.units[unit] = _currentHealthes.units[unit] or {}
+        _currentHealthes.units[unit][id] = _currentHealthes.spells[id].func
+    end
+
+    _currentHealthes.healthes = _currentHealthes.healthes or {}
+
+    for _, unitTarget in ipairs(_currentHealthes.spells[id].unitTargets) do
+        if not _currentHealthes.healthes[unitTarget] then
+            scanCurrentHealth(unitTarget)
+        end
+    end
+    handleCurrentHealth(id)
+end
+
+function H.scanCurrentHealthes(unitTarget)
+    local changed = {}
+    if unitTarget and _currentHealthes.units and _currentHealthes.units[unitTarget] then
+        scanCurrentHealth(unitTarget)
+        for id, func in pairs(_currentHealthes.units[unitTarget]) do
+            if func then
+                if handleCurrentHealth(id) then
+                    changed[id] = _currentHealthes.spells
+                            and _currentHealthes.spells[id]
+                            and _currentHealthes.spells[id].state
+                        or {}
+                end
+            end
+        end
+    else
+        if _currentHealthes.units then
+            for unitTarget, _ in pairs(_currentHealthes.units) do
+                scanCurrentHealth(unitTarget)
+            end
+        end
+        if _currentHealthes.spells then
+            for id, cache in pairs(_currentHealthes.spells) do
+                if handleCurrentHealth(id) then
+                    changed[id] = cache.state or {}
+                end
+            end
+        end
+    end
+    if next(changed) then
+        WeakAuras.ScanEvents("HWA_UNIT_HEALTH", changed)
+    end
 end
 ---------------- Health ------------------
 
@@ -1394,7 +1496,9 @@ local function initSpell(env, config, id)
                 func = loadFunction(s)
             end
         end
-        watchSpellHealth(id, func)
+        if func then
+            watchSpellHealth(id, { "target" }, func)
+        end
     end
 
     return id
@@ -1431,9 +1535,8 @@ local function getSpell(env, cache, config, id)
     local stacks = 0
     local charges = 1
     local isSpellInRange = true
-    local hasTarget = false
     local isUsable, noResource = C_Spell.IsSpellUsable(spell)
-    local healthPercent = 0
+    local health = {}
 
     local chargeInfo = C_Spell.GetSpellCharges(spell)
     if chargeInfo then
@@ -1466,12 +1569,7 @@ local function getSpell(env, cache, config, id)
     end
 
     if config.health then
-        if UnitExists("target") then
-            hasTarget = true
-            if config.health then
-                healthPercent = UnitHealth("target") / UnitHealthMax("target") * 100
-            end
-        end
+        health = getCurrentHealth(id) or {}
     end
 
     local state = {
@@ -1484,8 +1582,7 @@ local function getSpell(env, cache, config, id)
         isUsable = isUsable,
         noResource = noResource,
         isSpellInRange = isSpellInRange,
-        hasTarget = hasTarget,
-        healthPercent = healthPercent,
+        health = health,
         gcd = config.gcd or false,
     }
 
@@ -1616,6 +1713,12 @@ local function getStrategyFunc(env, strategy)
     end
 end
 
+function H.getDefaultSpellStrategyState(env, stateGroup, glow)
+    return true, {
+        glow = 0,
+    }
+end
+
 function H.initSpellState(env, config)
     local config = config or {}
     local cache = {}
@@ -1623,6 +1726,24 @@ function H.initSpellState(env, config)
     cache.id = initSpell(env, config)
 
     return cache
+end
+
+local function getSpellStrategyState(env, strategy, spell)
+    local strategy = strategy or {}
+    local spell = spell or {}
+
+    for _, s in ipairs(strategy) do
+        local func = getStrategyFunc(env, s)
+        if func then
+            return func(env, {
+                spell = spell,
+            })
+        end
+    end
+
+    return H.getDefaultSpellStrategyState(env, {
+        spell = spell,
+    })
 end
 
 function H.getSpellState(env, cache, config)
@@ -1637,6 +1758,13 @@ function H.getSpellState(env, cache, config)
     if result and state then
         state.priority = getStatePriority(config.priority) or 0
         state.init = getStateInit() or 0
+
+        local r, s = getSpellStrategyState(env, config.strategy, state)
+        if r and s then
+            state.glow = s.glow
+        else
+            state.glow = 0
+        end
     end
 
     return result, state
@@ -1673,6 +1801,10 @@ function H.getDefaultTotemStrategyState(env, stateGroup, glow)
     if stacks == 1 then
         stacks = 0
     end
+    local glow = glow or 0
+    if not s.expirationTime or s.expirationTime <= 0 then
+        glow = 0
+    end
     return true,
         {
             progressType = s.progressType,
@@ -1680,7 +1812,7 @@ function H.getDefaultTotemStrategyState(env, stateGroup, glow)
             expirationTime = s.expirationTime,
             icon = s.icon,
             stacks = stacks,
-            glow = glow or 0,
+            glow = glow,
         }
 end
 
@@ -1780,6 +1912,10 @@ function H.getDefaultAuraStrategyState(env, stateGroup, glow)
     if s.applications and s.applications > 1 then
         stacks = s.applications
     end
+    local glow = glow or 0
+    if not s.expirationTime or s.expirationTime <= 0 then
+        glow = 0
+    end
     return true,
         {
             progressType = s.progressType,
@@ -1787,7 +1923,7 @@ function H.getDefaultAuraStrategyState(env, stateGroup, glow)
             expirationTime = s.expirationTime,
             icon = s.icon,
             stacks = stacks,
-            glow = glow or 0,
+            glow = glow,
         }
 end
 
@@ -1930,8 +2066,9 @@ function H.initCoreStates(env, config)
     return cache
 end
 
-local function getCoreStrategyState(env, strategy, totems, auras)
+local function getCoreStrategyState(env, strategy, spell, totems, auras)
     local strategy = strategy or {}
+    local spell = spell or {}
     local totems = totems or {}
     local auras = auras or {}
 
@@ -1967,6 +2104,7 @@ local function getCoreStrategyState(env, strategy, totems, auras)
             local func = getStrategyFunc(env, s)
             if func then
                 return func(env, {
+                    spell = spell,
                     totems = totems,
                     auras = auras,
                 })
@@ -1975,6 +2113,7 @@ local function getCoreStrategyState(env, strategy, totems, auras)
     end
 
     return H.getNormalCoreStrategyState(env, {
+        spell = spell,
         totems = totems,
         auras = auras,
     })
@@ -2005,7 +2144,7 @@ local function getCoreState(env, cache, config, id)
         if config.aura then
             _, auraStates = getAuraStates(env, cache, config.aura)
         end
-        local r, s = getCoreStrategyState(env, config.strategy, totemStates, auraStates)
+        local r, s = getCoreStrategyState(env, config.strategy, state, totemStates, auraStates)
         if r and s then
             state.subDuration = s.duration
             state.subExpirationTime = s.expirationTime
