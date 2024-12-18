@@ -1599,11 +1599,15 @@ local function getTotem(env, cache, config)
 
     local matchedTotems = {}
 
-    for name, c in pairs(config) do
+    for _, c in ipairs(config) do
+        local name = c.name or ""
+        if name == "" then
+            goto get_totem
+        end
         for _, info in pairs(getCurrentTotems(name)) do
             if info and info.name == name then
                 table.insert(matchedTotems, {
-                    id = c.id or 0,
+                    id = name,
                     name = info.name,
                     duration = info.duration,
                     expirationTime = info.expirationTime,
@@ -1611,6 +1615,7 @@ local function getTotem(env, cache, config)
                 })
             end
         end
+        ::get_totem::
     end
 
     for _, totem in ipairs(matchedTotems) do
@@ -1627,7 +1632,11 @@ local function getAura(env, cache, config)
     local matchedAuras = {}
 
     -- Find current auras.
-    for id, c in pairs(config) do
+    for _, c in ipairs(config) do
+        local id = c.id or 0
+        if id == 0 then
+            goto get_aura
+        end
         local filter
         if c.type == 1 then
             filter = "HELPFUL"
@@ -1638,7 +1647,7 @@ local function getAura(env, cache, config)
             for _, info in pairs(getCurrentAuras(unitTarget, filter, id)) do
                 if info and tcontains(c.source_units, info.sourceUnit) then
                     table.insert(matchedAuras, {
-                        id = c.id or 0,
+                        id = id,
                         unitTarget = unitTarget,
                         applications = info.applications,
                         auraInstanceID = info.auraInstanceID,
@@ -1654,6 +1663,7 @@ local function getAura(env, cache, config)
                 end
             end
         end
+        ::get_aura::
     end
 
     for _, aura in ipairs(matchedAuras) do
@@ -1833,8 +1843,11 @@ function H.initTotemState(env, config)
     local cache = {}
 
     local matchedTotem = {}
-    for name, c in pairs(config.totem or {}) do
-        matchedTotem[name] = {}
+    for _, c in ipairs(config.totem or {}) do
+        local name = c.name or ""
+        if name ~= "" then
+            matchedTotem[name] = {}
+        end
     end
 
     cache.matchedTotem = matchedTotem
@@ -1944,11 +1957,17 @@ function H.initAuraState(env, config)
     local cache = {}
 
     local matchedAura = {}
-    for id, c in pairs(config.aura or {}) do
+    for _, c in ipairs(config.aura or {}) do
+        local id = c.id or 0
+        if id == 0 then
+            goto init_aura_states
+        end
         for _, unit in ipairs(c.unit_targets or {}) do
             matchedAura[unit] = matchedAura[unit] or {}
+            -- Insert id into unit-ids map.
             table.insert(matchedAura[unit], id)
         end
+        ::init_aura_states::
     end
 
     cache.matchedAura = matchedAura
@@ -2050,9 +2069,10 @@ function H.initCoreStates(env, config)
             if c.totem then
                 table.insert(matchedTotem, id)
             end
-            for _, aura in pairs(c.aura or {}) do
+            for _, aura in ipairs(c.aura or {}) do
                 for _, unit in ipairs(aura.unit_targets or {}) do
                     matchedAura[unit] = matchedAura[unit] or {}
+                    -- Insert id into unit-ids map.
                     table.insert(matchedAura[unit], id)
                 end
             end
@@ -2221,7 +2241,7 @@ function H.initDynamicEffectStates(env, config)
     local matchedTotem = {}
     local matchedAura = {}
 
-    for i, c in pairs(config) do
+    for i, c in ipairs(config) do
         data[i] = {}
         data[i].info = c
         data[i].index = i
@@ -2229,9 +2249,10 @@ function H.initDynamicEffectStates(env, config)
         if c.totem then
             table.insert(matchedTotem, i)
         end
-        for _, aura in pairs(c.aura or {}) do
+        for _, aura in ipairs(c.aura or {}) do
             for _, unit in ipairs(aura.unit_targets or {}) do
                 matchedAura[unit] = matchedAura[unit] or {}
+                -- Insert id into unit-ids map.
                 table.insert(matchedAura[unit], i)
             end
         end

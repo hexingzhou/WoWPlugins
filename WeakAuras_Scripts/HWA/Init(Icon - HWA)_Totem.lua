@@ -1,14 +1,14 @@
 aura_env.info = {
     totem = {
-        [""] = { -- totemName
-            id = 0,
+        {
+            name = "", -- totemName
         },
     },
     strategy = {
         {
             match = {
                 aura = {},
-                totem = {}, -- Example: { id_x, id_y }, id_x is the value of totem[x].id
+                totem = {}, -- Example: { name_x, name_y }, name_x is the value of totem[x].name
             },
             func = nil, -- function() end
             func_string = nil, -- ""
