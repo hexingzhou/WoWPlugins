@@ -34,36 +34,39 @@
 }
 --]]
 function(states, event, ...)
-    aura_env.cache = aura_env.cache or {}
+    local H = HWA or {}
+    local env = aura_env or {}
+
+    env.cache = env.cache or {}
 
     local key = "SPELL"
-    local config = aura_env.info
+    local config = env.info
 
     if "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then
-            if HWA and HWA.initSpellState then
-                aura_env.cache[key] = HWA.initSpellState(aura_env, aura_env.info)
+            if H.initSpellState then
+                env.cache[key] = H.initSpellState(env, env.info)
             else
-                aura_env.cache[key] = {}
+                env.cache[key] = {}
             end
         end
     elseif "HWA_UNIT_HEALTH" == event or "HWA_SPELL_IN_RANGE_UPDATE" == event then
         local changed = ...
-        if not changed or not changed[aura_env.cache[key] and aura_env.cache[key].id or 0] then
+        if not changed or not changed[env.cache[key] and env.cache[key].id or 0] then
             return false
         end
     elseif "SPELL_COOLDOWN_CHANGED" == event then
         local id = ...
-        if id ~= (aura_env.cache[key] and aura_env.cache[key].id or 0) then
+        if id ~= (env.cache[key] and env.cache[key].id or 0) then
             return false
         end
     end
 
-    aura_env.cache[key] = aura_env.cache[key] or {}
+    env.cache[key] = env.cache[key] or {}
 
-    if HWA and HWA.getSpellState then
-        local result, data = HWA.getSpellState(aura_env, aura_env.cache[key], aura_env.info)
+    if H.getSpellState then
+        local result, data = H.getSpellState(env, env.cache[key], env.info)
         if result then
             if data then
                 states[key] = {

@@ -1,7 +1,9 @@
 --[[
 - The value of type follows: https://warcraft.wiki.gg/wiki/Enum.PowerType.
 --]]
-aura_env.info = {
+local env = aura_env or {}
+
+env.info = {
     power = {
         type = -1,
         unmodified = false,

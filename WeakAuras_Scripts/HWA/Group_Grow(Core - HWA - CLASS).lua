@@ -5,8 +5,12 @@
 - Run on: init
 --]]
 function(newPositions, activeRegions)
-    if HWA and HWA.coreGrow then
-        local class, _ = aura_env.id:gsub("Core %- HWA %- ", "")
-        HWA.coreGrow(newPositions, activeRegions, class)
+    local H = HWA or {}
+    local env = aura_env or {}
+
+    local class, _ = env.id:gsub("Core %- HWA %- ", "")
+
+    if H.coreGrow then
+        H.coreGrow(newPositions, activeRegions, class)
     end
 end

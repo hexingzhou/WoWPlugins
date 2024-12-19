@@ -46,8 +46,11 @@
 }
 --]]
 function(states, event, ...)
-    aura_env.cache = aura_env.cache or {}
-    aura_env.result = aura_env.result or {}
+    local H = HWA or {}
+    local env = aura_env or {}
+
+    env.cache = env.cache or {}
+    env.result = env.result or {}
 
     local key = "CORE"
 
@@ -56,10 +59,10 @@ function(states, event, ...)
     if "HWA_UPDATE" == event then
         local type = ...
         if type == "init" then
-            if HWA and HWA.initCoreStates then
-                aura_env.cache[key] = HWA.initCoreStates(aura_env, aura_env.info)
+            if H.initCoreStates then
+                env.cache[key] = H.initCoreStates(env, env.info)
             else
-                aura_env.cache[key] = {}
+                env.cache[key] = {}
             end
         end
     elseif "HWA_UNIT_HEALTH" == event or "HWA_SPELL_IN_RANGE_UPDATE" == event then
@@ -74,7 +77,7 @@ function(states, event, ...)
     elseif "SPELL_COOLDOWN_CHANGED" == event then
         local id = ...
         if id then
-            local data = aura_env.cache[key] and aura_env.cache[key].data or {}
+            local data = env.cache[key] and env.cache[key].data or {}
             if not data[id] then
                 return false
             end
@@ -83,7 +86,7 @@ function(states, event, ...)
             return false
         end
     elseif "HWA_UPDATE_TOTEM" == event then
-        local matchedTotem = aura_env.cache[key] and aura_env.cache[key].matchedTotem or {}
+        local matchedTotem = env.cache[key] and env.cache[key].matchedTotem or {}
         if not next(matchedTotem) then
             return false
         end
@@ -93,9 +96,9 @@ function(states, event, ...)
     elseif "HWA_UNIT_AURA" == event then
         local unitTarget = ...
         if unitTarget then
-            local matchedAura = aura_env.cache[key]
-                    and aura_env.cache[key].matchedAura
-                    and aura_env.cache[key].matchedAura[unitTarget]
+            local matchedAura = env.cache[key]
+                    and env.cache[key].matchedAura
+                    and env.cache[key].matchedAura[unitTarget]
                 or {}
             if not next(matchedAura) then
                 return false
@@ -108,15 +111,15 @@ function(states, event, ...)
         end
     end
 
-    aura_env.cache[key] = aura_env.cache[key] or {}
+    env.cache[key] = env.cache[key] or {}
 
-    if HWA and HWA.getCoreStates then
-        local result, datas = HWA.getCoreStates(aura_env, aura_env.cache[key], aura_env.info, checkList)
+    if H.getCoreStates then
+        local result, datas = H.getCoreStates(env, env.cache[key], env.info, checkList)
         if result then
-            local records = aura_env.result[key] or {}
+            local records = env.result[key] or {}
             local checks = checkList or {}
             if not next(checks) then
-                checks = aura_env.cache[key] and aura_env.cache[key].data or {}
+                checks = env.cache[key] and env.cache[key].data or {}
                 for id, record in pairs(records) do
                     if not checks[id] and record then
                         states[id] = {
@@ -168,7 +171,7 @@ function(states, event, ...)
                     records[id] = nil
                 end
             end
-            aura_env.result[key] = records
+            env.result[key] = records
             return true
         end
     end

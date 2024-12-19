@@ -1,5 +1,7 @@
-HWA = HWA or {}
-HWA.configs = HWA.configs or {}
+local H = HWA or {}
+local env = aura_env or {}
 
-local class, _ = aura_env.id:gsub("Class Options %- HWA %- ", "")
-HWA.configs[class] = aura_env.config
+local class, _ = env.id:gsub("Class Options %- HWA %- ", "")
+
+H.configs = H.configs or {}
+H.configs[class] = env.config

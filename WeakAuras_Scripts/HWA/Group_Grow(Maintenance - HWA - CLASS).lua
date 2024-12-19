@@ -3,8 +3,12 @@
 [Require] Replace CLASS in name to the right one.
 --]]
 function(newPositions, activeRegions)
-    if HWA and HWA.maintenanceGrow then
-        local class, _ = aura_env.id:gsub("Maintenance %- HWA %- ", "")
-        HWA.maintenanceGrow(newPositions, activeRegions, class)
+    local H = HWA or {}
+    local env = aura_env or {}
+
+    local class, _ = env.id:gsub("Maintenance %- HWA %- ", "")
+
+    if H.maintenanceGrow then
+        H.maintenanceGrow(newPositions, activeRegions, class)
     end
 end

@@ -8,7 +8,10 @@
 }
 --]]
 function(states, event, ...)
-    aura_env.result = aura_env.result or {}
+    local H = HWA or {}
+    local env = aura_env or {}
+
+    env.result = env.result or {}
 
     local key = "POWER"
 
@@ -19,10 +22,10 @@ function(states, event, ...)
         end
     end
 
-    if HWA and HWA.getPowerStates then
-        local result, datas = HWA.getPowerStates(aura_env, aura_env.info)
+    if H.getPowerStates then
+        local result, datas = H.getPowerStates(env, env.info)
         if result then
-            local records = aura_env.result[key] or {}
+            local records = env.result[key] or {}
             local size = records.size or 0
             if datas then
                 size = max(size, #datas)
@@ -55,7 +58,7 @@ function(states, event, ...)
                 size = 0
             end
             records.size = size
-            aura_env.result[key] = records
+            env.result[key] = records
             return true
         end
     end

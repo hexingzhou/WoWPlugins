@@ -3,15 +3,17 @@
 strategy = {
     {
         func = function(env, stateGroup)
-            if HWA and HWA.getDefaultCoreStrategyState then
-                return HWA.getDefaultCoreStrategyState(env, stateGroup)
+            local H = HWA or {}
+            if H.getDefaultCoreStrategyState then
+                return H.getDefaultCoreStrategyState(env, stateGroup)
             end
         end,
     },
     {
         func = function(env, stateGroup)
-            if HWA and HWA.getNormalCoreStrategyState then
-                return HWA.getNormalCoreStrategyState(env, stateGroup)
+            local H = HWA or {}
+            if H.getNormalCoreStrategyState then
+                return H.getNormalCoreStrategyState(env, stateGroup)
             end
         end,
     },
@@ -31,7 +33,9 @@ strategy = {
     },
 }
 --]]
-aura_env.info = {
+local env = aura_env or {}
+
+env.info = {
     {
         spell = {
             id = 0, -- spellID

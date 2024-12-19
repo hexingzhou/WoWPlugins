@@ -2,16 +2,21 @@
 - Frames
 --]]
 function(states, event, ...)
-    if HWA and HWA.scanCurrentRanges then
-        aura_env.time = aura_env.time or {}
+    local H = HWA
+    local env = aura_env or {}
 
-        local key = "RANGE"
-        local time = aura_env.time[key] or 0
+    if not H then
+        return
+    end
 
-        local now = GetTime()
-        if now - time > 0.2 then
-            HWA.scanCurrentRanges()
-            aura_env.time[key] = now
-        end
+    env.time = env.time or {}
+
+    local key = "RANGE"
+    local time = env.time[key] or 0
+
+    local now = GetTime()
+    if now - time > 0.2 then
+        H.scanCurrentRanges()
+        env.time[key] = now
     end
 end

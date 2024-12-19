@@ -1,4 +1,6 @@
-aura_env.info = {
+local env = aura_env or {}
+
+env.info = {
     aura = {
         {
             id = 0, -- precise spellID for aura

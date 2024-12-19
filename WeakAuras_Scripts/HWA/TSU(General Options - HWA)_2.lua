@@ -2,14 +2,16 @@
 - Events: STATUS, PLAYER_ENTERING_WORLD, PLAYER_REGEN_ENABLED, PLAYER_REGEN_DISABLED, PLAYER_TARGET_CHANGED, PLAYER_ALIVE, PLAYER_DEAD, PLAYER_UNGHOST, BARBER_SHOP_OPEN, BARBER_SHOP_CLOSE, PLAYER_MOUNT_DISPLAY_CHANGED, UPDATE_BONUS_ACTIONBAR, UPDATE_VEHICLE_ACTIONBAR, UPDATE_OVERRIDE_ACTIONBAR, HWA_UPDATE, HWA_ALPHA
 --]]
 function(states, event, ...)
-    if not aura_env.parentFrame and aura_env.parent then
-        aura_env.parentFrame = WeakAuras.GetRegion(aura_env.parent)
+    local env = aura_env or {}
+    
+    if not env.parentFrame and env.parent then
+        env.parentFrame = WeakAuras.GetRegion(env.parent)
     end
 
-    local frame = aura_env.parentFrame
+    local frame = env.parentFrame
 
     if frame then
-        local config = aura_env.config and aura_env.config.alpha or {}
+        local config = env.config and env.config.alpha or {}
         local alpha = config.global or 100
 
         if WeakAuras.IsOptionsOpen() then

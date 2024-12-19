@@ -5,8 +5,11 @@
 - Run on: priority
 --]]
 function(a, b)
-    if HWA and HWA.coreSort then
-        return HWA.coreSort(a, b)
+    local H = HWA or {}
+
+    if H.coreSort then
+        return H.coreSort(a, b)
     end
+    
     return a.dataIndex < b.dataIndex
 end

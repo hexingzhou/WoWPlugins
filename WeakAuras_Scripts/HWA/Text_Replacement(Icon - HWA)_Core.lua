@@ -2,8 +2,10 @@
 -- Frames
 --]]
 function()
-    if aura_env.state then
-        local cooldown = aura_env.state.subExpirationTime or 0
+    local env = aura_env or {}
+    
+    if env.state then
+        local cooldown = env.state.subExpirationTime or 0
         if cooldown > 0 then
             cooldown = cooldown - GetTime()
             if cooldown < -0.5 then
@@ -15,7 +17,7 @@ function()
                 cooldown = 0
             end
         end
-        local stacks = aura_env.state.subStacks or 0
+        local stacks = env.state.subStacks or 0
 
         return cooldown, stacks
     end
