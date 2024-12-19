@@ -904,7 +904,7 @@ H.bit = {
     end,
 }
 
-local function loadFunction(str)
+function H.loadFunction(str)
     return function_cache_custom:load(str)
 end
 

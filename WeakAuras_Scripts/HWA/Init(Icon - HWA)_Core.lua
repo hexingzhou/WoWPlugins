@@ -33,6 +33,7 @@ strategy = {
     },
 }
 --]]
+local H = HWA or {}
 local env = aura_env or {}
 
 env.info = {
@@ -108,3 +109,15 @@ env.info = {
         },
     },
 }
+
+if H.loadFunction then
+    local config = env.config and env.config.info or {}
+    for _, c in ipairs(config) do
+        if c.data then
+            local data = H.loadFunction(c.data)
+            if data then
+                table.insert(env.info, data)
+            end
+        end
+    end
+end
