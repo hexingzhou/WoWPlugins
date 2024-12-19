@@ -1111,22 +1111,25 @@ end
 ---------------- Base ------------------
 
 ---------------- Range ------------------
-local _currentRanges = {}
+local currentRanges = {}
 
 local function getCurrentRange(id)
-    if _currentRanges[id] then
-        return _currentRanges[id].range or {}
+    if currentRanges[id] then
+        return currentRanges[id].range or {}
     end
     return {}
 end
 
 local function handleCurrentRange(range, unitTarget, id)
-    if _currentRanges[id] then
-        _currentRanges[id].range = _currentRanges[id].range or {}
+    if currentRanges[id] then
+        currentRanges[id].range = currentRanges[id].range or {}
 
-        local r = _currentRanges[id].range[unitTarget] or true
+        local r = currentRanges[id].range[unitTarget]
+        if r == nil then
+            r = true
+        end
 
-        _currentRanges[id].range[unitTarget] = range
+        currentRanges[id].range[unitTarget] = range
 
         if r ~= range then
             return true
@@ -1136,7 +1139,7 @@ local function handleCurrentRange(range, unitTarget, id)
 end
 
 local function scanCurrentRange(unitTarget, id)
-    local cache = _currentRanges[id]
+    local cache = currentRanges[id]
     if not cache then
         return true
     end
@@ -1154,30 +1157,29 @@ local function scanCurrentRange(unitTarget, id)
         return true
     end
 
-    local inRange = C_Spell.IsSpellInRange(spell, unitTarget)
-    if inRange then
-        return inRange == 1
+    local range = C_Spell.IsSpellInRange(spell, unitTarget)
+    if range == nil then
+        return true
     end
-
-    return true
+    return range
 end
 
 local function watchSpellRange(id, precise, unitTargets)
     if not id then
         return
     end
-    _currentRanges[id] = {}
-    _currentRanges[id].precise = precise or false
-    _currentRanges[id].unitTargets = unitTargets or {}
+    currentRanges[id] = {}
+    currentRanges[id].precise = precise or false
+    currentRanges[id].unitTargets = unitTargets or {}
 
-    for _, unitTarget in ipairs(_currentRanges[id].unitTargets) do
+    for _, unitTarget in ipairs(currentRanges[id].unitTargets) do
         handleCurrentRange(scanCurrentRange(unitTarget, id), unitTarget, id)
     end
 end
 
 function H.scanCurrentRanges()
     local changed = {}
-    for id, cache in pairs(_currentRanges) do
+    for id, cache in pairs(currentRanges) do
         for _, unitTarget in ipairs(cache.unitTargets) do
             if handleCurrentRange(scanCurrentRange(unitTarget, id), unitTarget, id) then
                 -- Changed.
@@ -1192,19 +1194,19 @@ end
 ---------------- Range ------------------
 
 ---------------- Health ------------------
-local _currentHealthes = {}
+local currentHealthes = {}
 
 local function getCurrentHealth(id)
-    return _currentHealthes.spells and _currentHealthes.spells[id] and _currentHealthes.spells[id].state or {}
+    return currentHealthes.spells and currentHealthes.spells[id] and currentHealthes.spells[id].state or {}
 end
 
 local function handleCurrentHealth(id)
-    if _currentHealthes.spells and _currentHealthes.spells[id] then
-        local func = _currentHealthes.spells[id].func
+    if currentHealthes.spells and currentHealthes.spells[id] then
+        local func = currentHealthes.spells[id].func
         if func then
-            local changed, state = func(_currentHealthes.healthes, _currentHealthes.spells[id].state)
+            local changed, state = func(currentHealthes.healthes, currentHealthes.spells[id].state)
             if changed then
-                _currentHealthes.spells[id].state = state
+                currentHealthes.spells[id].state = state
             end
             return changed
         end
@@ -1213,16 +1215,16 @@ local function handleCurrentHealth(id)
 end
 
 local function scanCurrentHealth(unitTarget)
-    _currentHealthes.healthes = _currentHealthes.healthes or {}
-    _currentHealthes.healthes[unitTarget] = {}
+    currentHealthes.healthes = currentHealthes.healthes or {}
+    currentHealthes.healthes[unitTarget] = {}
     if UnitExists(unitTarget) then
-        _currentHealthes.healthes[unitTarget].hasTarget = true
-        _currentHealthes.healthes[unitTarget].current = UnitHealth(unitTarget)
-        _currentHealthes.healthes[unitTarget].max = UnitHealthMax(unitTarget)
+        currentHealthes.healthes[unitTarget].hasTarget = true
+        currentHealthes.healthes[unitTarget].current = UnitHealth(unitTarget)
+        currentHealthes.healthes[unitTarget].max = UnitHealthMax(unitTarget)
     else
-        _currentHealthes.healthes[unitTarget].hasTarget = false
-        _currentHealthes.healthes[unitTarget].current = 0
-        _currentHealthes.healthes[unitTarget].max = 0
+        currentHealthes.healthes[unitTarget].hasTarget = false
+        currentHealthes.healthes[unitTarget].current = 0
+        currentHealthes.healthes[unitTarget].max = 0
     end
 end
 
@@ -1230,30 +1232,30 @@ local function watchSpellHealth(id, unitTargets, func)
     if not id then
         return
     end
-    _currentHealthes.spells = _currentHealthes.spells or {}
+    currentHealthes.spells = currentHealthes.spells or {}
 
-    local units = _currentHealthes.spells[id] and _currentHealthes.spells[id].unitTargets or {}
+    local units = currentHealthes.spells[id] and currentHealthes.spells[id].unitTargets or {}
 
-    _currentHealthes.spells[id] = {}
-    _currentHealthes.spells[id].unitTargets = unitTargets or {}
-    _currentHealthes.spells[id].func = func
+    currentHealthes.spells[id] = {}
+    currentHealthes.spells[id].unitTargets = unitTargets or {}
+    currentHealthes.spells[id].func = func
 
-    _currentHealthes.units = _currentHealthes.units or {}
+    currentHealthes.units = currentHealthes.units or {}
     for _, unit in ipairs(units) do
-        if not tcontains(_currentHealthes.spells[id].unitTargets, unit) then
-            _currentHealthes.units[unit] = _currentHealthes.units[unit] or {}
-            _currentHealthes.units[unit][id] = nil
+        if not tcontains(currentHealthes.spells[id].unitTargets, unit) then
+            currentHealthes.units[unit] = currentHealthes.units[unit] or {}
+            currentHealthes.units[unit][id] = nil
         end
     end
-    for _, unit in ipairs(_currentHealthes.spells[id].unitTargets) do
-        _currentHealthes.units[unit] = _currentHealthes.units[unit] or {}
-        _currentHealthes.units[unit][id] = _currentHealthes.spells[id].func
+    for _, unit in ipairs(currentHealthes.spells[id].unitTargets) do
+        currentHealthes.units[unit] = currentHealthes.units[unit] or {}
+        currentHealthes.units[unit][id] = currentHealthes.spells[id].func
     end
 
-    _currentHealthes.healthes = _currentHealthes.healthes or {}
+    currentHealthes.healthes = currentHealthes.healthes or {}
 
-    for _, unitTarget in ipairs(_currentHealthes.spells[id].unitTargets) do
-        if not _currentHealthes.healthes[unitTarget] then
+    for _, unitTarget in ipairs(currentHealthes.spells[id].unitTargets) do
+        if not currentHealthes.healthes[unitTarget] then
             scanCurrentHealth(unitTarget)
         end
     end
@@ -1262,26 +1264,26 @@ end
 
 function H.scanCurrentHealthes(unitTarget)
     local changed = {}
-    if unitTarget and _currentHealthes.units and _currentHealthes.units[unitTarget] then
+    if unitTarget and currentHealthes.units and currentHealthes.units[unitTarget] then
         scanCurrentHealth(unitTarget)
-        for id, func in pairs(_currentHealthes.units[unitTarget]) do
+        for id, func in pairs(currentHealthes.units[unitTarget]) do
             if func then
                 if handleCurrentHealth(id) then
-                    changed[id] = _currentHealthes.spells
-                            and _currentHealthes.spells[id]
-                            and _currentHealthes.spells[id].state
+                    changed[id] = currentHealthes.spells
+                            and currentHealthes.spells[id]
+                            and currentHealthes.spells[id].state
                         or {}
                 end
             end
         end
     else
-        if _currentHealthes.units then
-            for unitTarget, _ in pairs(_currentHealthes.units) do
+        if currentHealthes.units then
+            for unitTarget, _ in pairs(currentHealthes.units) do
                 scanCurrentHealth(unitTarget)
             end
         end
-        if _currentHealthes.spells then
-            for id, cache in pairs(_currentHealthes.spells) do
+        if currentHealthes.spells then
+            for id, cache in pairs(currentHealthes.spells) do
                 if handleCurrentHealth(id) then
                     changed[id] = cache.state or {}
                 end
@@ -1295,39 +1297,39 @@ end
 ---------------- Health ------------------
 
 ---------------- Totem ------------------
-local _currentTotems = {}
+local currentTotems = {}
 
 local function getCurrentTotems(name)
-    if name and _currentTotems.names then
-        return _currentTotems.names[name] or {}
+    if name and currentTotems.names then
+        return currentTotems.names[name] or {}
     end
     return {}
 end
 
 local function handleCurrentTotem(totem, totemSlot)
     if totem and totemSlot then
-        _currentTotems.totems = _currentTotems.totems or {}
-        _currentTotems.totems[totemSlot] = totem
+        currentTotems.totems = currentTotems.totems or {}
+        currentTotems.totems[totemSlot] = totem
 
-        _currentTotems.names = _currentTotems.names or {}
-        _currentTotems.names[totem.name] = _currentTotems.names[totem.name] or {}
-        _currentTotems.names[totem.name][totemSlot] = totem
+        currentTotems.names = currentTotems.names or {}
+        currentTotems.names[totem.name] = currentTotems.names[totem.name] or {}
+        currentTotems.names[totem.name][totemSlot] = totem
     end
 end
 
 local function clearCurrentTotems()
-    _currentTotems = {}
+    currentTotems = {}
 end
 
 local function removeCurrentTotem(totemSlot)
-    if _currentTotems.totems then
-        local totem = _currentTotems.totems[totemSlot]
+    if currentTotems.totems then
+        local totem = currentTotems.totems[totemSlot]
         if totem then
-            if _currentTotems.names and _currentTotems.names[totem.name] then
-                _currentTotems.names[totem.name][totemSlot] = nil
+            if currentTotems.names and currentTotems.names[totem.name] then
+                currentTotems.names[totem.name][totemSlot] = nil
             end
         end
-        _currentTotems.totems[totemSlot] = nil
+        currentTotems.totems[totemSlot] = nil
     end
 end
 
@@ -1367,31 +1369,31 @@ end
 ---------------- Totem ------------------
 
 ---------------- Aura ------------------
-local _currentAuras = {}
-local _unitTarget, _filter
+local currentAuras = {}
+local currentUnitTarget, currentFilter
 
 -- id: precise spellID
 local function getCurrentAuras(unitTarget, filter, id)
     if unitTarget and filter and id then
         if
-            _currentAuras[unitTarget]
-            and _currentAuras[unitTarget][filter]
-            and _currentAuras[unitTarget][filter].spells
+            currentAuras[unitTarget]
+            and currentAuras[unitTarget][filter]
+            and currentAuras[unitTarget][filter].spells
         then
-            return _currentAuras[unitTarget][filter].spells[id] or {}
+            return currentAuras[unitTarget][filter].spells[id] or {}
         end
     end
     return {}
 end
 
 local function handleCurrentAura(aura)
-    if aura and _unitTarget and _filter then
+    if aura and currentUnitTarget and currentFilter then
         aura.spellID = aura.spellId
 
-        _currentAuras[_unitTarget] = _currentAuras[_unitTarget] or {}
-        _currentAuras[_unitTarget][_filter] = _currentAuras[_unitTarget][_filter] or {}
+        currentAuras[currentUnitTarget] = currentAuras[currentUnitTarget] or {}
+        currentAuras[currentUnitTarget][currentFilter] = currentAuras[currentUnitTarget][currentFilter] or {}
 
-        local cache = _currentAuras[_unitTarget][_filter]
+        local cache = currentAuras[currentUnitTarget][currentFilter]
 
         cache.auras = cache.auras or {}
         cache.auras[aura.auraInstanceID] = aura
@@ -1403,26 +1405,26 @@ local function handleCurrentAura(aura)
 end
 
 local function clearCurrentAuras(unitTarget, filter)
-    _currentAuras[unitTarget] = _currentAuras[unitTarget] or {}
-    _currentAuras[unitTarget][filter] = nil
+    currentAuras[unitTarget] = currentAuras[unitTarget] or {}
+    currentAuras[unitTarget][filter] = nil
 end
 
 local function removeCurrentAura(unitTarget, filter, auraInstanceID)
-    if _currentAuras[unitTarget] and _currentAuras[unitTarget][filter] and _currentAuras[unitTarget][filter].auras then
-        local aura = _currentAuras[unitTarget][filter].auras[auraInstanceID]
+    if currentAuras[unitTarget] and currentAuras[unitTarget][filter] and currentAuras[unitTarget][filter].auras then
+        local aura = currentAuras[unitTarget][filter].auras[auraInstanceID]
         if aura then
-            if _currentAuras[unitTarget][filter].spells and _currentAuras[unitTarget][filter].spells[aura.spellID] then
-                _currentAuras[unitTarget][filter].spells[aura.spellID][auraInstanceID] = nil
+            if currentAuras[unitTarget][filter].spells and currentAuras[unitTarget][filter].spells[aura.spellID] then
+                currentAuras[unitTarget][filter].spells[aura.spellID][auraInstanceID] = nil
             end
         end
-        _currentAuras[unitTarget][filter].auras[auraInstanceID] = nil
+        currentAuras[unitTarget][filter].auras[auraInstanceID] = nil
     end
 end
 
 local function scanFilterCurrentAuras(unitTarget, filter, updateInfo)
     if UnitExists(unitTarget) and filter then
-        _unitTarget = unitTarget
-        _filter = filter
+        currentUnitTarget = unitTarget
+        currentFilter = filter
         if updateInfo and not updateInfo.isFullUpdate then
             if updateInfo.addedAuras then
                 for _, aura in ipairs(updateInfo.addedAuras) do
@@ -1563,8 +1565,10 @@ local function getSpell(env, cache, config, id)
 
     if config.range then
         local range = getCurrentRange(id) or {}
-        if range["target"] then
-            isSpellInRange = range["target"] or true
+
+        isSpellInRange = range["target"]
+        if isSpellInRange == nil then
+            isSpellInRange = true
         end
     end
 
@@ -1601,21 +1605,19 @@ local function getTotem(env, cache, config)
 
     for _, c in ipairs(config) do
         local name = c.name or ""
-        if name == "" then
-            goto get_totem
-        end
-        for _, info in pairs(getCurrentTotems(name)) do
-            if info and info.name == name then
-                table.insert(matchedTotems, {
-                    id = name,
-                    name = info.name,
-                    duration = info.duration,
-                    expirationTime = info.expirationTime,
-                    icon = info.icon,
-                })
+        if name ~= "" then
+            for _, info in pairs(getCurrentTotems(name)) do
+                if info and info.name == name then
+                    table.insert(matchedTotems, {
+                        id = name,
+                        name = info.name,
+                        duration = info.duration,
+                        expirationTime = info.expirationTime,
+                        icon = info.icon,
+                    })
+                end
             end
         end
-        ::get_totem::
     end
 
     for _, totem in ipairs(matchedTotems) do
@@ -1634,36 +1636,34 @@ local function getAura(env, cache, config)
     -- Find current auras.
     for _, c in ipairs(config) do
         local id = c.id or 0
-        if id == 0 then
-            goto get_aura
-        end
-        local filter
-        if c.type == 1 then
-            filter = "HELPFUL"
-        else
-            filter = "HARMFUL"
-        end
-        for _, unitTarget in ipairs(c.unit_targets or {}) do
-            for _, info in pairs(getCurrentAuras(unitTarget, filter, id)) do
-                if info and tcontains(c.source_units, info.sourceUnit) then
-                    table.insert(matchedAuras, {
-                        id = id,
-                        unitTarget = unitTarget,
-                        applications = info.applications,
-                        auraInstanceID = info.auraInstanceID,
-                        charges = info.charges,
-                        duration = info.duration,
-                        expirationTime = info.expirationTime,
-                        icon = info.icon,
-                        maxCharges = info.maxCharges,
-                        points = info.points,
-                        sourceUnit = info.sourceUnit,
-                        spellID = info.spellID,
-                    })
+        if id ~= 0 then
+            local filter
+            if c.type == 1 then
+                filter = "HELPFUL"
+            else
+                filter = "HARMFUL"
+            end
+            for _, unitTarget in ipairs(c.unit_targets or {}) do
+                for _, info in pairs(getCurrentAuras(unitTarget, filter, id)) do
+                    if info and tcontains(c.source_units, info.sourceUnit) then
+                        table.insert(matchedAuras, {
+                            id = id,
+                            unitTarget = unitTarget,
+                            applications = info.applications,
+                            auraInstanceID = info.auraInstanceID,
+                            charges = info.charges,
+                            duration = info.duration,
+                            expirationTime = info.expirationTime,
+                            icon = info.icon,
+                            maxCharges = info.maxCharges,
+                            points = info.points,
+                            sourceUnit = info.sourceUnit,
+                            spellID = info.spellID,
+                        })
+                    end
                 end
             end
         end
-        ::get_aura::
     end
 
     for _, aura in ipairs(matchedAuras) do
@@ -1959,15 +1959,13 @@ function H.initAuraState(env, config)
     local matchedAura = {}
     for _, c in ipairs(config.aura or {}) do
         local id = c.id or 0
-        if id == 0 then
-            goto init_aura_states
+        if id ~= 0 then
+            for _, unit in ipairs(c.unit_targets or {}) do
+                matchedAura[unit] = matchedAura[unit] or {}
+                -- Insert id into unit-ids map.
+                table.insert(matchedAura[unit], id)
+            end
         end
-        for _, unit in ipairs(c.unit_targets or {}) do
-            matchedAura[unit] = matchedAura[unit] or {}
-            -- Insert id into unit-ids map.
-            table.insert(matchedAura[unit], id)
-        end
-        ::init_aura_states::
     end
 
     cache.matchedAura = matchedAura
