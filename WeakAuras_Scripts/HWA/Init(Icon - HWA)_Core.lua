@@ -1,35 +1,47 @@
 --[[
 - Demo:
-strategy = {
-    {
-        func = function(env, stateGroup)
+{
+    show = {
+        func = function(id)
             local H = HWA or {}
-            if H.getDefaultCoreStrategyState then
-                return H.getDefaultCoreStrategyState(env, stateGroup)
+            if H.getIsSpellKnownStateShow then
+                return H.getIsSpellKnownStateShow(id)
             end
         end,
     },
-    {
-        func = function(env, stateGroup)
-            local H = HWA or {}
-            if H.getNormalCoreStrategyState then
-                return H.getNormalCoreStrategyState(env, stateGroup)
-            end
-        end,
-    },
-    {
-        func = function(env, stateGroup)
-            if HWA and HWA.getNoticeCoreStrategyState then
-                return HWA.getNoticeCoreStrategyState(env, stateGroup)
-            end
-        end,
-    },
-    {
-        func = function(env, stateGroup)
-            if HWA and HWA.getImportantCoreStrategyState then
-                return HWA.getImportantCoreStrategyState(env, stateGroup)
-            end
-        end,
+    strategy = {
+        {
+            func = function(env, stateGroup)
+                local H = HWA or {}
+                if H.getDefaultCoreStrategyState then
+                    return H.getDefaultCoreStrategyState(env, stateGroup)
+                end
+            end,
+        },
+        {
+            func = function(env, stateGroup)
+                local H = HWA or {}
+                if H.getNormalCoreStrategyState then
+                    return H.getNormalCoreStrategyState(env, stateGroup)
+                end
+            end,
+        },
+        {
+            func = function(env, stateGroup)
+                local H = HWA or {}
+                if H.getNoticeCoreStrategyState then
+                    return H.getNoticeCoreStrategyState(env, stateGroup)
+                end
+            end,
+        },
+        {
+            func = function(env, stateGroup)
+                local H = HWA or {}
+                if H.getImportantCoreStrategyState then
+                    return H.getImportantCoreStrategyState(env, stateGroup)
+                end
+            end,
+        },
     },
 }
 --]]
@@ -72,6 +84,7 @@ env.info = {
             },
         },
         show = {
+            func = nil,
             value = 0, -- 1 for show, -1 for hide, 0 for default
             form = {
                 [0] = {
@@ -109,15 +122,3 @@ env.info = {
         },
     },
 }
-
-if H.loadFunction then
-    local config = env.config and env.config.info or {}
-    for _, c in ipairs(config) do
-        if c.data then
-            local data = H.loadFunction(c.data)
-            if data then
-                table.insert(env.info, data)
-            end
-        end
-    end
-end

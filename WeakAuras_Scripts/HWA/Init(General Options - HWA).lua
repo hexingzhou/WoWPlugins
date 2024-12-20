@@ -683,34 +683,6 @@ local function tmerge(...)
 
     return tr
 end
-
-local function createFunctionCache()
-    local cache = {
-        funcs = setmetatable({}, { __mode = "v" }),
-    }
-    cache.load = function(self, string, silent)
-        if self.funcs[string] then
-            return self.funcs[string]
-        else
-            local loadedFunction, errorString = loadstring(string, firstLine(string))
-            if errorString then
-                if not silent then
-                    print(errorString)
-                end
-                return nil, errorString
-            elseif loadedFunction then
-                --- @cast loadedFunction -nil
-                local success, func = pcall(assert(loadedFunction))
-                if success then
-                    self.funcs[string] = func
-                    return func
-                end
-            end
-        end
-    end
-    return cache
-end
-local function_cache_custom = createFunctionCache()
 ---------------- Global ------------------
 
 ---------------- Base ------------------
@@ -904,10 +876,6 @@ H.bit = {
     end,
 }
 
-function H.loadFunction(str)
-    return function_cache_custom:load(str)
-end
-
 -- 1: solo
 -- 5: party
 -- 20: mythic raid
@@ -947,9 +915,14 @@ local function getLocalGroupID()
     end
 end
 
-local function getStateShow(config)
+local function getStateShow(config, id)
     if not config then
         return true
+    end
+
+    local check = config.func and config.func(id)
+    if check == false then
+        return false
     end
 
     local specID = env.specID or 0
@@ -984,6 +957,13 @@ local function getStateShow(config)
     else
         return true
     end
+end
+
+function H.getIsSpellKnownStateShow(id)
+    if not id then
+        return true
+    end
+    return IsPlayerSpell(id)
 end
 
 -- The init value is used to trigger group grow.
@@ -1053,7 +1033,7 @@ local function updateEnv()
     return update
 end
 
-function H.getLocalConfig(config, key, specID, groupID, formID)
+local function getLocalConfig(config, key, specID, groupID, formID)
     if not config then
         return {}
     end
@@ -1093,15 +1073,15 @@ function H.getConfig(key, class)
     config[specID][groupID] = config[specID][groupID] or {}
     config[specID][groupID][formID] = config[specID][groupID][formID] or {}
     if not config[specID][groupID][formID][key] or WeakAuras.IsOptionsOpen() then
-        config[specID][groupID][formID][key] = H.getLocalConfig(default, key, specID, groupID, formID)
+        config[specID][groupID][formID][key] = getLocalConfig(default, key, specID, groupID, formID)
         config[specID][groupID][formID][key] = tmerge(
             config[specID][groupID][formID][key],
-            H.getLocalConfig(H.configs["GENERAL"], key, specID, groupID, formID)
+            getLocalConfig(H.configs["GENERAL"], key, specID, groupID, formID)
         )
         if class then
             config[specID][groupID][formID][key] = tmerge(
                 config[specID][groupID][formID][key],
-                H.getLocalConfig(H.configs[class], key, specID, groupID, formID)
+                getLocalConfig(H.configs[class], key, specID, groupID, formID)
             )
         end
     end
@@ -1713,14 +1693,7 @@ local function getPower(env, config, type)
 end
 
 local function getStrategyFunc(env, strategy)
-    if strategy then
-        if strategy.func then
-            return strategy.func
-        end
-        if strategy.func_string then
-            return loadFunction(strategy.func_string)
-        end
-    end
+    return strategy and strategy.func
 end
 
 function H.getDefaultSpellStrategyState(env, stateGroup, glow)
@@ -1757,8 +1730,9 @@ local function getSpellStrategyState(env, strategy, spell)
 end
 
 function H.getSpellState(env, cache, config)
+    local cache = cache or {}
     local config = config or {}
-    if not getStateShow(config.show) then
+    if not getStateShow(config.show, cache.id) then
         return true, nil
     end
 
@@ -2143,7 +2117,7 @@ local function getCoreState(env, cache, config, id)
     end
 
     local config = config or {}
-    if not getStateShow(config.show) then
+    if not getStateShow(config.show, id) then
         return true, nil
     end
 
@@ -2154,13 +2128,13 @@ local function getCoreState(env, cache, config, id)
         state.priority = getStatePriority(config.priority) or 0
         state.init = getStateInit() or 0
 
-        local totemStates
+        local totemResult, totemStates
         if config.totem then
-            _, totemStates = getTotemStates(env, cache, config.totem)
+            totemResult, totemStates = getTotemStates(env, cache, config.totem)
         end
-        local auraStates
+        local auraResult, auraStates
         if config.aura then
-            _, auraStates = getAuraStates(env, cache, config.aura)
+            auraResult, auraStates = getAuraStates(env, cache, config.aura)
         end
         local r, s = getCoreStrategyState(env, config.strategy, state, totemStates, auraStates)
         if r and s then
@@ -2321,13 +2295,13 @@ local function getDynamicEffectState(env, cache, config)
 
     local cache = cache or {}
 
-    local totemStates
+    local totemResult, totemStates
     if config.totem then
-        _, totemStates = getTotemStates(env, cache, config.totem)
+        totemResult, totemStates = getTotemStates(env, cache, config.totem)
     end
-    local auraStates
+    local auraResult, auraStates
     if config.aura then
-        _, auraStates = getAuraStates(env, cache, config.aura)
+        auraResult, auraStates = getAuraStates(env, cache, config.aura)
     end
     local result, state = getDynamicEffectStrategyState(env, config.strategy, totemStates, auraStates)
     if result and state then

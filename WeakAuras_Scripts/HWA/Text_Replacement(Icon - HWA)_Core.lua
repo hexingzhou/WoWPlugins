@@ -17,7 +17,10 @@ function()
                 cooldown = 0
             end
         end
-        local stacks = env.state.subStacks or 0
+        local stacks = env.state.subStacks
+        if stacks == 0 then
+            stacks = nil
+        end
 
         return cooldown, stacks
     end

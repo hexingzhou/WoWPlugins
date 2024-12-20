@@ -27,6 +27,7 @@ env.info = {
             },
         },
         show = {
+            func = nil,
             value = 0, -- 1 for show, -1 for hide, 0 for default
             form = {
                 [0] = {
@@ -64,15 +65,3 @@ env.info = {
         },
     },
 }
-
-if H.loadFunction then
-    local config = env.config and env.config.info or {}
-    for _, c in ipairs(config) do
-        if c.data then
-            local data = H.loadFunction(c.data)
-            if data then
-                table.insert(env.info, data)
-            end
-        end
-    end
-end
