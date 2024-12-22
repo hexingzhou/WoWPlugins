@@ -15,7 +15,6 @@ env.info = {
                 aura = {}, -- Example: { id_x, id_y }, id_x is the value of aura[x].id
             },
             func = nil, -- function() end
-            func_string = nil, -- ""
         },
     },
     show = {

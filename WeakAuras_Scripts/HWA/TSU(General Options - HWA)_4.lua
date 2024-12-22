@@ -15,7 +15,7 @@ function(states, event, ...)
     local time = env.time[key] or 0
 
     local now = GetTime()
-    if now - time > 0.2 then
+    if now - time > 0.1 then
         H.scanCurrentRanges()
         env.time[key] = now
     end

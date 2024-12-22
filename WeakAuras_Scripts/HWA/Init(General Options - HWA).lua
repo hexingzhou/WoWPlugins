@@ -1537,10 +1537,10 @@ local function getSpell(env, cache, config, id)
             if not gcdCooldownInfo or gcdCooldownInfo.duration ~= spellCooldownInfo.duration then
                 duration = spellCooldownInfo.duration
                 expirationTime = spellCooldownInfo.startTime + spellCooldownInfo.duration
+                charges = 0
             end
         end
         stacks = C_Spell.GetSpellCastCount(spell)
-        charges = 0
     end
 
     if config.range then

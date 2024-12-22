@@ -80,7 +80,6 @@ env.info = {
                     totem = {}, -- Example: { name_x, name_y }, id_y is the value of totem[x].name
                 },
                 func = nil, -- function() end
-                func_string = nil, -- ""
             },
         },
         show = {

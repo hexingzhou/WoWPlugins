@@ -13,7 +13,6 @@ env.info = {
                 totem = {}, -- Example: { name_x, name_y }, name_x is the value of totem[x].name
             },
             func = nil, -- function() end
-            func_string = nil, -- ""
         },
     },
     show = {

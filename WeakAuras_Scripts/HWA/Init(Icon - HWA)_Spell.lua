@@ -8,7 +8,11 @@ env.info = {
         range = false,
         health = {
             func = nil,
-            func_string = nil,
+        },
+    },
+    strategy = {
+        {
+            func = nil,
         },
     },
     show = {
@@ -46,12 +50,6 @@ env.info = {
                     },
                 },
             },
-        },
-    },
-    strategy = {
-        {
-            func = nil,
-            func_string = nil,
         },
     },
 }
