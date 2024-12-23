@@ -922,8 +922,10 @@ local function getStateShow(config, id)
 
     local check = config.func and config.func(id)
     if check == false then
-        return false
+        return false, false
     end
+
+    local dynamic = config.dynamic or false
 
     local specID = env.specID or 0
     local formID = env.formID or 0
@@ -953,9 +955,9 @@ local function getStateShow(config, id)
         end
     end
     if value < 0 then
-        return false
+        return false, dynamic
     else
-        return true
+        return true, dynamic
     end
 end
 
@@ -1124,18 +1126,7 @@ local function scanCurrentRange(unitTarget, id)
         return true
     end
 
-    local spell = id
-    local spellInfo = C_Spell.GetSpellInfo(spell)
-    if spellInfo then
-        if not cache.precise and spellInfo.name then
-            spell = spellInfo.name
-            spellInfo = C_Spell.GetSpellInfo(spell)
-        end
-    end
-
-    if not spellInfo then
-        return true
-    end
+    local spell = cache.name or id
 
     local range = C_Spell.IsSpellInRange(spell, unitTarget)
     if range == nil then
@@ -1144,12 +1135,19 @@ local function scanCurrentRange(unitTarget, id)
     return range
 end
 
-local function watchSpellRange(id, precise, unitTargets)
+local function removeSpellRange(id)
+    if not id then
+        return
+    end
+    currentRanges[id] = nil
+end
+
+local function watchSpellRange(id, name, unitTargets)
     if not id then
         return
     end
     currentRanges[id] = {}
-    currentRanges[id].precise = precise or false
+    currentRanges[id].name = name
     currentRanges[id].unitTargets = unitTargets or {}
 
     for _, unitTarget in ipairs(currentRanges[id].unitTargets) do
@@ -1208,6 +1206,21 @@ local function scanCurrentHealth(unitTarget)
     end
 end
 
+local function removeSpellHealth(id)
+    if not id then
+        return
+    end
+
+    if currentHealthes.spells then
+        currentHealthes.spells[id] = nil
+    end
+    if currentHealthes.units then
+        for _, ids in pairs(currentHealthes.units) do
+            ids[id] = nil
+        end
+    end
+end
+
 local function watchSpellHealth(id, unitTargets, func)
     if not id then
         return
@@ -1244,16 +1257,12 @@ end
 
 function H.scanCurrentHealthes(unitTarget)
     local changed = {}
-    if unitTarget and currentHealthes.units and currentHealthes.units[unitTarget] then
+    if unitTarget and next(currentHealthes.units and currentHealthes.units[unitTarget] or {}) then
         scanCurrentHealth(unitTarget)
-        for id, func in pairs(currentHealthes.units[unitTarget]) do
-            if func then
-                if handleCurrentHealth(id) then
-                    changed[id] = currentHealthes.spells
-                            and currentHealthes.spells[id]
-                            and currentHealthes.spells[id].state
-                        or {}
-                end
+        for id, _ in pairs(currentHealthes.units[unitTarget]) do
+            if handleCurrentHealth(id) then
+                changed[id] = currentHealthes.spells and currentHealthes.spells[id] and currentHealthes.spells[id].state
+                    or {}
             end
         end
     else
@@ -1454,8 +1463,9 @@ end
 ---------------- Aura ------------------
 
 ---------------- Trigger ------------------
-local function initSpell(env, config, id)
+local function initSpell(env, showConfig, config, id)
     local config = config or {}
+
     local id = id or 0
     if id == 0 then
         id = config.id or 0
@@ -1464,26 +1474,53 @@ local function initSpell(env, config, id)
             id = tonumber(value) or 0
         end
     end
-    if id ~= 0 then
-        WeakAuras.WatchSpellCooldown(id)
-    end
-    if config.range then
-        watchSpellRange(id, config.precise or false, { "target" })
-    end
-    if config.health then
-        local func = config.health.func
-        if not func then
-            local s = config.health.func_string
-            if s then
-                func = loadFunction(s)
-            end
-        end
-        if func then
-            watchSpellHealth(id, { "target" }, func)
-        end
+
+    if id == 0 then
+        return {}
     end
 
-    return id
+    local show, dynamic, name
+
+    local spellInfo = C_Spell.GetSpellInfo(id)
+    if spellInfo then
+        if config.precise then
+            show, dynamic = getStateShow(showConfig, id)
+        else
+            name = spellInfo.name
+            spellInfo = C_Spell.GetSpellInfo(name)
+            if spellInfo then
+                show, dynamic = getStateShow(showConfig, id)
+            else
+                show, dynamic = false, false
+            end
+        end
+    else
+        show, dynamic = false, false
+    end
+
+    if dynamic or show then
+        WeakAuras.WatchSpellCooldown(id)
+        if config.range then
+            watchSpellRange(id, name, { "target" })
+        else
+            removeSpellRange(id)
+        end
+        if config.health and config.health.func then
+            watchSpellHealth(id, { "target" }, config.health.func)
+        else
+            removeSpellHealth(id)
+        end
+    else
+        removeSpellRange(id)
+        removeSpellHealth(id)
+    end
+
+    return {
+        id = id,
+        show = show,
+        dynamic = dynamic,
+        name = name,
+    }
 end
 
 -- Get spell info.
@@ -1493,21 +1530,15 @@ local function getSpell(env, cache, config, id)
         return false
     end
 
+    local cache = cache or {}
     local config = config or {}
 
-    local spell = id
+    local spell = cache.name or id
+
     local spellInfo = C_Spell.GetSpellInfo(spell)
-    if spellInfo then
-        if not config.precise and spellInfo.name then
-            spell = spellInfo.name
-            spellInfo = C_Spell.GetSpellInfo(spell)
-        end
-    end
 
     if not spellInfo then
-        if cache then
-            cache.spell = nil
-        end
+        cache.spell = nil
         return true, nil
     end
 
@@ -1570,9 +1601,7 @@ local function getSpell(env, cache, config, id)
         gcd = config.gcd or false,
     }
 
-    if cache then
-        cache.spell = state
-    end
+    cache.spell = state
 
     return true, state
 end
@@ -1704,11 +1733,7 @@ end
 
 function H.initSpellState(env, config)
     local config = config or {}
-    local cache = {}
-
-    cache.id = initSpell(env, config)
-
-    return cache
+    return initSpell(env, config.show, config.spell)
 end
 
 local function getSpellStrategyState(env, strategy, spell)
@@ -1732,11 +1757,14 @@ end
 function H.getSpellState(env, cache, config)
     local cache = cache or {}
     local config = config or {}
-    if not getStateShow(config.show, cache.id) then
+
+    local show, dynamic = cache.show or false, cache.dynamic or false
+    if dynamic then
+        show, dynamic = getStateShow(config.show, cache.id)
+    end
+    if not show then
         return true, nil
     end
-
-    local cache = cache or {}
 
     local result, state = getSpell(env, cache, config.spell, cache.id)
     if result and state then
@@ -1756,7 +1784,9 @@ end
 
 function H.getPowerStates(env, config, type)
     local config = config or {}
-    if not getStateShow(config.show) then
+
+    local show, _ = getStateShow(config.show)
+    if not show then
         return true, nil
     end
 
@@ -1816,6 +1846,7 @@ function H.initTotemState(env, config)
     local config = config or {}
     local cache = {}
 
+    local show, dynamic = getStateShow(config.show)
     local matchedTotem = {}
     for _, c in ipairs(config.totem or {}) do
         local name = c.name or ""
@@ -1824,6 +1855,8 @@ function H.initTotemState(env, config)
         end
     end
 
+    cache.show = show
+    cache.dynamic = dynamic
     cache.matchedTotem = matchedTotem
 
     return cache
@@ -1868,8 +1901,14 @@ local function getTotemStates(env, cache, config)
 end
 
 function H.getTotemState(env, cache, config)
+    local cache = cache or {}
     local config = config or {}
-    if not getStateShow(config.show) then
+
+    local show, dynamic = cache.show or false, cache.dynamic or false
+    if dynamic then
+        show, dynamic = getStateShow(config.show)
+    end
+    if not show then
         return true, nil
     end
 
@@ -1930,6 +1969,7 @@ function H.initAuraState(env, config)
     local config = config or {}
     local cache = {}
 
+    local show, dynamic = getStateShow(config.show)
     local matchedAura = {}
     for _, c in ipairs(config.aura or {}) do
         local id = c.id or 0
@@ -1942,6 +1982,8 @@ function H.initAuraState(env, config)
         end
     end
 
+    cache.show = show
+    cache.dynamic = dynamic
     cache.matchedAura = matchedAura
 
     return cache
@@ -1986,8 +2028,14 @@ local function getAuraStates(env, cache, config)
 end
 
 function H.getAuraState(env, cache, config)
+    local cache = cache or {}
     local config = config or {}
-    if not getStateShow(config.show) then
+
+    local show, dynamic = cache.show or false, cache.dynamic or false
+    if dynamic then
+        show, dynamic = getStateShow(config.show)
+    end
+    if not show then
         return true, nil
     end
 
@@ -2032,10 +2080,10 @@ function H.initCoreStates(env, config)
     local matchedAura = {}
 
     for i, c in ipairs(config) do
-        local id = initSpell(env, c.spell)
+        local init = initSpell(env, c.show, c.spell)
+        local id = init and init.id or 0
         if id ~= 0 then
-            data[id] = {}
-            data[id].id = id
+            data[id] = init
             data[id].info = c
             data[id].index = i
             if c.totem then
@@ -2116,12 +2164,16 @@ local function getCoreState(env, cache, config, id)
         return false
     end
 
+    local cache = cache or {}
     local config = config or {}
-    if not getStateShow(config.show, id) then
+
+    local show, dynamic = cache.show or false, cache.dynamic or false
+    if dynamic then
+        show, dynamic = getStateShow(config.show, id)
+    end
+    if not show then
         return true, nil
     end
-
-    local cache = cache or {}
 
     local result, state = getSpell(env, cache, config.spell, id)
     if result and state then
@@ -2214,7 +2266,10 @@ function H.initDynamicEffectStates(env, config)
     local matchedAura = {}
 
     for i, c in ipairs(config) do
+        local show, dynamic = getStateShow(c.show)
         data[i] = {}
+        data[i].show = show
+        data[i].dynamic = dynamic
         data[i].info = c
         data[i].index = i
 
@@ -2288,12 +2343,16 @@ local function getDynamicEffectStrategyState(env, strategy, totems, auras)
 end
 
 local function getDynamicEffectState(env, cache, config)
+    local cache = cache or {}
     local config = config or {}
-    if not getStateShow(config.show) then
+
+    local show, dynamic = cache.show or false, cache.dynamic or false
+    if dynamic then
+        show, dynamic = getStateShow(config.show)
+    end
+    if not show then
         return true, nil
     end
-
-    local cache = cache or {}
 
     local totemResult, totemStates
     if config.totem then

@@ -19,6 +19,7 @@ env.info = {
     },
     show = {
         func = nil,
+        dynamic = false, -- Set true, if using form
         value = 0, -- 1 for show, -1 for hide, 0 for default
         form = {
             [0] = {
