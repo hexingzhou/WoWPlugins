@@ -925,7 +925,13 @@ local function checkStateShow(config, id)
         return false, false
     end
 
-    local dynamic = config.dynamic or false
+    local specID = env.specID or 0
+
+    local dynamic = false
+
+    if next(config.form or {}) or next(config.spec and config.spec[specID] and config.spec[specID].form or {}) then
+        dynamic = true
+    end
 
     return getStateShow(config), dynamic
 end
