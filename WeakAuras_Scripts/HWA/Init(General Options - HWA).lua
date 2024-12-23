@@ -915,9 +915,9 @@ local function getLocalGroupID()
     end
 end
 
-local function getStateShow(config, id)
+local function checkStateShow(config, id)
     if not config then
-        return true
+        return true, false
     end
 
     local check = config.func and config.func(id)
@@ -926,6 +926,14 @@ local function getStateShow(config, id)
     end
 
     local dynamic = config.dynamic or false
+
+    return getStateShow(config), dynamic
+end
+
+local function getStateShow(config)
+    if not config then
+        return true
+    end
 
     local specID = env.specID or 0
     local formID = env.formID or 0
@@ -955,9 +963,9 @@ local function getStateShow(config, id)
         end
     end
     if value < 0 then
-        return false, dynamic
+        return false
     else
-        return true, dynamic
+        return true
     end
 end
 
@@ -1484,12 +1492,12 @@ local function initSpell(env, showConfig, config, id)
     local spellInfo = C_Spell.GetSpellInfo(id)
     if spellInfo then
         if config.precise then
-            show, dynamic = getStateShow(showConfig, id)
+            show, dynamic = checkStateShow(showConfig, id)
         else
             name = spellInfo.name
             spellInfo = C_Spell.GetSpellInfo(name)
             if spellInfo then
-                show, dynamic = getStateShow(showConfig, id)
+                show, dynamic = checkStateShow(showConfig, id)
             else
                 show, dynamic = false, false
             end
@@ -1758,9 +1766,11 @@ function H.getSpellState(env, cache, config)
     local cache = cache or {}
     local config = config or {}
 
-    local show, dynamic = cache.show or false, cache.dynamic or false
-    if dynamic then
-        show, dynamic = getStateShow(config.show, cache.id)
+    local show
+    if cache.dynamic then
+        show = getStateShow(config.show)
+    else
+        show = cache.show
     end
     if not show then
         return true, nil
@@ -1785,7 +1795,7 @@ end
 function H.getPowerStates(env, config, type)
     local config = config or {}
 
-    local show, _ = getStateShow(config.show)
+    local show = getStateShow(config.show)
     if not show then
         return true, nil
     end
@@ -1846,7 +1856,7 @@ function H.initTotemState(env, config)
     local config = config or {}
     local cache = {}
 
-    local show, dynamic = getStateShow(config.show)
+    local show, dynamic = checkStateShow(config.show)
     local matchedTotem = {}
     for _, c in ipairs(config.totem or {}) do
         local name = c.name or ""
@@ -1904,9 +1914,11 @@ function H.getTotemState(env, cache, config)
     local cache = cache or {}
     local config = config or {}
 
-    local show, dynamic = cache.show or false, cache.dynamic or false
-    if dynamic then
-        show, dynamic = getStateShow(config.show)
+    local show
+    if cache.dynamic then
+        show = getStateShow(config.show)
+    else
+        show = cache.show
     end
     if not show then
         return true, nil
@@ -1969,7 +1981,7 @@ function H.initAuraState(env, config)
     local config = config or {}
     local cache = {}
 
-    local show, dynamic = getStateShow(config.show)
+    local show, dynamic = checkStateShow(config.show)
     local matchedAura = {}
     for _, c in ipairs(config.aura or {}) do
         local id = c.id or 0
@@ -2031,9 +2043,11 @@ function H.getAuraState(env, cache, config)
     local cache = cache or {}
     local config = config or {}
 
-    local show, dynamic = cache.show or false, cache.dynamic or false
-    if dynamic then
-        show, dynamic = getStateShow(config.show)
+    local show
+    if cache.dynamic then
+        show = getStateShow(config.show)
+    else
+        show = cache.show
     end
     if not show then
         return true, nil
@@ -2167,9 +2181,11 @@ local function getCoreState(env, cache, config, id)
     local cache = cache or {}
     local config = config or {}
 
-    local show, dynamic = cache.show or false, cache.dynamic or false
-    if dynamic then
-        show, dynamic = getStateShow(config.show, id)
+    local show
+    if cache.dynamic then
+        show = getStateShow(config.show)
+    else
+        show = cache.show
     end
     if not show then
         return true, nil
@@ -2266,7 +2282,7 @@ function H.initDynamicEffectStates(env, config)
     local matchedAura = {}
 
     for i, c in ipairs(config) do
-        local show, dynamic = getStateShow(c.show)
+        local show, dynamic = checkStateShow(c.show)
         data[i] = {}
         data[i].show = show
         data[i].dynamic = dynamic
@@ -2346,9 +2362,11 @@ local function getDynamicEffectState(env, cache, config)
     local cache = cache or {}
     local config = config or {}
 
-    local show, dynamic = cache.show or false, cache.dynamic or false
-    if dynamic then
-        show, dynamic = getStateShow(config.show)
+    local show
+    if cache.dynamic then
+        show = getStateShow(config.show)
+    else
+        show = cache.show
     end
     if not show then
         return true, nil
