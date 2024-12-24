@@ -915,27 +915,6 @@ local function getLocalGroupID()
     end
 end
 
-local function checkStateShow(config, id)
-    if not config then
-        return true, false
-    end
-
-    local check = config.func and config.func(id)
-    if check == false then
-        return false, false
-    end
-
-    local specID = env.specID or 0
-
-    local dynamic = false
-
-    if next(config.form or {}) or next(config.spec and config.spec[specID] and config.spec[specID].form or {}) then
-        dynamic = true
-    end
-
-    return getStateShow(config), dynamic
-end
-
 local function getStateShow(config)
     if not config then
         return true
@@ -973,6 +952,46 @@ local function getStateShow(config)
     else
         return true
     end
+end
+
+local function checkStateShow(config, id)
+    if not config then
+        return true, false
+    end
+
+    local check = config.func and config.func(id)
+    if check == false then
+        return false, false
+    end
+
+    local specID = env.specID or 0
+
+    local dynamic
+    local sConfig = config.spec and config.spec[specID]
+    if sConfig then
+        if next(sConfig.form or {}) then
+            dynamic = true
+        else
+            local value = sConfig.value or 0
+            if value ~= 0 then
+                dynamic = false
+            else
+                if next(config.form or {}) then
+                    dynamic = true
+                else
+                    dynamic = false
+                end
+            end
+        end
+    else
+        if next(config.form or {}) then
+            dynamic = true
+        else
+            dynamic = false
+        end
+    end
+
+    return getStateShow(config), dynamic
 end
 
 function H.getIsSpellKnownStateShow(id)
