@@ -915,6 +915,22 @@ local function getLocalGroupID()
     end
 end
 
+function H.getFixedLocalGroupID()
+    local id = getLocalGroupID() or 0
+    if id > 1 and id < 40 then
+        return 5
+    end
+    return id
+end
+
+function H.getFixedShapeshiftFormID()
+    local id = GetShapeshiftFormID() or 0
+    if id > 30 and id < 36 then
+        return 31
+    end
+    return id
+end
+
 local function getStateShow(config)
     if not config then
         return true
@@ -1054,12 +1070,12 @@ local function updateEnv()
         env.specID = specID
         update = true
     end
-    local groupID = getLocalGroupID() or 0
+    local groupID = H.getFixedLocalGroupID() or 0
     if env.groupID ~= groupID then
         env.groupID = groupID
         update = true
     end
-    local formID = GetShapeshiftFormID() or 0
+    local formID = H.getFixedShapeshiftFormID() or 0
     if env.formID ~= formID then
         env.formID = formID
         update = true

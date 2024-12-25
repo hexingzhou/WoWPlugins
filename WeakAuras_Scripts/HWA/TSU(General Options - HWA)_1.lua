@@ -33,7 +33,7 @@ function(states, event, ...)
             WeakAuras.ScanEvents("HWA_INIT", true)
         end)
     elseif "UPDATE_SHAPESHIFT_FORM" == event then
-        local formID = GetShapeshiftFormID() or 0
+        local formID = H.getFixedShapeshiftFormID() or 0
         if env.formID ~= formID then
             env.formID = formID
             WeakAuras.ScanEvents("HWA_UPDATE", "form")
