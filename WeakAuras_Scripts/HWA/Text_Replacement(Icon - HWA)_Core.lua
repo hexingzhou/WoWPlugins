@@ -8,11 +8,6 @@ function()
         local cooldown = env.state.subExpirationTime or 0
         if cooldown > 0 then
             cooldown = cooldown - GetTime()
-            if cooldown < -0.5 then
-                if HWA and HWA.initCurrentAuras then
-                    HWA.initCurrentAuras()
-                end
-            end
             if cooldown < 0 then
                 cooldown = 0
             end

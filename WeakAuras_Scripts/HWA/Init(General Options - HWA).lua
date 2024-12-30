@@ -175,30 +175,6 @@ local default = {
                         y_offset = 149,
                     },
                 },
-                [20] = {
-                    core = {
-                        y_offset = 73,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 149,
-                    },
-                },
-                [30] = {
-                    core = {
-                        y_offset = 73,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 149,
-                    },
-                },
             },
         },
         [105] = { -- For Druid Restoration
@@ -220,66 +196,6 @@ local default = {
             },
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
-                    },
-                    form = {
-                        [1] = {
-                            core = {
-                                y_offset = 83,
-                            },
-                            dynamic_effects = {
-                                y_offset = 159,
-                            },
-                        },
-                        [5] = {
-                            core = {
-                                y_offset = 83,
-                            },
-                            dynamic_effects = {
-                                y_offset = 159,
-                            },
-                        },
-                    },
-                },
-                [20] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
-                    },
-                    form = {
-                        [1] = {
-                            core = {
-                                y_offset = 83,
-                            },
-                            dynamic_effects = {
-                                y_offset = 159,
-                            },
-                        },
-                        [5] = {
-                            core = {
-                                y_offset = 83,
-                            },
-                            dynamic_effects = {
-                                y_offset = 159,
-                            },
-                        },
-                    },
-                },
-                [30] = {
                     core = {
                         y_offset = 63,
                         width = 35,
@@ -336,30 +252,6 @@ local default = {
                         y_offset = 139,
                     },
                 },
-                [20] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
-                    },
-                },
-                [30] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
-                    },
-                },
             },
         },
         [257] = { -- For Priest Holy
@@ -376,30 +268,6 @@ local default = {
             },
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
-                    },
-                },
-                [20] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
-                    },
-                },
-                [30] = {
                     core = {
                         y_offset = 63,
                         width = 35,
@@ -438,30 +306,6 @@ local default = {
                         y_offset = 139,
                     },
                 },
-                [20] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
-                    },
-                },
-                [30] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
-                    },
-                },
             },
         },
         [270] = { -- For Monk Mistweaver
@@ -478,30 +322,6 @@ local default = {
             },
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
-                    },
-                },
-                [20] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
-                    },
-                },
-                [30] = {
                     core = {
                         y_offset = 63,
                         width = 35,
@@ -540,30 +360,6 @@ local default = {
                         y_offset = 149,
                     },
                 },
-                [20] = {
-                    core = {
-                        y_offset = 73,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 149,
-                    },
-                },
-                [30] = {
-                    core = {
-                        y_offset = 73,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 149,
-                    },
-                },
             },
         },
         [1473] = { -- For Evoker Augmentation
@@ -580,30 +376,6 @@ local default = {
             },
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 73,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 149,
-                    },
-                },
-                [20] = {
-                    core = {
-                        y_offset = 73,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 149,
-                    },
-                },
-                [30] = {
                     core = {
                         y_offset = 73,
                         width = 35,
@@ -1375,12 +1147,21 @@ function H.scanCurrentTotems(totemSlot)
     if totemSlot then
         local haveTotem, totemName, startTime, duration, icon = GetTotemInfo(totemSlot)
         if haveTotem then
-            handleCurrentTotem({
-                name = totemName,
-                duration = duration,
-                expirationTime = startTime + duration,
-                icon = icon,
-            }, totemSlot)
+            local totem = currentTotems.totems and currentTotems.totems[totemSlot]
+            if totem and totem.name ~= totemName then
+                removeCurrentTotem(totemSlot)
+            end
+            local expirationTime = startTime + duration
+            if expirationTime > GetTime() then
+                handleCurrentTotem({
+                    name = totemName,
+                    duration = duration,
+                    expirationTime = expirationTime,
+                    icon = icon,
+                }, totemSlot)
+            else
+                removeCurrentTotem(totemSlot)
+            end
         else
             removeCurrentTotem(totemSlot)
         end
@@ -1389,12 +1170,15 @@ function H.scanCurrentTotems(totemSlot)
         for i = 1, MAX_TOTEMS do
             local haveTotem, totemName, startTime, duration, icon = GetTotemInfo(i)
             if haveTotem then
-                handleCurrentTotem({
-                    name = totemName,
-                    duration = duration,
-                    expirationTime = startTime + duration,
-                    icon = icon,
-                }, i)
+                local expirationTime = startTime + duration
+                if expirationTime > GetTime() then
+                    handleCurrentTotem({
+                        name = totemName,
+                        duration = duration,
+                        expirationTime = expirationTime,
+                        icon = icon,
+                    }, i)
+                end
             end
         end
     end
