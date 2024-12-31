@@ -3,6 +3,8 @@
 
 - Conditions:
 {
+    duration = true,
+    expirationTime = true,
     value = true,
     total = true,
 }
@@ -37,7 +39,7 @@ function(states, event, ...)
                             changed = true,
                             progressType = data.progressType,
                             total = data.total,
-                            value = data.value,
+                            value = 0, -- Use opposite set.
                             init = data.init,
                         }
                     else
