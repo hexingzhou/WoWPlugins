@@ -1,5 +1,5 @@
 --[[
-- Events: UNIT_POWER_FREQUENT, HWA_UPDATE
+- Events: RUNE_POWER_UPDATE, HWA_UPDATE
 
 - Conditions:
 {
