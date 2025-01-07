@@ -53,6 +53,7 @@ env.info = {
         spell = {
             id = 0, -- spellID
             precise = false,
+            pet = false,
             gcd = false,
             range = false,
             health = {

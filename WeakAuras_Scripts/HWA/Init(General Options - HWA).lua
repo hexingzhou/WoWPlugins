@@ -1325,12 +1325,12 @@ local function initSpell(env, showConfig, config, id)
     local spellInfo = C_Spell.GetSpellInfo(id)
     if spellInfo then
         if config.precise then
-            show, dynamic = checkStateShow(showConfig, id)
+            show, dynamic = checkStateShow(showConfig, id, config.pet)
         else
             name = spellInfo.name
             spellInfo = C_Spell.GetSpellInfo(name)
             if spellInfo then
-                show, dynamic = checkStateShow(showConfig, id)
+                show, dynamic = checkStateShow(showConfig, id, config.pet)
             else
                 show, dynamic = false, false
             end
