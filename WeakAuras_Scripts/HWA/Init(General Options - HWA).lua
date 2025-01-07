@@ -397,11 +397,8 @@ local default = {
 HWA = HWA or {}
 
 local function tcontains(t, v)
-    if not t then
+    if not t or not v then
         return false
-    end
-    if not v then
-        return true
     end
     for _, value in ipairs(t) do
         if v == value then
@@ -703,6 +700,19 @@ function H.getFixedShapeshiftFormID()
     return id
 end
 
+function H.getIsSpellKnownStateShow(id, pet, passive, override)
+    if not id then
+        return true
+    end
+    if passive then
+        return IsPlayerSpell(id)
+    end
+    if override then
+        return IsSpellKnownOrOverridesKnown(id, pet)
+    end
+    return IsSpellKnown(id, pet)
+end
+
 local function getStateShow(config)
     if not config then
         return true
@@ -742,14 +752,19 @@ local function getStateShow(config)
     end
 end
 
-local function checkStateShow(config, id)
-    if not config then
-        return true, false
-    end
+local function checkStateShow(config, id, pet)
+    local config = config or {}
 
-    local check = config.func and config.func(id)
-    if check == false then
-        return false, false
+    if id then
+        local check = config.func and config.func(id)
+        if check == false then
+            return false, false
+        end
+
+        check = IsSpellKnownOrOverridesKnown(id, pet)
+        if check == false then
+            return false, false
+        end
     end
 
     local specID = env.specID or 0
@@ -780,13 +795,6 @@ local function checkStateShow(config, id)
     end
 
     return getStateShow(config), dynamic
-end
-
-function H.getIsSpellKnownStateShow(id)
-    if not id then
-        return true
-    end
-    return IsPlayerSpell(id)
 end
 
 -- The init value is used to trigger group grow.
