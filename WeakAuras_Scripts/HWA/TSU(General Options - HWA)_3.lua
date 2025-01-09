@@ -16,12 +16,17 @@ function(states, event, ...)
         end
     elseif "UNIT_HEALTH" == event then
         local unitTarget = ...
-        if unitTarget and H.scanCurrentHealthes then
-            H.scanCurrentHealthes(unitTarget)
+        if unitTarget == "player" or unitTarget == "target" then
+            if H.scanCurrentHealthes then
+                H.scanCurrentHealthes(unitTarget)
+            end
         end
     elseif "PLAYER_TARGET_CHANGED" == event then
         if H.scanCurrentAuras then
             H.scanCurrentAuras("target")
+        end
+        if H.scanCurrentHealthes then
+            H.scanCurrentHealthes("target")
         end
     elseif "PLAYER_TOTEM_UPDATE" == event then
         local totemSlot = ...

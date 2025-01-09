@@ -1,6 +1,24 @@
 --[[
 - Demo:
 {
+    spell = {
+        -- Check if target health <= 35 percents or not.
+        health = {
+            func = function(healthes, state)
+                local health = healthes and healthes["target"] or {}
+                local state = state or {}
+                if health.hasTarget and health.current / health.max < 0.35 then
+                    return state.value ~= true, {
+                        value = true,
+                    }
+                else
+                    return state.value, {
+                        value = false,
+                    }
+                end
+            end,
+        },
+    },
     show = {
         func = function(id)
             local H = HWA or {}
@@ -42,6 +60,19 @@
                 end
             end,
         },
+        -- Health check: if matched health condition, show notice glow.
+        {
+            func = function(env, stateGroup)
+                local health = stateGroup and stateGroup.spell and stateGroup.spell.health or {}
+                if health.value then
+                    return true, {
+                        glow = 2,
+                    }
+                else
+                    return false
+                end
+            end,
+        },
     },
 }
 --]]
@@ -58,7 +89,6 @@ env.info = {
             range = false,
             health = {
                 func = nil,
-                func_string = nil,
             },
         },
         totem = {
