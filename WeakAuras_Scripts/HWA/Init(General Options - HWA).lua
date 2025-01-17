@@ -1300,6 +1300,7 @@ end
 function H.initCurrentAuras()
     H.scanCurrentAuras("player")
     H.scanCurrentAuras("target")
+    H.scanCurrentAuras("pet")
 end
 ---------------- Aura ------------------
 

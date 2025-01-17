@@ -35,7 +35,7 @@ function(states, event, ...)
         end
     elseif "UNIT_AURA" == event then
         local unitTarget, updateInfo = ...
-        if unitTarget == "player" or unitTarget == "target" then
+        if unitTarget == "player" or unitTarget == "target" or unitTarget == "pet" then
             if H.scanCurrentAuras then
                 H.scanCurrentAuras(unitTarget, updateInfo)
             end
