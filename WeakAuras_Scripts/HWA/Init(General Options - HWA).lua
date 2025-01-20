@@ -1660,9 +1660,6 @@ function H.getDefaultTotemStrategyState(env, stateGroup, glow)
         stacks = 0
     end
     local glow = glow or 0
-    if not s.expirationTime or s.expirationTime <= 0 then
-        glow = 0
-    end
     return true,
         {
             progressType = s.progressType,
@@ -1785,9 +1782,6 @@ function H.getDefaultAuraStrategyState(env, stateGroup, glow)
         stacks = s.applications
     end
     local glow = glow or 0
-    if not s.expirationTime or s.expirationTime <= 0 then
-        glow = 0
-    end
     return true,
         {
             progressType = s.progressType,
