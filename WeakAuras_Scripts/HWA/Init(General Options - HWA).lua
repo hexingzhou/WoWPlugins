@@ -95,14 +95,26 @@ local default = {
         horizontal_spacing = 1,
         vertical_spacing = 3,
         max_icon_size_pl = 9,
-        direction = 2, -- 1 for up, 2 for down
+        direction = 1, -- 1 for up, 2 for down
         sub_width = 35,
-        sub_height = 35,
+        sub_height = 33,
         sub_horizontal_spacing = 1,
         sub_vertical_spacing = 3,
         max_sub_icon_size_pl = 11,
         min_sub_icon_size_pl = 3,
         sub_spacing = 3,
+    },
+    utility = {
+        x_offset = 0,
+        y_offset = -55,
+        width = 35,
+        height = 33,
+        horizontal_spacing = 1,
+        vertical_spacing = 3,
+        max_icon_size_pl = 17,
+        direction = 2,
+        grow = 2,
+        grow_x_offset = 0,
     },
     -- resource config is used for single resource, such as power of Mana. So y_offset may be set by progress bar self.
     resource = {
@@ -114,7 +126,7 @@ local default = {
     },
     dynamic_effects = {
         x_offset = -198,
-        y_offset = 105,
+        y_offset = 123,
         width = 43,
         height = 43,
         horizontal_spacing = 1,
@@ -130,20 +142,29 @@ local default = {
         height = 43,
         horizontal_spacing = 1,
         vertical_spacing = 3,
-        max_icon_size_pl = 14,
-        direction = 1,
+        max_icon_size_pl = 9,
+        direction = 2,
     },
     form = {
         -- Use ShapeshiftFormID to support different form.
         [1] = { -- For Druid Cat Form
-            core = {},
+            core = {
+                sub_spacing = 23,
+            },
         },
         [5] = { -- For Druid Bear Form
-            core = {},
+            core = {
+                sub_spacing = 20,
+            },
+        },
+        [31] = { -- For Druid Moonkin Form
+            core = {
+                sub_spacing = 20,
+            },
         },
     },
     group = {
-        [1] = {
+        [0] = {
             core = {},
             form = {},
         },
@@ -152,239 +173,207 @@ local default = {
         -- Use SpecializationID to support different duty.
         [65] = { -- For Paladin Holy
             core = {
-                max_icon_size_pl = 14,
-                max_sub_icon_size_pl = 17,
-            },
-            resource = {
-                total_width = 615,
-            },
-            dynamic_effects = {
-                x_offset = -308,
-                max_icon_size_pl = 14,
+                sub_spacing = 13,
             },
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 73,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 149,
+                    utility = {
+                        max_icon_size_pl = 6,
+                        grow = 4,
+                        grow_x_offset = 307,
                     },
                 },
+            },
+        },
+        [66] = { -- For Paladin Protection
+            core = {
+                sub_spacing = 13,
+            },
+        },
+        [70] = { -- For Paladin Retribution
+            core = {
+                sub_spacing = 13,
+            },
+        },
+        [71] = { -- For Warrior Arms
+            core = {
+                sub_spacing = 20,
+            },
+        },
+        [72] = { -- For Warrior Fury
+            core = {
+                sub_spacing = 20,
+            },
+        },
+        [73] = { -- For Warrior Protection
+            core = {
+                sub_spacing = 20,
             },
         },
         [105] = { -- For Druid Restoration
-            core = {
-                max_icon_size_pl = 14,
-                max_sub_icon_size_pl = 17,
-            },
-            resource = {
-                total_width = 615,
-            },
-            dynamic_effects = {
-                x_offset = -308,
-                max_icon_size_pl = 14,
-            },
-            form = {
-                [1] = {
-                    core = {},
-                },
-            },
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
-                    },
-                    form = {
-                        [1] = {
-                            core = {
-                                y_offset = 83,
-                            },
-                            dynamic_effects = {
-                                y_offset = 159,
-                            },
-                        },
-                        [5] = {
-                            core = {
-                                y_offset = 83,
-                            },
-                            dynamic_effects = {
-                                y_offset = 159,
-                            },
-                        },
+                    utility = {
+                        max_icon_size_pl = 6,
+                        grow = 4,
+                        grow_x_offset = 307,
                     },
                 },
             },
         },
-        [256] = { -- For Priest Discipline
+        [250] = { -- For Death Knight Blood
             core = {
-                max_icon_size_pl = 14,
-                max_sub_icon_size_pl = 17,
+                sub_spacing = 23,
             },
-            resource = {
-                total_width = 615,
+        },
+        [251] = { -- For Death Knight Frost
+            core = {
+                sub_spacing = 23,
             },
-            dynamic_effects = {
-                x_offset = -308,
-                max_icon_size_pl = 14,
+        },
+        [252] = { -- For Death Knight Unholy
+            core = {
+                sub_spacing = 23,
             },
+        },
+        [253] = { -- For Hunter Beast Mastery
+            core = {
+                sub_spacing = 20,
+            },
+        },
+        [254] = { -- For Hunter Marksmanship
+            core = {
+                sub_spacing = 20,
+            },
+        },
+        [255] = { -- For Hunter Survival
+            core = {
+                sub_spacing = 20,
+            },
+        },
+        [256] = { -- For Priest Discipline
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
+                    utility = {
+                        max_icon_size_pl = 6,
+                        grow = 4,
+                        grow_x_offset = 307,
                     },
                 },
             },
         },
         [257] = { -- For Priest Holy
-            core = {
-                max_icon_size_pl = 14,
-                max_sub_icon_size_pl = 17,
-            },
-            resource = {
-                total_width = 615,
-            },
-            dynamic_effects = {
-                x_offset = -308,
-                max_icon_size_pl = 14,
-            },
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
+                    utility = {
+                        max_icon_size_pl = 6,
+                        grow = 4,
+                        grow_x_offset = 307,
                     },
                 },
+            },
+        },
+        [259] = { -- For Rogue Assassination
+            core = {
+                sub_spacing = 23,
+            },
+        },
+        [260] = { -- For Rogue Outlaw
+            core = {
+                sub_spacing = 23,
+            },
+        },
+        [261] = { -- For Rogue Subtlety
+            core = {
+                sub_spacing = 23,
+            },
+        },
+        [262] = { -- For Shaman Elemental
+            core = {
+                sub_spacing = 20,
+            },
+        },
+        [263] = { -- For Shaman Enhancement
+            core = {
+                sub_spacing = 20,
             },
         },
         [264] = { -- For Shaman Restoration
-            core = {
-                max_icon_size_pl = 14,
-                max_sub_icon_size_pl = 17,
-            },
-            resource = {
-                total_width = 615,
-            },
-            dynamic_effects = {
-                x_offset = -308,
-                max_icon_size_pl = 14,
-            },
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
+                    utility = {
+                        max_icon_size_pl = 6,
+                        grow = 4,
+                        grow_x_offset = 307,
                     },
                 },
             },
         },
-        [270] = { -- For Monk Mistweaver
+        [265] = { -- For Warlock Affliction
             core = {
-                max_icon_size_pl = 14,
-                max_sub_icon_size_pl = 17,
+                sub_spacing = 13,
             },
-            resource = {
-                total_width = 615,
+        },
+        [266] = { -- For Warlock Demonology
+            core = {
+                sub_spacing = 13,
             },
-            dynamic_effects = {
-                x_offset = -308,
-                max_icon_size_pl = 14,
+        },
+        [267] = { -- For Warlock Destruction
+            core = {
+                sub_spacing = 13,
             },
+        },
+        [270] = { -- For Monk Mistweaver
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 63,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 139,
+                    utility = {
+                        max_icon_size_pl = 6,
+                        grow = 4,
+                        grow_x_offset = 307,
                     },
                 },
+            },
+        },
+        [577] = { -- For Demon Hunter Havoc
+            core = {
+                sub_spacing = 20,
+            },
+        },
+        [581] = { -- For Demon Hunter Vengeance
+            core = {
+                sub_spacing = 20,
+            },
+        },
+        [1467] = { -- For Evoker Devastation
+            core = {
+                sub_spacing = 13,
             },
         },
         [1468] = { -- For Evoker Preservation
             core = {
-                max_icon_size_pl = 14,
-                max_sub_icon_size_pl = 17,
-            },
-            resource = {
-                total_width = 615,
-            },
-            dynamic_effects = {
-                x_offset = -308,
-                max_icon_size_pl = 14,
+                sub_spacing = 13,
             },
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 73,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 149,
+                    utility = {
+                        max_icon_size_pl = 6,
+                        grow = 4,
+                        grow_x_offset = 307,
                     },
                 },
             },
         },
         [1473] = { -- For Evoker Augmentation
             core = {
-                max_icon_size_pl = 14,
-                max_sub_icon_size_pl = 17,
-            },
-            resource = {
-                total_width = 615,
-            },
-            dynamic_effects = {
-                x_offset = -308,
-                max_icon_size_pl = 14,
+                sub_spacing = 13,
             },
             group = {
                 [5] = {
-                    core = {
-                        y_offset = 73,
-                        width = 35,
-                        height = 35,
-                        max_icon_size_pl = 17,
-                        direction = 1,
-                    },
-                    dynamic_effects = {
-                        y_offset = 149,
+                    utility = {
+                        max_icon_size_pl = 6,
+                        grow = 4,
+                        grow_x_offset = 307,
                     },
                 },
             },
@@ -2299,7 +2288,7 @@ local function baseGrow(
                 maxCount,
                 #leftActiveRegions,
                 3,
-                xOffset - growXOffset,
+                xOffset - ((width - 1) / 2 + 1) - growXOffset,
                 yOffset,
                 0
             )
@@ -2321,7 +2310,7 @@ local function baseGrow(
                 maxCount,
                 #rightActiveRegions,
                 1,
-                xOffset + growXOffset,
+                xOffset + ((width - 1) / 2 + 1) + growXOffset,
                 yOffset,
                 0
             )
@@ -2490,6 +2479,8 @@ function H.utilityGrow(newPositions, activeRegions, class)
         direction = -1
     end
     local maxSize = config.max_icon_size_pl
+    local growType = config.grow
+    local growXOffset = config.grow_x_offset
 
     baseGrow(
         newPositions,
@@ -2502,10 +2493,10 @@ function H.utilityGrow(newPositions, activeRegions, class)
         0,
         maxSize,
         #activeRegions,
-        2,
+        growType,
         xOffset,
         yOffset,
-        0
+        growXOffset
     )
 end
 
