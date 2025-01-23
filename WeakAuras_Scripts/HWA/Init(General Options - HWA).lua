@@ -2270,8 +2270,67 @@ local function baseGrow(
     remainCount,
     growType,
     xOffset,
-    yOffset
+    yOffset,
+    growXOffset
 )
+    if growType == 4 then
+        local min = #activeRegions - remainCount
+        local mid = (remainCount + 1) / 2
+        local leftActiveRegions = {}
+        local rightActiveRegions = {}
+        for i = min + 1, #activeRegions do
+            if i > min + mid then
+                table.insert(rightActiveRegions, activeRegions[i])
+            else
+                table.insert(leftActiveRegions, activeRegions[i])
+            end
+        end
+        if #leftActiveRegions > 0 then
+            local leftNewPositions = {}
+            baseGrow(
+                leftNewPositions,
+                leftActiveRegions,
+                width,
+                height,
+                hSpacing,
+                vSpacing,
+                direction,
+                minCount,
+                maxCount,
+                #leftActiveRegions,
+                3,
+                xOffset - growXOffset,
+                yOffset,
+                0
+            )
+            for i = 1, #leftNewPositions do
+                newPositions[min + i] = leftNewPositions[i]
+            end
+        end
+        if #rightActiveRegions > 0 then
+            local rightNewPositions = {}
+            baseGrow(
+                rightNewPositions,
+                rightActiveRegions,
+                width,
+                height,
+                hSpacing,
+                vSpacing,
+                direction,
+                minCount,
+                maxCount,
+                #rightActiveRegions,
+                1,
+                xOffset + growXOffset,
+                yOffset,
+                0
+            )
+            for i = 1, #rightNewPositions do
+                newPositions[min + #leftActiveRegions + i] = rightNewPositions[i]
+            end
+        end
+        return
+    end
     local grow = 1
     if growType == 3 then
         grow = -1
@@ -2408,12 +2467,49 @@ function H.coreGrow(newPositions, activeRegions, class)
             maxOverflow,
             2,
             xOffset,
-            (subSpacing + (height - 1) / 2 + (subHeight - 1) / 2 + 1) * direction + yOffset
+            (subSpacing + (height - 1) / 2 + (subHeight - 1) / 2 + 1) * direction + yOffset,
+            0
         )
     end
 end
 
 function H.coreSort(a, b)
+    return baseSort(a, b)
+end
+
+function H.utilityGrow(newPositions, activeRegions, class)
+    local config = H.getConfig("utility", class)
+    local xOffset = config.x_offset
+    local yOffset = config.y_offset
+    local width = config.width
+    local height = config.height
+    local hSpacing = config.horizontal_spacing
+    local vSpacing = config.vertical_spacing
+    local direction = 1
+    if config.direction == 2 then
+        direction = -1
+    end
+    local maxSize = config.max_icon_size_pl
+
+    baseGrow(
+        newPositions,
+        activeRegions,
+        width,
+        height,
+        hSpacing,
+        vSpacing,
+        direction,
+        0,
+        maxSize,
+        #activeRegions,
+        2,
+        xOffset,
+        yOffset,
+        0
+    )
+end
+
+function H.utilitySort(a, b)
     return baseSort(a, b)
 end
 
@@ -2471,7 +2567,8 @@ function H.dynamicEffectsGrow(newPositions, activeRegions, class)
         #activeRegions,
         growType,
         x0,
-        yOffset
+        yOffset,
+        0
     )
 end
 
@@ -2506,7 +2603,8 @@ function H.maintenanceGrow(newPositions, activeRegions, class)
         #activeRegions,
         2,
         xOffset,
-        yOffset
+        yOffset,
+        0
     )
 end
 
