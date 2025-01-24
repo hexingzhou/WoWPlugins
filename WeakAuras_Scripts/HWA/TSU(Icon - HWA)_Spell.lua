@@ -77,6 +77,7 @@ function(states, event, ...)
                     expirationTime = data.expirationTime,
                     icon = data.icon,
                     stacks = data.stacks,
+                    text = data.text,
                     charges = data.charges,
                     isUsable = data.isUsable,
                     noResource = data.noResource,

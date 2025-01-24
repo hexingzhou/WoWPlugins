@@ -48,6 +48,7 @@ function(states, event, ...)
                     duration = data.duration,
                     expirationTime = data.expirationTime,
                     stacks = data.stacks,
+                    text = data.text,
                     priority = data.priority,
                     init = data.init,
                 }

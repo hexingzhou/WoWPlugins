@@ -92,6 +92,7 @@ function(states, event, ...)
                             expirationTime = data.expirationTime,
                             icon = data.icon,
                             stacks = data.stacks,
+                            text = data.text,
                             glow = data.glow,
                             index = data.index,
                             priority = data.priority,

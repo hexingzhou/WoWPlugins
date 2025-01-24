@@ -106,7 +106,7 @@ local default = {
     },
     utility = {
         x_offset = 0,
-        y_offset = -55,
+        y_offset = -75,
         width = 35,
         height = 33,
         horizontal_spacing = 1,
@@ -126,7 +126,7 @@ local default = {
     },
     dynamic_effects = {
         x_offset = -198,
-        y_offset = 123,
+        y_offset = 145,
         width = 43,
         height = 43,
         horizontal_spacing = 1,
@@ -180,7 +180,7 @@ local default = {
                     utility = {
                         max_icon_size_pl = 6,
                         grow = 4,
-                        grow_x_offset = 307,
+                        grow_x_offset = 323,
                     },
                 },
             },
@@ -216,7 +216,7 @@ local default = {
                     utility = {
                         max_icon_size_pl = 6,
                         grow = 4,
-                        grow_x_offset = 307,
+                        grow_x_offset = 323,
                     },
                 },
             },
@@ -257,7 +257,7 @@ local default = {
                     utility = {
                         max_icon_size_pl = 6,
                         grow = 4,
-                        grow_x_offset = 307,
+                        grow_x_offset = 323,
                     },
                 },
             },
@@ -268,7 +268,7 @@ local default = {
                     utility = {
                         max_icon_size_pl = 6,
                         grow = 4,
-                        grow_x_offset = 307,
+                        grow_x_offset = 323,
                     },
                 },
             },
@@ -304,7 +304,7 @@ local default = {
                     utility = {
                         max_icon_size_pl = 6,
                         grow = 4,
-                        grow_x_offset = 307,
+                        grow_x_offset = 323,
                     },
                 },
             },
@@ -330,7 +330,7 @@ local default = {
                     utility = {
                         max_icon_size_pl = 6,
                         grow = 4,
-                        grow_x_offset = 307,
+                        grow_x_offset = 323,
                     },
                 },
             },
@@ -359,7 +359,7 @@ local default = {
                     utility = {
                         max_icon_size_pl = 6,
                         grow = 4,
-                        grow_x_offset = 307,
+                        grow_x_offset = 323,
                     },
                 },
             },
@@ -373,7 +373,7 @@ local default = {
                     utility = {
                         max_icon_size_pl = 6,
                         grow = 4,
-                        grow_x_offset = 307,
+                        grow_x_offset = 323,
                     },
                 },
             },
@@ -2023,11 +2023,13 @@ local function getCoreState(env, cache, config, id)
         end
         local r, s = getCoreStrategyState(env, config.strategy, state, totemStates, auraStates)
         if r and s then
+            state.text = s.text
             state.subDuration = s.duration
             state.subExpirationTime = s.expirationTime
             state.subStacks = s.stacks
             state.glow = s.glow
         else
+            state.text = nil
             state.subDuration = 0
             state.subExpirationTime = 0
             state.subStacks = 0

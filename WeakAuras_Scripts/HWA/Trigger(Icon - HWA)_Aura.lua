@@ -73,6 +73,16 @@ function()
     return 0, 0
 end
 
+-- Name Info
+function()
+    local env = aura_env or {}
+    local key = "AURA"
+    local data = env.result and env.result[key]
+    if data then
+        return data.text
+    end
+end
+
 -- Stack Info
 function()
     local env = aura_env or {}

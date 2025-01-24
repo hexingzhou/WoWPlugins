@@ -28,6 +28,15 @@
         end,
     },
     strategy = {
+        -- Name info support: to show "XXX" as text.
+        {
+            func = function(env, stateGroup)
+                return true, {
+                    text = "XXX",
+                }
+            end,
+        },
+        -- Default only show cooldown.
         {
             func = function(env, stateGroup)
                 local H = HWA or {}
@@ -36,6 +45,7 @@
                 end
             end,
         },
+        -- Nomal show cooldown and splash glow.
         {
             func = function(env, stateGroup)
                 local H = HWA or {}
@@ -44,6 +54,7 @@
                 end
             end,
         },
+        -- Notice show cooldown and auto skill glow.
         {
             func = function(env, stateGroup)
                 local H = HWA or {}
@@ -52,6 +63,7 @@
                 end
             end,
         },
+        -- Important show cooldown and skill high-light.
         {
             func = function(env, stateGroup)
                 local H = HWA or {}
