@@ -16,7 +16,8 @@ function()
         if stacks == 0 then
             stacks = nil
         end
+        local text = env.state.text
 
-        return cooldown, stacks
+        return cooldown, stacks, text
     end
 end

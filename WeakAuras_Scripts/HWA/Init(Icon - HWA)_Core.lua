@@ -28,12 +28,22 @@
         end,
     },
     strategy = {
-        -- Name info support: to show "XXX" as text.
+        -- Show "YYY" with aura XX.
         {
+            match = {
+                aura = {
+                    XX,
+                },
+            },
             func = function(env, stateGroup)
-                return true, {
-                    text = "XXX",
-                }
+                local H = HWA or {}
+                if H.getDefaultCoreStrategyState then
+                    local r, s = H.getDefaultCoreStrategyState(env, stateGroup)
+                    if r and s then
+                        s.text = "YYY"
+                    end
+                    return r, s
+                end
             end,
         },
         -- Default only show cooldown.

@@ -106,12 +106,12 @@ local default = {
     },
     utility = {
         x_offset = 0,
-        y_offset = -75,
+        y_offset = -55,
         width = 35,
         height = 33,
         horizontal_spacing = 1,
         vertical_spacing = 3,
-        max_icon_size_pl = 17,
+        max_icon_size_pl = 11,
         direction = 2,
         grow = 2,
         grow_x_offset = 0,
@@ -119,14 +119,14 @@ local default = {
     -- resource config is used for single resource, such as power of Mana. So y_offset may be set by progress bar self.
     resource = {
         x_offset = 0,
-        y_offset = 0,
+        y_offset = 38,
         total_width = 395,
-        height = 7,
+        height = 5,
         horizontal_spacing = 3,
     },
     dynamic_effects = {
         x_offset = -198,
-        y_offset = 145,
+        y_offset = 110,
         width = 43,
         height = 43,
         horizontal_spacing = 1,
@@ -149,17 +149,29 @@ local default = {
         -- Use ShapeshiftFormID to support different form.
         [1] = { -- For Druid Cat Form
             core = {
-                sub_spacing = 23,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [5] = { -- For Druid Bear Form
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [31] = { -- For Druid Moonkin Form
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
     },
@@ -173,7 +185,11 @@ local default = {
         -- Use SpecializationID to support different duty.
         [65] = { -- For Paladin Holy
             core = {
-                sub_spacing = 13,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 11,
             },
             group = {
                 [5] = {
@@ -187,27 +203,47 @@ local default = {
         },
         [66] = { -- For Paladin Protection
             core = {
-                sub_spacing = 13,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 11,
             },
         },
         [70] = { -- For Paladin Retribution
             core = {
-                sub_spacing = 13,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 11,
             },
         },
         [71] = { -- For Warrior Arms
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [72] = { -- For Warrior Fury
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [73] = { -- For Warrior Protection
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [105] = { -- For Druid Restoration
@@ -223,32 +259,56 @@ local default = {
         },
         [250] = { -- For Death Knight Blood
             core = {
-                sub_spacing = 23,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [251] = { -- For Death Knight Frost
             core = {
-                sub_spacing = 23,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [252] = { -- For Death Knight Unholy
             core = {
-                sub_spacing = 23,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [253] = { -- For Hunter Beast Mastery
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [254] = { -- For Hunter Marksmanship
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [255] = { -- For Hunter Survival
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [256] = { -- For Priest Discipline
@@ -275,27 +335,47 @@ local default = {
         },
         [259] = { -- For Rogue Assassination
             core = {
-                sub_spacing = 23,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [260] = { -- For Rogue Outlaw
             core = {
-                sub_spacing = 23,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [261] = { -- For Rogue Subtlety
             core = {
-                sub_spacing = 23,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [262] = { -- For Shaman Elemental
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [263] = { -- For Shaman Enhancement
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [264] = { -- For Shaman Restoration
@@ -311,17 +391,29 @@ local default = {
         },
         [265] = { -- For Warlock Affliction
             core = {
-                sub_spacing = 13,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 11,
             },
         },
         [266] = { -- For Warlock Demonology
             core = {
-                sub_spacing = 13,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 11,
             },
         },
         [267] = { -- For Warlock Destruction
             core = {
-                sub_spacing = 13,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 11,
             },
         },
         [270] = { -- For Monk Mistweaver
@@ -337,22 +429,38 @@ local default = {
         },
         [577] = { -- For Demon Hunter Havoc
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [581] = { -- For Demon Hunter Vengeance
             core = {
-                sub_spacing = 20,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 19,
             },
         },
         [1467] = { -- For Evoker Devastation
             core = {
-                sub_spacing = 13,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 11,
             },
         },
         [1468] = { -- For Evoker Preservation
             core = {
-                sub_spacing = 13,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 11,
             },
             group = {
                 [5] = {
@@ -366,7 +474,11 @@ local default = {
         },
         [1473] = { -- For Evoker Augmentation
             core = {
-                sub_spacing = 13,
+                y_offset = 16,
+                width = 35,
+                height = 33,
+                max_icon_size_pl = 11,
+                sub_spacing = 11,
             },
             group = {
                 [5] = {
